@@ -121,8 +121,14 @@ grep -q "config-sentinel-do-not-lose" "$OLD/config.php" \
 [ ! -d "$OLD/cache/evebb_update_tmp" ] && ok "temp files cleaned up" || fail "temp files cleaned up"
 [ ! -f "$OLD/cache/evebb_update.zip" ] && ok "downloaded zip cleaned up" || fail "downloaded zip cleaned up"
 
-curl -s -b "$JAR" "$BASE/index.php" -o "$WORK/after.html"
-assert_contains "$WORK/after.html" "Update Test" "forum works after update"
+curl -s -b "$JAR" -L "$BASE/index.php" -o "$WORK/after.html" -w "%{http_code} %{url_effective}\n" > "$WORK/after.meta"
+if grep -qF "Update Test" "$WORK/after.html"; then
+  ok "forum works after update"
+else
+  fail "forum works after update (missing: Update Test)"
+  echo "    | $(cat "$WORK/after.meta")"
+  sed -n '1,12p' "$WORK/after.html" | sed 's/^/    | /'
+fi
 curl -s -b "$JAR" -e "$BASE/admin_maintenance.php" "$BASE/admin_maintenance.php?action=check_update" -o "$WORK/check2.html"
 assert_contains "$WORK/check2.html" "You are running the latest release" "now reports up to date"
 
