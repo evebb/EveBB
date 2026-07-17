@@ -48,7 +48,7 @@ function evebb_http_get($url, $timeout = 30)
 		));
 		$body = curl_exec($ch);
 		$status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
-		curl_close($ch);
+		unset($ch); // curl handles are garbage-collected; curl_close() is deprecated in PHP 8.5
 
 		return ($body !== false && $status >= 200 && $status < 300) ? $body : false;
 	}

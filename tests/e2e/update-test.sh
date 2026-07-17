@@ -40,7 +40,11 @@ echo "== self-updater e2e =="
 
 # --- build the "old" installation (current code, version lowered) ----------
 mkdir -p "$OLD"
-tar -C "$ROOT" --exclude=.git --exclude=tests --exclude=.github -cf - . | tar -C "$OLD" -xf -
+# exclude any config.php / caches a previous test run left in the tree —
+# with a config.php present the installer would silently skip
+tar -C "$ROOT" --exclude=.git --exclude=tests --exclude=.github \
+    --exclude=config.php --exclude='cache/cache_*.php' -cf - . | tar -C "$OLD" -xf -
+rm -f "$OLD/config.php" "$OLD"/cache/cache_*.php
 sed -i "s/define('FORUM_VERSION', '[^']*');/define('FORUM_VERSION', '0.9.0');/" "$OLD/include/common.php"
 grep -q "0.9.0" "$OLD/include/common.php" && ok "old install prepared (0.9.0)" || fail "old install prepared"
 
@@ -83,7 +87,11 @@ curl -s -o /dev/null "$BASE/install.php" \
   --data-urlencode "req_base_url=$BASE" \
   --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Air" \
   --data-urlencode "start=Start install"
-[ -f "$OLD/config.php" ] && ok "old forum installed" || fail "old forum installed"
+if [ -f "$OLD/config.php" ] && grep -qF "forum.sqlite" "$OLD/config.php"; then
+  ok "old forum installed"
+else
+  fail "old forum installed (config missing or not pointing at the test database)"
+fi
 
 # point the updater at the local feed, and mark config so we can prove
 # it survives the update
