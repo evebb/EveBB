@@ -111,3 +111,6 @@ jobs:
 
       - name: Self-updater end-to-end test
         run: ./tests/e2e/update-test.sh
+
+      - name: Toolbar plugin end-to-end test
+        run: ./tests/e2e/toolbar-test.sh

@@ -157,6 +157,9 @@ function process_form(the_form)
 if (!empty($page_head))
 	echo implode("\n", $page_head)."\n";
 
+// Give addons a chance to output extra markup into <head>
+flux_hook('header_head_end');
+
 $tpl_temp = trim(ob_get_contents());
 $tpl_main = str_replace('<pun_head>', $tpl_temp, $tpl_main);
 ob_end_clean();

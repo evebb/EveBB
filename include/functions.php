@@ -665,7 +665,10 @@ function flux_hook($name)
 {
 	global $flux_addons;
 
-	$flux_addons->hook($name);
+	// The manager only exists once common.php has run; standalone
+	// includes (tests, helper pages) simply have no addons
+	if (isset($flux_addons) && $flux_addons instanceof flux_addon_manager)
+		$flux_addons->hook($name);
 }
 
 

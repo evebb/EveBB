@@ -59,6 +59,13 @@ $smilies = array(
 	':rolleyes:' => 'roll.png',
 	':cool:' => 'cool.png');
 
+// Base path (relative to the forum root) for smiley images. Addons may
+// override $smilies and/or $smiley_base through the parser_smilies hook.
+$smiley_base = 'img/smilies';
+
+if (function_exists('flux_hook'))
+	flux_hook('parser_smilies');
+
 //
 // Make sure all BBCodes are lower case and do a little cleanup
 //
@@ -902,14 +909,18 @@ function forum_array_key($arr, $key)
 //
 function do_smilies($text)
 {
-	global $smilies;
+	global $smilies, $smiley_base;
+
+	$base = isset($smiley_base) ? $smiley_base : 'img/smilies';
+	// The stock 15x15 size only applies to the bundled smiley set
+	$size_attrs = ($base == 'img/smilies') ? ' width="15" height="15"' : '';
 
 	$text = ' '.$text.' ';
 
 	foreach ($smilies as $smiley_text => $smiley_img)
 	{
 		if (strpos($text, $smiley_text) !== false)
-			$text = ucp_preg_replace('%(?<=[>\s])'.preg_quote($smiley_text, '%').'(?=[^\p{L}\p{N}])%um', '<img src="'.pun_htmlspecialchars(get_base_url(true).'/img/smilies/'.$smiley_img).'" width="15" height="15" alt="'.substr($smiley_img, 0, strrpos($smiley_img, '.')).'" />', $text);
+			$text = ucp_preg_replace('%(?<=[>\s])'.preg_quote($smiley_text, '%').'(?=[^\p{L}\p{N}])%um', '<img src="'.pun_htmlspecialchars(get_base_url(true).'/'.$base.'/'.$smiley_img).'"'.$size_attrs.' alt="'.substr($smiley_img, 0, strrpos($smiley_img, '.')).'" />', $text);
 	}
 
 	return substr($text, 1, -1);
