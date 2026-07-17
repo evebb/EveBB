@@ -15,6 +15,7 @@ PORT="${PORT:-$((8200 + RANDOM % 500))}"
 FEED_PORT="${FEED_PORT:-$((8700 + RANDOM % 500))}"
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+CURRENT_VERSION=$(grep -oE "define\('FORUM_VERSION', '[^']+'\)" "$ROOT/include/common.php" | grep -oE "'[0-9][^']*'" | tr -d "'")
 BASE="http://127.0.0.1:$PORT"
 FEED="http://127.0.0.1:$FEED_PORT"
 WORK="$(mktemp -d)"
@@ -49,19 +50,19 @@ sed -i "s/define('FORUM_VERSION', '[^']*');/define('FORUM_VERSION', '0.9.0');/" 
 grep -q "0.9.0" "$OLD/include/common.php" && ok "old install prepared (0.9.0)" || fail "old install prepared"
 
 # --- build the release package + feed --------------------------------------
-PKG="$WORK/feed/evebb-1.0.0-alpha.zip"
+PKG="$WORK/feed/evebb-$CURRENT_VERSION.zip"
 mkdir -p "$WORK/feed"
 (cd "$ROOT" && zip -rq "$PKG" . -x '.git/*' -x 'tests/*' -x '.github/*' -x 'config.php' -x 'cache/cache_*.php')
 cat > "$WORK/feed/releases.json" <<EOF
 [
   {
-    "tag_name": "v1.0.0-alpha",
+    "tag_name": "v$CURRENT_VERSION",
     "draft": false,
     "prerelease": true,
     "html_url": "$FEED/notes",
-    "zipball_url": "$FEED/evebb-1.0.0-alpha.zip",
+    "zipball_url": "$FEED/evebb-$CURRENT_VERSION.zip",
     "assets": [
-      {"name": "evebb-1.0.0-alpha.zip", "browser_download_url": "$FEED/evebb-1.0.0-alpha.zip"}
+      {"name": "evebb-$CURRENT_VERSION.zip", "browser_download_url": "$FEED/evebb-$CURRENT_VERSION.zip"}
     ]
   }
 ]
@@ -112,19 +113,19 @@ assert_contains "$WORK/maint.html" "Check for updates" "check button present"
 
 # --- check for updates -----------------------------------------------------
 curl -s -b "$JAR" -e "$BASE/admin_maintenance.php" "$BASE/admin_maintenance.php?action=check_update" -o "$WORK/check.html"
-assert_contains "$WORK/check.html" "A new release is available: eveBB 1.0.0-alpha" "new release detected"
-assert_contains "$WORK/check.html" "Update to 1.0.0-alpha" "update button offered"
+assert_contains "$WORK/check.html" "A new release is available: eveBB $CURRENT_VERSION" "new release detected"
+assert_contains "$WORK/check.html" "Update to $CURRENT_VERSION" "update button offered"
 
 # --- run the one-click update ----------------------------------------------
 TOKEN=$(grep -oE 'name="csrf_token" value="[a-f0-9]+"' "$WORK/check.html" | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -b "$JAR" -e "$BASE/admin_maintenance.php" -o "$WORK/update.html" "$BASE/admin_maintenance.php" \
   --data-urlencode "action=do_update" \
   --data-urlencode "csrf_token=$TOKEN"
-assert_contains "$WORK/update.html" "The forum was updated to eveBB 1.0.0-alpha" "update reports success"
+assert_contains "$WORK/update.html" "The forum was updated to eveBB $CURRENT_VERSION" "update reports success"
 
 # --- verify the results on disk and over HTTP ------------------------------
-grep -q "define('FORUM_VERSION', '1.0.0-alpha')" "$OLD/include/common.php" \
-  && ok "files replaced (FORUM_VERSION now 1.0.0-alpha)" || fail "files replaced"
+grep -q "define('FORUM_VERSION', '$CURRENT_VERSION')" "$OLD/include/common.php" \
+  && ok "files replaced (FORUM_VERSION now $CURRENT_VERSION)" || fail "files replaced"
 grep -q "config-sentinel-do-not-lose" "$OLD/config.php" \
   && ok "config.php preserved" || fail "config.php preserved"
 [ ! -d "$OLD/cache/evebb_update_tmp" ] && ok "temp files cleaned up" || fail "temp files cleaned up"
