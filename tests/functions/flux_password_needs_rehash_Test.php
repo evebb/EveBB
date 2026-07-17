@@ -6,7 +6,7 @@ require_once __DIR__.'/../../include/functions.php';
 
 class flux_password_needs_rehash_Test extends TestCase
 {
-	public function setUp()
+	public function setUp(): void
 	{
 		$GLOBALS['password_hash_cost'] = 10;
 	}
