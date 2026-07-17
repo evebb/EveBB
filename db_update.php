@@ -113,6 +113,13 @@ if (!file_exists(PUN_ROOT.'lang/'.$default_lang.'/update.php'))
 require PUN_ROOT.'lang/'.$default_lang.'/common.php';
 require PUN_ROOT.'lang/'.$default_lang.'/update.php';
 
+// The re-preparse stages run the BBCode preparser, which consults the
+// current user's link permission. There is no logged-in user here, and
+// a migration must never strip anyone's links - preparse permissively.
+// (Inherited FluxBB bug: this was previously unset, which silently
+// forbade [url] tags during re-preparsing.)
+$pun_user = array('g_post_links' => '1');
+
 // Check current version
 $cur_version = $pun_config['o_cur_version'];
 

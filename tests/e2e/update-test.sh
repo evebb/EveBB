@@ -137,11 +137,28 @@ grep -q "config-sentinel-do-not-lose" "$OLD/config.php" \
 [ ! -d "$OLD/cache/evebb_update_tmp" ] && ok "temp files cleaned up" || fail "temp files cleaned up"
 [ ! -f "$OLD/cache/evebb_update.zip" ] && ok "downloaded zip cleaned up" || fail "downloaded zip cleaned up"
 
-# the database still records 0.9.0, so the forum must now demand the
-# database update wizard (regression check for the eveBB-version
-# mismatch bug: 1.0.x compares lower than FluxBB's 1.2 floor)
+# scenario A: a version-only release (no schema changes, the common
+# case for one-click updates) must finish silently - no wizard, no
+# database password prompt, the forum just works
 curl -s -b "$JAR" -o /dev/null -w "%{url_effective}" -L "$BASE/index.php" | grep -q "db_update.php" \
-  && ok "redirected to database update" || fail "redirected to database update"
+  && fail "version-only update finishes silently" || ok "version-only update finishes silently"
+
+curl -s -b "$JAR" -L "$BASE/index.php" -o "$WORK/after.html" -w "%{http_code} %{url_effective}\n" > "$WORK/after.meta"
+if grep -qF "Update Test" "$WORK/after.html"; then
+  ok "forum works immediately after update"
+else
+  fail "forum works immediately after update (missing: Update Test)"
+  echo "    | $(cat "$WORK/after.meta")"
+  sed -n '1,12p' "$WORK/after.html" | sed 's/^/    | /'
+fi
+
+# scenario B: a release that DOES change the database still routes
+# through the guided update. Simulate one by lowering the parser
+# revision (its migration - re-preparsing posts - is safe to re-run).
+php -r '$p = new PDO("sqlite:'"$WORK"'/forum.sqlite"); $p->exec("UPDATE config SET conf_value = \"1\" WHERE conf_name = \"o_parser_revision\"");'
+rm -f "$OLD"/cache/cache_config.php
+curl -s -b "$JAR" -o /dev/null -w "%{url_effective}" -L "$BASE/index.php" | grep -q "db_update.php" \
+  && ok "schema change routes to database update" || fail "schema change routes to database update"
 
 curl -s -b "$JAR" "$BASE/db_update.php" -o "$WORK/dbup.html"
 assert_not_contains "$WORK/dbup.html" "Version mismatch" "eveBB version accepted by db_update"
@@ -161,14 +178,8 @@ for i in $(seq 1 30); do
 done
 assert_contains "$WORK/dbup2.html" "successfully updated" "database update completes"
 
-curl -s -b "$JAR" -L "$BASE/index.php" -o "$WORK/after.html" -w "%{http_code} %{url_effective}\n" > "$WORK/after.meta"
-if grep -qF "Update Test" "$WORK/after.html"; then
-  ok "forum works after update"
-else
-  fail "forum works after update (missing: Update Test)"
-  echo "    | $(cat "$WORK/after.meta")"
-  sed -n '1,12p' "$WORK/after.html" | sed 's/^/    | /'
-fi
+curl -s -b "$JAR" -L "$BASE/index.php" -o "$WORK/after2.html"
+assert_contains "$WORK/after2.html" "Update Test" "forum works after guided update"
 curl -s -b "$JAR" -e "$BASE/admin_maintenance.php" "$BASE/admin_maintenance.php?action=check_update" -o "$WORK/check2.html"
 assert_contains "$WORK/check2.html" "You are running the latest release" "now reports up to date"
 

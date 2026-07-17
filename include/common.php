@@ -105,11 +105,24 @@ if (!defined('PUN_CONFIG_LOADED'))
 // Verify that we are running the proper database schema revision
 if (!isset($pun_config['o_database_revision']) || $pun_config['o_database_revision'] < FORUM_DB_REVISION ||
 	!isset($pun_config['o_searchindex_revision']) || $pun_config['o_searchindex_revision'] < FORUM_SI_REVISION ||
-	!isset($pun_config['o_parser_revision']) || $pun_config['o_parser_revision'] < FORUM_PARSER_REVISION ||
-	version_compare($pun_config['o_cur_version'], FORUM_VERSION, '<'))
+	!isset($pun_config['o_parser_revision']) || $pun_config['o_parser_revision'] < FORUM_PARSER_REVISION)
 {
+	// The database schema needs migrating - hand over to the guided update
 	header('Location: db_update.php');
 	exit;
+}
+else if (version_compare($pun_config['o_cur_version'], FORUM_VERSION, '<'))
+{
+	// Only the version label changed (a release with no database
+	// changes, e.g. installed through the one-click updater) - finish
+	// the update silently instead of sending everyone to db_update.php
+	$db->query('UPDATE '.$db->prefix.'config SET conf_value=\''.$db->escape(FORUM_VERSION).'\' WHERE conf_name=\'o_cur_version\'') or error('Unable to update version', __FILE__, __LINE__, $db->error());
+
+	if (!defined('FORUM_CACHE_FUNCTIONS_LOADED'))
+		require PUN_ROOT.'include/cache.php';
+	generate_config_cache();
+
+	$pun_config['o_cur_version'] = FORUM_VERSION;
 }
 
 // Enable output buffering
