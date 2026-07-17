@@ -449,7 +449,7 @@ else if ($action == 'delete_avatar')
 
 	confirm_referrer('profile.php');
 
-	check_csrf($_GET['csrf_token']);
+	check_csrf($_GET['csrf_token'] ?? null);
 
 	delete_avatar($id);
 
@@ -576,7 +576,7 @@ else if ($action == 'promote')
 
 	confirm_referrer('viewtopic.php');
 
-	check_csrf($_GET['csrf_token']);
+	check_csrf($_GET['csrf_token'] ?? null);
 
 	$pid = isset($_GET['pid']) ? intval($_GET['pid']) : 0;
 

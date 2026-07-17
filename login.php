@@ -23,7 +23,7 @@ if (isset($_POST['form_sent']) && $action == 'in')
 {
 	flux_hook('login_before_validation');
 
-	check_csrf($_POST['csrf_token']);
+	check_csrf($_POST['csrf_token'] ?? null);
 
 	$form_username = pun_trim($_POST['req_username']);
 	$form_password = pun_trim($_POST['req_password']);
@@ -100,7 +100,7 @@ else if ($action == 'out')
 		exit;
 	}
 
-	check_csrf($_GET['csrf_token']);
+	check_csrf($_GET['csrf_token'] ?? null);
 
 	// Remove user from "users online" list
 	$db->query('DELETE FROM '.$db->prefix.'online WHERE user_id='.$pun_user['id']) or error('Unable to delete from online list', __FILE__, __LINE__, $db->error());

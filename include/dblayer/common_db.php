@@ -31,11 +31,6 @@ switch ($db_type)
 		$db = new PgsqlDBLayer($db_host, $db_username, $db_password, $db_name, $db_prefix, $p_connect);
 		break;
 
-	case 'sqlite':
-		require_once PUN_ROOT.'include/dblayer/sqlite.php';
-		$db = new SqliteDBLayer($db_name, $db_prefix, $p_connect);
-		break;
-
 	default:
 		error('\''.$db_type.'\' is not a valid database type. Please check settings in config.php.', __FILE__, __LINE__);
 		break;

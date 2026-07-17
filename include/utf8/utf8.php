@@ -24,7 +24,7 @@
 // Check whether PCRE has been compiled with UTF-8 support
 $UTF8_ar = array();
 if (preg_match('/^.{1}$/u', "ñ", $UTF8_ar) != 1)
-	trigger_error('PCRE is not compiled with UTF-8 support', E_USER_ERROR);
+	throw new RuntimeException('PCRE is not compiled with UTF-8 support');
 
 unset($UTF8_ar);
 
@@ -43,16 +43,8 @@ require UTF8.'/utils/bad.php';
 
 if (defined('UTF8_USE_MBSTRING'))
 {
-	/**
-	* If string overloading is active, it will break many of the
-	* native implementations. mbstring.func_overload must be set
-	* to 0, 1 or 4 in php.ini (string overloading disabled).
-	* Also need to check we have the correct internal mbstring
-	* encoding
-	*/
-	if (ini_get('mbstring.func_overload') & MB_OVERLOAD_STRING)
-		trigger_error('String functions are overloaded by mbstring', E_USER_ERROR);
-
+	// mbstring.func_overload (and the MB_OVERLOAD_* constants) were
+	// removed in PHP 8.0, so the historical overloading check is gone.
 	mb_language('uni');
 	mb_internal_encoding('UTF-8');
 

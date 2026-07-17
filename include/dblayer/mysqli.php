@@ -33,6 +33,10 @@ class MysqlDBLayer implements DBLayer
 
 	function __construct($db_host, $db_username, $db_password, $db_name, $db_prefix, $p_connect)
 	{
+		// Since PHP 8.1 mysqli throws exceptions by default; this codebase
+		// predates that and handles errors by checking return values
+		mysqli_report(MYSQLI_REPORT_OFF);
+
 		$this->prefix = $db_prefix;
 
 		// Was a custom port supplied with $db_host?
@@ -103,11 +107,12 @@ class MysqlDBLayer implements DBLayer
 			if ($row !== 0 && @mysqli_data_seek($query_id, $row) === false)
 				return false;
 
+			// mysqli_fetch_row() returns null when there are no more rows
 			$cur_row = @mysqli_fetch_row($query_id);
-			if ($cur_row === false)
+			if ($cur_row === false || $cur_row === null)
 				return false;
 
-			return $cur_row[$col];
+			return isset($cur_row[$col]) ? $cur_row[$col] : false;
 		}
 		else
 			return false;

@@ -144,7 +144,7 @@ if (isset($_POST['form_sent']))
 
 	$dst = isset($_POST['dst']) ? '1' : '0';
 
-	$email_setting = intval($_POST['email_setting']);
+	$email_setting = intval($_POST['email_setting'] ?? 0);
 	if ($email_setting < 0 || $email_setting > 2)
 		$email_setting = $pun_config['o_default_email_setting'];
 

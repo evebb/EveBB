@@ -1229,9 +1229,11 @@ function check_csrf($token)
 {
 	global $lang_common;
 
-	$is_hash_authorized = hash_equals($token, pun_csrf_token());
+	// A missing/non-string token must fail the check, not fatal on
+	// hash_equals() (PHP 8 throws a TypeError on null)
+	$is_hash_authorized = is_string($token) && hash_equals(pun_csrf_token(), $token);
 
-	if (!isset($token) || !$is_hash_authorized)
+	if (!$is_hash_authorized)
 		message($lang_common['Bad csrf hash'], false, '404 Not Found');
 }
 
@@ -1269,7 +1271,8 @@ function get_remote_address()
 //
 function pun_htmlspecialchars($str)
 {
-	return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
+	// Cast for PHP 8.1+ where passing null is deprecated
+	return htmlspecialchars((string) $str, ENT_QUOTES, 'UTF-8');
 }
 
 
@@ -1798,7 +1801,7 @@ function forum_list_styles()
 	$d = dir(PUN_ROOT.'style');
 	while (($entry = $d->read()) !== false)
 	{
-		if ($entry{0} == '.')
+		if ($entry[0] == '.')
 			continue;
 
 		if (substr($entry, -4) == '.css')
@@ -1822,7 +1825,7 @@ function forum_list_langs()
 	$d = dir(PUN_ROOT.'lang');
 	while (($entry = $d->read()) !== false)
 	{
-		if ($entry{0} == '.')
+		if ($entry[0] == '.')
 			continue;
 
 		if (is_dir(PUN_ROOT.'lang/'.$entry) && file_exists(PUN_ROOT.'lang/'.$entry.'/common.php'))
@@ -2026,7 +2029,7 @@ function url_valid($url)
 		return FALSE;	// Unrecognised URI scheme. Default to FALSE.
 	}
 	// Validate host name conforms to DNS "dot-separated-parts".
-	if ($m{'regname'}) // If host regname specified, check for DNS conformance.
+	if ($m['regname']) // If host regname specified, check for DNS conformance.
 	{
 		if (!preg_match('/# HTTP DNS host name.
 			^					   # Anchor to beginning of string.

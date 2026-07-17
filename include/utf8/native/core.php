@@ -29,7 +29,10 @@ if (!defined('UTF8_CORE'))
 */
 function utf8_strlen($str)
 {
-	return strlen(utf8_decode($str));
+	// Count UTF-8 characters by counting all bytes that are not
+	// continuation bytes (0x80-0xBF). Replaces the historical
+	// strlen(utf8_decode()) trick; utf8_decode() was removed in PHP 9.
+	return strlen($str) - preg_match_all('/[\x80-\xBF]/', $str);
 }
 
 /**
@@ -62,8 +65,7 @@ function utf8_strpos($str, $needle, $offset = false)
 	{
 		if (!is_int($offset))
 		{
-			trigger_error('utf8_strpos: Offset must be an integer', E_USER_ERROR);
-			return false;
+			throw new InvalidArgumentException('utf8_strpos: Offset must be an integer');
 		}
 
 		$str = utf8_substr($str, $offset);
@@ -209,7 +211,7 @@ function utf8_substr($str, $offset, $length = false)
 	{
 		// See notes
 		if (!isset($strlen))
-			$strlen = strlen(utf8_decode($str));
+			$strlen = utf8_strlen($str);
 
 		// Another trivial case
 		if ($offset > $strlen)

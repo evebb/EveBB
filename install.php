@@ -208,8 +208,6 @@ if (!isset($_POST['form_sent']) || !empty($alerts))
 		$db_extensions[] = array('mysqli_innodb', 'MySQL Improved (InnoDB)');
 		$mysql_innodb = true;
 	}
-	if (function_exists('sqlite_open'))
-		$db_extensions[] = array('sqlite', 'SQLite');
 	if (function_exists('pg_connect'))
 		$db_extensions[] = array('pgsql', 'PostgreSQL');
 
@@ -492,11 +490,6 @@ else
 			$db = new PgsqlDBLayer($db_host, $db_username, $db_password, $db_name, $db_prefix, false);
 			break;
 
-		case 'sqlite':
-			require PUN_ROOT.'include/dblayer/sqlite.php';
-			$db = new SqliteDBLayer($db_name, $db_prefix, false);
-			break;
-
 		default:
 			error(sprintf($lang_install['DB type not valid'], $db_type));
 	}
@@ -519,11 +512,6 @@ else
 			$pgsql_info = $db->get_version();
 			if (version_compare($pgsql_info['version'], MIN_PGSQL_VERSION, '<'))
 				error(sprintf($lang_install['You are running error'], 'PostgreSQL', $pgsql_info['version'], FORUM_VERSION, MIN_PGSQL_VERSION));
-			break;
-
-		case 'sqlite':
-			if (strtolower($db_prefix) == 'sqlite_')
-				error($lang_install['Prefix reserved']);
 			break;
 	}
 

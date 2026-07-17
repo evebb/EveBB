@@ -22,7 +22,7 @@ if (!defined('UTF8_CORE'))
 */
 function utf8_strlen($str)
 {
-	return mb_strlen($str);
+	return mb_strlen((string) $str);
 }
 
 /**
@@ -42,9 +42,9 @@ function utf8_strpos($str, $search, $offset = false)
 	$str = utf8_bad_strip($str);
 
 	if ($offset === false)
-		return mb_strpos($str, $search);
+		return mb_strpos((string) $str, (string) $search);
 	else
-		return mb_strpos($str, $search, $offset);
+		return mb_strpos((string) $str, (string) $search, $offset);
 }
 
 /**
@@ -69,7 +69,7 @@ function utf8_strrpos($str, $search, $offset = false)
 		if (empty($str))
 			return false;
 
-		return mb_strrpos($str, $search);
+		return mb_strrpos((string) $str, (string) $search);
 	}
 	else
 	{
@@ -102,9 +102,9 @@ function utf8_strrpos($str, $search, $offset = false)
 function utf8_substr($str, $offset, $length = false)
 {
 	if ($length === false)
-		return mb_substr($str, $offset);
+		return mb_substr((string) $str, $offset);
 	else
-		return mb_substr($str, $offset, $length);
+		return mb_substr((string) $str, $offset, $length);
 }
 
 /**
@@ -122,7 +122,7 @@ function utf8_substr($str, $offset, $length = false)
 */
 function utf8_strtolower($str)
 {
-	return mb_strtolower($str);
+	return mb_strtolower((string) $str);
 }
 
 /**
@@ -140,5 +140,5 @@ function utf8_strtolower($str)
 */
 function utf8_strtoupper($str)
 {
-	return mb_strtoupper($str);
+	return mb_strtoupper((string) $str);
 }

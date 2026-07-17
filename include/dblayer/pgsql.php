@@ -181,7 +181,7 @@ class PgsqlDBLayer implements DBLayer
 					$table_name[1] .= '_g';
 
 				$temp_q_id = @pg_query($this->link_id, 'SELECT currval(\''.$table_name[1].'_id_seq\')');
-				return ($temp_q_id) ? intval(@pg_fetch_result($temp_q_id, 0)) : false;
+				return ($temp_q_id) ? intval(@pg_fetch_result($temp_q_id, 0, 0)) : false;
 			}
 		}
 

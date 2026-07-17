@@ -760,7 +760,7 @@ else if (isset($_REQUEST['open']) || isset($_REQUEST['close']))
 	{
 		confirm_referrer('viewtopic.php');
 
-		check_csrf($_GET['csrf_token']);
+		check_csrf($_GET['csrf_token'] ?? null);
 
 		$topic_id = ($action) ? intval($_GET['close']) : intval($_GET['open']);
 		if ($topic_id < 1)
@@ -779,7 +779,7 @@ else if (isset($_GET['stick']))
 {
 	confirm_referrer('viewtopic.php');
 
-	check_csrf($_GET['csrf_token']);
+	check_csrf($_GET['csrf_token'] ?? null);
 
 	$stick = intval($_GET['stick']);
 	if ($stick < 1)
@@ -796,7 +796,7 @@ else if (isset($_GET['unstick']))
 {
 	confirm_referrer('viewtopic.php');
 
-	check_csrf($_GET['csrf_token']);
+	check_csrf($_GET['csrf_token'] ?? null);
 
 	$unstick = intval($_GET['unstick']);
 	if ($unstick < 1)

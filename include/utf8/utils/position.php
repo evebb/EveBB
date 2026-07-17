@@ -27,6 +27,18 @@
 * @package utf8
 * @subpackage position
 */
+/**
+* Count UTF-8 characters in a byte string by counting all bytes that are
+* not continuation bytes (0x80-0xBF). Replacement for the historical
+* strlen(utf8_decode()) trick; utf8_decode() was removed in PHP 9.
+* @param string $str
+* @return int character count
+*/
+function utf8_position_charcount($str)
+{
+	return strlen($str) - preg_match_all('/[\x80-\xBF]/', $str);
+}
+
 function utf8_byte_position()
 {
 	$args = func_get_args();
@@ -38,7 +50,7 @@ function utf8_byte_position()
 	$result = array();
 	$prev = array(0, 0); // Trivial byte index, character offset pair
 	$i = utf8_locate_next_chr($str, 300); // Use a short piece of str to estimate bytes per character. $i (& $j) -> byte indexes into $str
-	$c = strlen(utf8_decode(substr($str, 0, $i))); // $c -> character offset into $str
+	$c = utf8_position_charcount(substr($str, 0, $i)); // $c -> character offset into $str
 
 	// Deal with arguments from lowest to highest
 	sort($args);
@@ -71,9 +83,9 @@ function utf8_byte_position()
 			$prev = array($i,$c); // Save the index, offset for use next iteration
 
 			if ($j > $i)
-				$c += strlen(utf8_decode(substr($str, $i, $j-$i))); // Determine new character offset
+				$c += utf8_position_charcount(substr($str, $i, $j-$i)); // Determine new character offset
 			else
-				$c -= strlen(utf8_decode(substr($str, $j, $i-$j))); // Ditto
+				$c -= utf8_position_charcount(substr($str, $j, $i-$j)); // Ditto
 
 			$error = abs($c-$offset);
 			$i = $j; // Ready for next time around

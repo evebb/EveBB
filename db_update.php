@@ -250,7 +250,20 @@ function convert_to_utf8(&$str, $old_charset)
 		else if (function_exists('mb_convert_encoding'))
 			$str = mb_convert_encoding($str, 'UTF-8', !empty($old_charset) ? $old_charset : 'ISO-8859-1');
 		else if ($old_charset == 'ISO-8859-1')
-			$str = utf8_encode($str);
+		{
+			// Last-resort ISO-8859-1 to UTF-8 conversion for hosts without
+			// iconv or mbstring (utf8_encode() was removed in PHP 9)
+			$converted = '';
+			for ($i = 0, $byte_count = strlen($str); $i < $byte_count; $i++)
+			{
+				$ord = ord($str[$i]);
+				if ($ord < 0x80)
+					$converted .= $str[$i];
+				else
+					$converted .= chr(0xC0 | ($ord >> 6)).chr(0x80 | ($ord & 0x3F));
+			}
+			$str = $converted;
+		}
 	}
 
 	// Replace literal entities

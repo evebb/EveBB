@@ -28,7 +28,7 @@ if ($action == 'rebuild')
 {
 	confirm_referrer('admin_maintenance.php');
 
-	check_csrf($_GET['csrf_token']);
+	check_csrf($_GET['csrf_token'] ?? null);
 
 	$per_page = isset($_GET['i_per_page']) ? intval($_GET['i_per_page']) : 0;
 	$start_at = isset($_GET['i_start_at']) ? intval($_GET['i_start_at']) : 0;

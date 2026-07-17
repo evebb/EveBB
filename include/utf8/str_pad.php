@@ -55,5 +55,5 @@ function utf8_str_pad($input, $length, $padStr=' ', $type=STR_PAD_RIGHT)
 		return $paddingLeft.$input.$paddingRight;
 	}
 
-	trigger_error('utf8_str_pad: Unknown padding type ('.$type.')', E_USER_ERROR);
+	throw new InvalidArgumentException('utf8_str_pad: Unknown padding type ('.$type.')');
 }
