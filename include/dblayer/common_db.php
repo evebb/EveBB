@@ -31,6 +31,21 @@ switch ($db_type)
 		$db = new PgsqlDBLayer($db_host, $db_username, $db_password, $db_name, $db_prefix, $p_connect);
 		break;
 
+	case 'mysql':
+		require_once PUN_ROOT.'include/dblayer/mysql.php';
+		$db = new MysqlPdoDBLayer($db_host, $db_username, $db_password, $db_name, $db_prefix, $p_connect);
+		break;
+
+	case 'sqlite':
+		require_once PUN_ROOT.'include/dblayer/sqlite.php';
+		$db = new SqlitePdoDBLayer($db_name, $db_prefix, $p_connect);
+		break;
+
+	case 'pgsql_pdo':
+		require_once PUN_ROOT.'include/dblayer/pgsql_pdo.php';
+		$db = new PgsqlPdoDBLayer($db_host, $db_username, $db_password, $db_name, $db_prefix, $p_connect);
+		break;
+
 	default:
 		error('\''.$db_type.'\' is not a valid database type. Please check settings in config.php.', __FILE__, __LINE__);
 		break;

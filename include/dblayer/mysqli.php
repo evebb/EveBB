@@ -175,7 +175,10 @@ class MysqlDBLayer implements DBLayer
 
 	function error()
 	{
-		$result['error_sql'] = @current(@end($this->saved_queries));
+		// end() returns false on an empty array; current(false) is a
+		// TypeError on PHP 8
+		$last_query = end($this->saved_queries);
+		$result['error_sql'] = is_array($last_query) ? current($last_query) : '';
 		$result['error_no'] = $this->error_no;
 		$result['error_msg'] = $this->error_msg;
 

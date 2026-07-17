@@ -4,30 +4,19 @@
  * Copyright (C) 2008-2012 FluxBB
  * based on code by Rickard Andersson copyright (C) 2002-2008 PunBB
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
+ *
+ * PostgreSQL driver on top of PDO. Schema SQL matches the legacy pgsql
+ * driver so both produce identical databases.
  */
 
-// Make sure we have built in support for PostgreSQL
-if (!function_exists('pg_connect'))
-	exit('This PHP environment doesn\'t have PostgreSQL support built in. PostgreSQL support is required if you want to use a PostgreSQL database to run this forum. Consult the PHP documentation for further assistance.');
+require_once PUN_ROOT.'include/dblayer/pdo_common.php';
+
+if (!in_array('pgsql', PDO::getAvailableDrivers()))
+	exit('This PHP environment doesn\'t have the PDO PostgreSQL driver (pdo_pgsql) built in. pdo_pgsql is required if you want to use the PostgreSQL (PDO) database type to run this forum. Consult the PHP documentation for further assistance.');
 
 
-require_once PUN_ROOT.'include/dblayer/interface.php';
-
-
-class PgsqlDBLayer implements DBLayer
+class PgsqlPdoDBLayer extends PdoDBLayer
 {
-	var $prefix;
-	var $link_id;
-	var $query_result;
-	var $last_query_text = array();
-	var $in_transaction = 0;
-
-	var $saved_queries = array();
-	var $num_queries = 0;
-
-	var $error_no = false;
-	var $error_msg = 'Unknown';
-
 	var $datatype_transformations = array(
 		'%^(TINY|SMALL)INT( )?(\\([0-9]+\\))?( )?(UNSIGNED)?$%i'			=>	'SMALLINT',
 		'%^(MEDIUM)?INT( )?(\\([0-9]+\\))?( )?(UNSIGNED)?$%i'				=>	'INTEGER',
@@ -42,33 +31,37 @@ class PgsqlDBLayer implements DBLayer
 	{
 		$this->prefix = $db_prefix;
 
+		$dsn_parts = array();
+
 		if ($db_host)
 		{
 			if (strpos($db_host, ':') !== false)
 			{
-				list($db_host, $dbport) = explode(':', $db_host);
-				$connect_str[] = 'host='.$db_host.' port='.$dbport;
+				list($db_host, $db_port) = explode(':', $db_host);
+				$dsn_parts[] = 'host='.$db_host;
+				$dsn_parts[] = 'port='.$db_port;
 			}
 			else
-				$connect_str[] = 'host='.$db_host;
+				$dsn_parts[] = 'host='.$db_host;
 		}
 
 		if ($db_name)
-			$connect_str[] = 'dbname='.$db_name;
+			$dsn_parts[] = 'dbname='.$db_name;
 
-		if ($db_username)
-			$connect_str[] = 'user='.$db_username;
-
-		if ($db_password)
-			$connect_str[] = 'password='.$db_password;
-
+		$options = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION);
 		if ($p_connect)
-			$this->link_id = @pg_pconnect(implode(' ', $connect_str));
-		else
-			$this->link_id = @pg_connect(implode(' ', $connect_str));
+			$options[PDO::ATTR_PERSISTENT] = true;
 
-		if (!$this->link_id)
-			error('Unable to connect to PostgreSQL server', __FILE__, __LINE__);
+		try
+		{
+			$this->pdo = new PDO('pgsql:'.implode(';', $dsn_parts), $db_username, $db_password, $options);
+		}
+		catch (PDOException $e)
+		{
+			error('Unable to connect to PostgreSQL server. PostgreSQL reported: '.$e->getMessage(), __FILE__, __LINE__);
+		}
+
+		$this->init_connection();
 
 		// Setup the client-server character set (UTF-8)
 		if (!defined('FORUM_NO_SET_NAMES'))
@@ -80,7 +73,8 @@ class PgsqlDBLayer implements DBLayer
 	{
 		++$this->in_transaction;
 
-		return (@pg_query($this->link_id, 'BEGIN')) ? true : false;
+		try { $this->pdo->exec('BEGIN'); return true; }
+		catch (PDOException $e) { return false; }
 	}
 
 
@@ -88,170 +82,50 @@ class PgsqlDBLayer implements DBLayer
 	{
 		--$this->in_transaction;
 
-		if (@pg_query($this->link_id, 'COMMIT'))
-			return true;
-		else
+		try { $this->pdo->exec('COMMIT'); return true; }
+		catch (PDOException $e)
 		{
-			@pg_query($this->link_id, 'ROLLBACK');
+			try { $this->pdo->exec('ROLLBACK'); } catch (PDOException $ignored) {}
 			return false;
 		}
 	}
 
 
-	function query($sql, $unbuffered = false) // $unbuffered is ignored since there is no pgsql_unbuffered_query()
+	function query($sql, $unbuffered = false)
 	{
+		// MySQL-style "LIMIT offset,count" must become
+		// "LIMIT count OFFSET offset" (same rewrite as the pgsql driver)
 		if (strrpos($sql, 'LIMIT') !== false)
 			$sql = preg_replace('%LIMIT ([0-9]+),([ 0-9]+)%', 'LIMIT \\2 OFFSET \\1', $sql);
 
-		if (defined('PUN_SHOW_QUERIES'))
-			$q_start = microtime(true);
+		return parent::query($sql, $unbuffered);
+	}
 
-		@pg_send_query($this->link_id, $sql);
-		$this->query_result = @pg_get_result($this->link_id);
 
-		if (pg_result_status($this->query_result) != PGSQL_FATAL_ERROR)
+	protected function fetch_insert_id()
+	{
+		// currval of the table's sequence, mirroring the pgsql driver
+		if (preg_match('%^\s*INSERT INTO ([a-z0-9\_\-]+)%is', $this->last_query_text, $table_name))
 		{
-			if (defined('PUN_SHOW_QUERIES'))
-				$this->saved_queries[] = array($sql, sprintf('%.5F', microtime(true) - $q_start));
+			// Hack (don't ask) — pg sequence for *groups tables has _g suffix
+			if (substr($table_name[1], -6) == 'groups')
+				$table_name[1] .= '_g';
 
-			++$this->num_queries;
-
-			// Query results are PgSql\Result objects since PHP 8.1 (they
-			// were resources, hence the historical intval() keying)
-			$this->last_query_text[spl_object_id($this->query_result)] = $sql;
-
-			return $this->query_result;
-		}
-		else
-		{
-			if (defined('PUN_SHOW_QUERIES'))
-				$this->saved_queries[] = array($sql, 0);
-
-			$this->error_no = false;
-			$this->error_msg = @pg_result_error($this->query_result);
-
-			if ($this->in_transaction)
-				@pg_query($this->link_id, 'ROLLBACK');
-
-			--$this->in_transaction;
-
-			return false;
-		}
-	}
-
-
-	function result($query_id = 0, $row = 0, $col = 0)
-	{
-		return ($query_id) ? @pg_fetch_result($query_id, $row, $col) : false;
-	}
-
-
-	function fetch_assoc($query_id = 0)
-	{
-		return ($query_id) ? @pg_fetch_assoc($query_id) : false;
-	}
-
-
-	function fetch_row($query_id = 0)
-	{
-		return ($query_id) ? @pg_fetch_row($query_id) : false;
-	}
-
-
-	function has_rows($query_id)
-	{
-		return $query_id ? pg_num_rows($query_id) > 0 : false;
-	}
-
-
-	function affected_rows()
-	{
-		return ($this->query_result) ? @pg_affected_rows($this->query_result) : false;
-	}
-
-
-	function insert_id()
-	{
-		$query_id = $this->query_result;
-
-		if ($query_id && isset($this->last_query_text[spl_object_id($query_id)]) && $this->last_query_text[spl_object_id($query_id)] != '')
-		{
-			if (preg_match('%^INSERT INTO ([a-z0-9\_\-]+)%is', $this->last_query_text[spl_object_id($query_id)], $table_name))
+			try
 			{
-				// Hack (don't ask)
-				if (substr($table_name[1], -6) == 'groups')
-					$table_name[1] .= '_g';
-
-				$temp_q_id = @pg_query($this->link_id, 'SELECT currval(\''.$table_name[1].'_id_seq\')');
-				return ($temp_q_id) ? intval(@pg_fetch_result($temp_q_id, 0, 0)) : false;
+				$statement = $this->pdo->query('SELECT currval(\''.$table_name[1].'_id_seq\')');
+				$row = $statement->fetch(PDO::FETCH_NUM);
+				$statement->closeCursor();
+				if ($row !== false && $row !== null)
+					return (int) $row[0];
+			}
+			catch (PDOException $e)
+			{
+				// Table has no sequence, or nextval was never called
 			}
 		}
 
-		return false;
-	}
-
-
-	function get_num_queries()
-	{
-		return $this->num_queries;
-	}
-
-
-	function get_saved_queries()
-	{
-		return $this->saved_queries;
-	}
-
-
-	function free_result($query_id = false)
-	{
-		if (!$query_id)
-			$query_id = $this->query_result;
-
-		return ($query_id) ? @pg_free_result($query_id) : false;
-	}
-
-
-	function escape($str)
-	{
-		// Passing the connection explicitly: automatic fetching is
-		// deprecated since PHP 8.1
-		return is_array($str) ? '' : pg_escape_string($this->link_id, (string) $str);
-	}
-
-
-	function error()
-	{
-		// end() returns false on an empty array; current(false) is a
-		// TypeError on PHP 8
-		$last_query = end($this->saved_queries);
-		$result['error_sql'] = is_array($last_query) ? current($last_query) : '';
-		$result['error_no'] = $this->error_no;
-		$result['error_msg'] = $this->error_msg;
-
-		return $result;
-	}
-
-
-	function close()
-	{
-		if ($this->link_id)
-		{
-			if ($this->in_transaction)
-			{
-				if (defined('PUN_SHOW_QUERIES'))
-					$this->saved_queries[] = array('COMMIT', 0);
-
-				@pg_query($this->link_id, 'COMMIT');
-			}
-
-			if ($this->query_result)
-				@pg_free_result($this->query_result);
-
-			return @pg_close($this->link_id);
-		}
-		else
-			return false;
+		return 0;
 	}
 
 
@@ -264,7 +138,8 @@ class PgsqlDBLayer implements DBLayer
 
 	function set_names($names)
 	{
-		return $this->query('SET NAMES \''.$this->escape($names).'\'');
+		try { $this->pdo->exec('SET NAMES \''.$this->escape($names).'\''); return true; }
+		catch (PDOException $e) { return false; }
 	}
 
 
@@ -273,7 +148,7 @@ class PgsqlDBLayer implements DBLayer
 		$result = $this->query('SELECT VERSION()');
 
 		return array(
-			'name'		=> 'PostgreSQL',
+			'name'		=> 'PostgreSQL (PDO)',
 			'version'	=> preg_replace('%^[^0-9]+([^\s,-]+).*$%', '\\1', $this->result($result))
 		);
 	}
@@ -437,8 +312,9 @@ class PgsqlDBLayer implements DBLayer
 		return $this->query('DROP INDEX '.($no_prefix ? '' : $this->prefix).$table_name.'_'.$index_name) ? true : false;
 	}
 
+
 	function truncate_table($table_name, $no_prefix = false)
 	{
-		return $this->query('DELETE FROM '.($no_prefix ? '' : $this->prefix).$table_name) ? true : false;
+		return $this->query('TRUNCATE TABLE '.($no_prefix ? '' : $this->prefix).$table_name) ? true : false;
 	}
 }

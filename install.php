@@ -210,6 +210,16 @@ if (!isset($_POST['form_sent']) || !empty($alerts))
 	}
 	if (function_exists('pg_connect'))
 		$db_extensions[] = array('pgsql', 'PostgreSQL');
+	if (class_exists('PDO'))
+	{
+		$pdo_drivers = PDO::getAvailableDrivers();
+		if (in_array('mysql', $pdo_drivers))
+			$db_extensions[] = array('mysql', 'MySQL (PDO)');
+		if (in_array('sqlite', $pdo_drivers))
+			$db_extensions[] = array('sqlite', 'SQLite3 (PDO)');
+		if (in_array('pgsql', $pdo_drivers))
+			$db_extensions[] = array('pgsql_pdo', 'PostgreSQL (PDO)');
+	}
 
 	if (empty($db_extensions))
 		error($lang_install['No DB extensions']);
@@ -490,6 +500,21 @@ else
 			$db = new PgsqlDBLayer($db_host, $db_username, $db_password, $db_name, $db_prefix, false);
 			break;
 
+		case 'mysql':
+			require PUN_ROOT.'include/dblayer/mysql.php';
+			$db = new MysqlPdoDBLayer($db_host, $db_username, $db_password, $db_name, $db_prefix, false);
+			break;
+
+		case 'sqlite':
+			require PUN_ROOT.'include/dblayer/sqlite.php';
+			$db = new SqlitePdoDBLayer($db_name, $db_prefix, false);
+			break;
+
+		case 'pgsql_pdo':
+			require PUN_ROOT.'include/dblayer/pgsql_pdo.php';
+			$db = new PgsqlPdoDBLayer($db_host, $db_username, $db_password, $db_name, $db_prefix, false);
+			break;
+
 		default:
 			error(sprintf($lang_install['DB type not valid'], $db_type));
 	}
@@ -501,6 +526,7 @@ else
 	// Do some DB type specific checks
 	switch ($db_type)
 	{
+		case 'mysql':
 		case 'mysqli':
 		case 'mysqli_innodb':
 			$mysql_info = $db->get_version();
@@ -509,9 +535,16 @@ else
 			break;
 
 		case 'pgsql':
+		case 'pgsql_pdo':
 			$pgsql_info = $db->get_version();
 			if (version_compare($pgsql_info['version'], MIN_PGSQL_VERSION, '<'))
 				error(sprintf($lang_install['You are running error'], 'PostgreSQL', $pgsql_info['version'], FORUM_VERSION, MIN_PGSQL_VERSION));
+			break;
+
+		case 'sqlite':
+			// SQLite reserves the sqlite_ namespace for internal objects
+			if (strtolower($db_prefix) == 'sqlite_')
+				error($lang_install['Prefix reserved']);
 			break;
 	}
 

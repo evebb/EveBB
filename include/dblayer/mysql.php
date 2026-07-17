@@ -4,29 +4,19 @@
  * Copyright (C) 2008-2012 FluxBB
  * based on code by Rickard Andersson copyright (C) 2002-2008 PunBB
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
+ *
+ * MySQL driver on top of PDO. Schema SQL matches the legacy mysqli
+ * driver so both produce identical databases.
  */
 
-// Make sure we have built in support for MySQL
-if (!function_exists('mysqli_connect'))
-	exit('This PHP environment doesn\'t have Improved MySQL (mysqli) support built in. Improved MySQL support is required if you want to use a MySQL 4.1 (or later) database to run this forum. Consult the PHP documentation for further assistance.');
+require_once PUN_ROOT.'include/dblayer/pdo_common.php';
+
+if (!in_array('mysql', PDO::getAvailableDrivers()))
+	exit('This PHP environment doesn\'t have the PDO MySQL driver (pdo_mysql) built in. pdo_mysql is required if you want to use the MySQL (PDO) database type to run this forum. Consult the PHP documentation for further assistance.');
 
 
-require_once PUN_ROOT.'include/dblayer/interface.php';
-
-
-class MysqlInnodbDBLayer implements DBLayer
+class MysqlPdoDBLayer extends PdoDBLayer
 {
-	var $prefix;
-	var $link_id;
-	var $query_result;
-
-	var $saved_queries = array();
-	var $num_queries = 0;
-	var $in_transaction = 0;
-
-	var $error_no = false;
-	var $error_msg = 'Unknown';
-
 	var $datatype_transformations = array(
 		'%^SERIAL$%'	=>	'INT(10) UNSIGNED AUTO_INCREMENT'
 	);
@@ -34,182 +24,37 @@ class MysqlInnodbDBLayer implements DBLayer
 
 	function __construct($db_host, $db_username, $db_password, $db_name, $db_prefix, $p_connect)
 	{
-		// Since PHP 8.1 mysqli throws exceptions by default; this codebase
-		// predates that and handles errors by checking return values
-		mysqli_report(MYSQLI_REPORT_OFF);
-
 		$this->prefix = $db_prefix;
+
+		$dsn = 'mysql:dbname='.$db_name;
 
 		// Was a custom port supplied with $db_host?
 		if (strpos($db_host, ':') !== false)
+		{
 			list($db_host, $db_port) = explode(':', $db_host);
-
-		$p_connect = $p_connect ? 'p:' : '';
-
-		if (isset($db_port))
-			$this->link_id = @mysqli_connect($p_connect.$db_host, $db_username, $db_password, $db_name, $db_port);
+			$dsn .= ';host='.$db_host.';port='.$db_port;
+		}
 		else
-			$this->link_id = @mysqli_connect($p_connect.$db_host, $db_username, $db_password, $db_name);
+			$dsn .= ';host='.$db_host;
 
-		if (!$this->link_id)
-			error('Unable to connect to MySQL and select database. MySQL reported: '.mysqli_connect_error(), __FILE__, __LINE__);
+		$options = array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION);
+		if ($p_connect)
+			$options[PDO::ATTR_PERSISTENT] = true;
+
+		try
+		{
+			$this->pdo = new PDO($dsn, $db_username, $db_password, $options);
+		}
+		catch (PDOException $e)
+		{
+			error('Unable to connect to MySQL and select database. MySQL reported: '.$e->getMessage(), __FILE__, __LINE__);
+		}
+
+		$this->init_connection();
 
 		// Setup the client-server character set (UTF-8)
 		if (!defined('FORUM_NO_SET_NAMES'))
 			$this->set_names('utf8');
-	}
-
-
-	function start_transaction()
-	{
-		++$this->in_transaction;
-
-		mysqli_query($this->link_id, 'START TRANSACTION');
-		return;
-	}
-
-
-	function end_transaction()
-	{
-		--$this->in_transaction;
-
-		mysqli_query($this->link_id, 'COMMIT');
-		return;
-	}
-
-
-	function query($sql, $unbuffered = false)
-	{
-		if (defined('PUN_SHOW_QUERIES'))
-			$q_start = microtime(true);
-
-		$this->query_result = @mysqli_query($this->link_id, $sql);
-
-		if ($this->query_result)
-		{
-			if (defined('PUN_SHOW_QUERIES'))
-				$this->saved_queries[] = array($sql, sprintf('%.5F', microtime(true) - $q_start));
-
-			++$this->num_queries;
-
-			return $this->query_result;
-		}
-		else
-		{
-			if (defined('PUN_SHOW_QUERIES'))
-				$this->saved_queries[] = array($sql, 0);
-
-			$this->error_no = @mysqli_errno($this->link_id);
-			$this->error_msg = @mysqli_error($this->link_id);
-
-			// Rollback transaction
-			if ($this->in_transaction)
-				mysqli_query($this->link_id, 'ROLLBACK');
-
-			--$this->in_transaction;
-
-			return false;
-		}
-	}
-
-
-	function result($query_id = 0, $row = 0, $col = 0)
-	{
-		if ($query_id)
-		{
-			if ($row !== 0 && @mysqli_data_seek($query_id, $row) === false)
-				return false;
-
-			// mysqli_fetch_row() returns null when there are no more rows
-			$cur_row = @mysqli_fetch_row($query_id);
-			if ($cur_row === false || $cur_row === null)
-				return false;
-
-			return isset($cur_row[$col]) ? $cur_row[$col] : false;
-		}
-		else
-			return false;
-	}
-
-
-	function fetch_assoc($query_id = 0)
-	{
-		return ($query_id) ? @mysqli_fetch_assoc($query_id) : false;
-	}
-
-
-	function fetch_row($query_id = 0)
-	{
-		return ($query_id) ? @mysqli_fetch_row($query_id) : false;
-	}
-
-
-	function has_rows($query_id)
-	{
-		return $query_id ? mysqli_num_rows($query_id) > 0 : false;
-	}
-
-
-	function affected_rows()
-	{
-		return ($this->link_id) ? @mysqli_affected_rows($this->link_id) : false;
-	}
-
-
-	function insert_id()
-	{
-		return ($this->link_id) ? @mysqli_insert_id($this->link_id) : false;
-	}
-
-
-	function get_num_queries()
-	{
-		return $this->num_queries;
-	}
-
-
-	function get_saved_queries()
-	{
-		return $this->saved_queries;
-	}
-
-
-	function free_result($query_id = false)
-	{
-		return ($query_id) ? @mysqli_free_result($query_id) : false;
-	}
-
-
-	function escape($str)
-	{
-		return is_array($str) ? '' : mysqli_real_escape_string($this->link_id, $str);
-	}
-
-
-	function error()
-	{
-		// end() returns false on an empty array; current(false) is a
-		// TypeError on PHP 8
-		$last_query = end($this->saved_queries);
-		$result['error_sql'] = is_array($last_query) ? current($last_query) : '';
-		$result['error_no'] = $this->error_no;
-		$result['error_msg'] = $this->error_msg;
-
-		return $result;
-	}
-
-
-	function close()
-	{
-		if ($this->link_id)
-		{
-			if ($this->query_result instanceof mysqli_result)
-				@mysqli_free_result($this->query_result);
-
-			return @mysqli_close($this->link_id);
-		}
-		else
-			return false;
 	}
 
 
@@ -222,7 +67,8 @@ class MysqlInnodbDBLayer implements DBLayer
 
 	function set_names($names)
 	{
-		return mysqli_set_charset($this->link_id, $names);
+		try { $this->pdo->exec('SET NAMES \''.$this->escape($names).'\''); return true; }
+		catch (PDOException $e) { return false; }
 	}
 
 
@@ -231,7 +77,7 @@ class MysqlInnodbDBLayer implements DBLayer
 		$result = $this->query('SELECT VERSION()');
 
 		return array(
-			'name'		=> 'MySQL Improved (InnoDB)',
+			'name'		=> 'MySQL (PDO)',
 			'version'	=> preg_replace('%^([^-]+).*$%', '\\1', $this->result($result))
 		);
 	}
@@ -314,7 +160,7 @@ class MysqlInnodbDBLayer implements DBLayer
 		}
 
 		// We remove the last two characters (a newline and a comma) and add on the ending
-		$query = substr($query, 0, strlen($query) - 2)."\n".') ENGINE = '.(isset($schema['ENGINE']) ? $schema['ENGINE'] : 'InnoDB').' CHARACTER SET utf8';
+		$query = substr($query, 0, strlen($query) - 2)."\n".') ENGINE = '.(isset($schema['ENGINE']) ? $schema['ENGINE'] : 'MyISAM').' CHARACTER SET utf8';
 
 		return $this->query($query) ? true : false;
 	}
@@ -392,6 +238,7 @@ class MysqlInnodbDBLayer implements DBLayer
 
 		return $this->query('ALTER TABLE '.($no_prefix ? '' : $this->prefix).$table_name.' DROP INDEX '.($no_prefix ? '' : $this->prefix).$table_name.'_'.$index_name) ? true : false;
 	}
+
 
 	function truncate_table($table_name, $no_prefix = false)
 	{
