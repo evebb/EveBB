@@ -1,21 +1,21 @@
 #!/usr/bin/env bash
 #
-# End-to-end characterization suite for FluxBB.
+# End-to-end characterization suite for EVEBB.
 #
 # Installs a fresh forum over HTTP against the configured database and
 # exercises the main user flows, asserting on rendered output and an
 # empty PHP error log. Run it against different DB_TYPEs to prove a
 # database-layer change is behavior-preserving:
 #
-#   DB_TYPE=mysqli DB_NAME=fluxbb_e2e ./tests/e2e/run.sh
-#   DB_TYPE=mysql  DB_NAME=fluxbb_e2e ./tests/e2e/run.sh     # PDO MySQL
-#   DB_TYPE=sqlite DB_NAME=/tmp/fluxbb-e2e.sqlite ./tests/e2e/run.sh
+#   DB_TYPE=mysqli DB_NAME=evebb_e2e ./tests/e2e/run.sh
+#   DB_TYPE=mysql  DB_NAME=evebb_e2e ./tests/e2e/run.sh     # PDO MySQL
+#   DB_TYPE=sqlite DB_NAME=/tmp/evebb-e2e.sqlite ./tests/e2e/run.sh
 #
 set -u
 
 DB_TYPE="${DB_TYPE:-mysqli}"
 DB_HOST="${DB_HOST:-localhost}"
-DB_NAME="${DB_NAME:-fluxbb_e2e}"
+DB_NAME="${DB_NAME:-evebb_e2e}"
 DB_USER="${DB_USER:-flux}"
 DB_PASS="${DB_PASS:-fluxpass}"
 PORT="${PORT:-8093}"

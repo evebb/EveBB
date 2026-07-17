@@ -1,28 +1,50 @@
-# FluxBB 1.5 Readme
+# EVEBB
 
-## About
+EVEBB is a fast, light, user-friendly forum application for your website. It is a modernized continuation of [FluxBB](https://fluxbb.org/), which ceased development after 2021, and inherits FluxBB's philosophy: fewer features, faster pages, and code you can actually read.
 
-FluxBB is an open source forum application released under the GNU General Public
-Licence. It is free to download and use and will remain so. FluxBB was conceived and
-designed to be fast and light with less of the "not so essential" features that some
-of the other forums have whilst not sacrificing essential functionality or usability.
+## Version
+
+EVEBB 1.0.0-alpha. The database schema is fully compatible with FluxBB 1.5.x — existing FluxBB 1.5 boards can switch to EVEBB in place, and older 1.4/1.2 boards upgrade through the bundled `db_update.php`.
+
+## What EVEBB adds over FluxBB 1.5
+
+* Runs on modern PHP: fully compatible with PHP 8.1–8.4 (FluxBB required 5.6 and fatals on PHP 8).
+* A PDO database layer alongside the classic drivers: MySQL (PDO), **SQLite3** (no database server needed — the forum runs on a single file), and PostgreSQL (PDO).
+* The classic mysqli and pgsql drivers are retained and fixed for PHP 8.
+* Modern security plumbing: `random_bytes()` entropy, bcrypt password hashing with transparent migration of legacy hashes, hardened CSRF checks.
+* A real test suite: unit and characterization tests, a driver-agnostic database contract suite, and a scripted end-to-end suite covering install, login, posting, search, and registration.
 
 ## Requirements
 
-* A webserver
-* PHP 5.6.4 or later
-* A database such as MySQL 5.0.6 or later, PostgreSQL 7.0 or later, or SQLite 2
+* PHP 8.1 or later
+* One of: MySQL/MariaDB (via mysqli or PDO), SQLite 3.35+ (via PDO), PostgreSQL 10+ (via pgsql or PDO)
+* mbstring extension recommended (a native fallback is bundled)
 
-## Recommendations
+## Installation
 
-* Make use of a PHP accelerator such as APC or XCache
-* Make sure PHP has the zlib module installed to allow FluxBB to gzip output
+1. Upload the files to your web server.
+2. Point your browser at `install.php` and follow the instructions.
+3. When the installer finishes, remove `install.php` (the admin index will offer to do this for you).
 
-## Links
+For SQLite, enter a writable file path (for example `data/forum.sqlite`) as the database name — no database server or credentials are needed.
 
-* Homepage: https://fluxbb.org
-* Documentation: https://fluxbb.org/docs/v1.5
-* Community: https://fluxbb.org/forums/
-* Resources: https://fluxbb.org/resources/
-* IRC: irc://irc.freenode.net/fluxbb
-* Development: https://github.com/fluxbb/fluxbb
+## Upgrading from FluxBB
+
+Copy your `config.php` into a fresh EVEBB tree (keeping your `img/avatars` and any custom styles), then open the forum. Boards older than 1.5 are redirected to `db_update.php` automatically. Take a database backup first, as you would for any upgrade.
+
+## Running the tests
+
+```
+php tests/lite/run.php tests/functions tests/characterization   # unit tests
+DB_TYPE=sqlite DB_NAME=/tmp/t.sqlite \
+  php tests/lite/run.php tests/integration                      # DB contract
+DB_TYPE=sqlite DB_NAME=/tmp/e2e.sqlite ./tests/e2e/run.sh       # end-to-end
+```
+
+The bundled `tests/lite` runner is PHPUnit-API-compatible; the same test files run unchanged under real PHPUnit (`composer install && composer test`).
+
+## License and lineage
+
+EVEBB is free software released under the [GNU GPL, version 2 or later](https://www.gnu.org/licenses/gpl.html).
+
+It is based on FluxBB, copyright (C) 2008–2012 the FluxBB team, which was in turn based on PunBB, copyright (C) 2002–2008 Rickard Andersson. All original copyright notices are retained in the source files. Thanks to both projects for two decades of lean forum software.

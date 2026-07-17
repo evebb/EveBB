@@ -1,22 +1,26 @@
 {
-	"name": "fluxbb/fluxbb",
-	"description": "FluxBB is a fast, light, user-friendly, free and open-source forum application for your website.",
+	"name": "evebb/evebb",
+	"description": "EVEBB is a fast, light, user-friendly, free and open-source forum application for your website, based on FluxBB.",
 	"type": "project",
 	"license": "GPL-2.0-or-later",
-	"homepage": "https://fluxbb.org",
+	"homepage": "https://github.com/evebb/evebb",
 	"support": {
-		"issues": "https://fluxbb.org/development/core/tickets/",
-		"forum": "https://fluxbb.org/forums/",
-		"source": "https://github.com/fluxbb/fluxbb",
-		"docs": "https://fluxbb.org/docs/"
+		"issues": "https://github.com/evebb/evebb/issues",
+		"source": "https://github.com/evebb/evebb"
 	},
 	"authors": [
 		{
-			"name": "Rickard Andersson"
+			"name": "Alan Paynter",
+			"role": "EVEBB maintainer"
+		},
+		{
+			"name": "Rickard Andersson",
+			"role": "PunBB author"
 		},
 		{
 			"name": "Franz Liedke",
-			"email": "franz@develophp.org"
+			"email": "franz@develophp.org",
+			"role": "FluxBB developer"
 		}
 	],
 	"require": {

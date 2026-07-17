@@ -36,13 +36,13 @@ class DBLayerContractTest extends TestCase
 			function error($message, $file = null, $line = null, $db_error = false)
 			{
 				$detail = is_array($db_error) ? ' ['.$db_error['error_msg'].']' : '';
-				throw new RuntimeException('FluxBB error(): '.$message.$detail);
+				throw new RuntimeException('EVEBB error(): '.$message.$detail);
 			}
 		}
 
 		$db_type = getenv('DB_TYPE') ?: 'mysqli';
 		$db_host = getenv('DB_HOST') ?: 'localhost';
-		$db_name = getenv('DB_NAME') ?: 'fluxbb_test';
+		$db_name = getenv('DB_NAME') ?: 'evebb_test';
 		$db_username = getenv('DB_USER') ?: 'flux';
 		$db_password = getenv('DB_PASS') ?: 'fluxpass';
 		$db_prefix = 'test_';

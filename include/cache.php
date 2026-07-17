@@ -27,7 +27,7 @@ function generate_config_cache()
 
 	// Output config as PHP code
 	$content = '<?php'."\n\n".'define(\'PUN_CONFIG_LOADED\', 1);'."\n\n".'$pun_config = '.var_export($output, true).';'."\n\n".'?>';
-	fluxbb_write_cache_file('cache_config.php', $content);
+	evebb_write_cache_file('cache_config.php', $content);
 }
 
 
@@ -47,7 +47,7 @@ function generate_bans_cache()
 
 	// Output ban list as PHP code
 	$content = '<?php'."\n\n".'define(\'PUN_BANS_LOADED\', 1);'."\n\n".'$pun_bans = '.var_export($output, true).';'."\n\n".'?>';
-	fluxbb_write_cache_file('cache_bans.php', $content);
+	evebb_write_cache_file('cache_bans.php', $content);
 }
 
 
@@ -112,7 +112,7 @@ function generate_quickjump_cache($group_id = false)
 			}
 		}
 
-		fluxbb_write_cache_file('cache_quickjump_'.$group_id.'.php', $output);
+		evebb_write_cache_file('cache_quickjump_'.$group_id.'.php', $output);
 	}
 }
 
@@ -136,7 +136,7 @@ function generate_censoring_cache()
 
 	// Output censored words as PHP code
 	$content = '<?php'."\n\n".'define(\'PUN_CENSOR_LOADED\', 1);'."\n\n".'$search_for = '.var_export($search_for, true).';'."\n\n".'$replace_with = '.var_export($replace_with, true).';'."\n\n".'?>';
-	fluxbb_write_cache_file('cache_censoring.php', $content);
+	evebb_write_cache_file('cache_censoring.php', $content);
 }
 
 
@@ -164,7 +164,7 @@ function generate_stopwords_cache()
 
 	// Output stopwords as PHP code
 	$content = '<?php'."\n\n".'$cache_id = \''.generate_stopwords_cache_id().'\';'."\n".'if ($cache_id != generate_stopwords_cache_id()) return;'."\n\n".'define(\'PUN_STOPWORDS_LOADED\', 1);'."\n\n".'$stopwords = '.var_export($stopwords, true).';'."\n\n".'?>';
-	fluxbb_write_cache_file('cache_stopwords.php', $content);
+	evebb_write_cache_file('cache_stopwords.php', $content);
 }
 
 
@@ -185,7 +185,7 @@ function generate_users_info_cache()
 
 	// Output users info as PHP code
 	$content = '<?php'."\n\n".'define(\'PUN_USERS_INFO_LOADED\', 1);'."\n\n".'$stats = '.var_export($stats, true).';'."\n\n".'?>';
-	fluxbb_write_cache_file('cache_users_info.php', $content);
+	evebb_write_cache_file('cache_users_info.php', $content);
 }
 
 
@@ -205,14 +205,14 @@ function generate_admins_cache()
 
 	// Output admin list as PHP code
 	$content = '<?php'."\n\n".'define(\'PUN_ADMINS_LOADED\', 1);'."\n\n".'$pun_admins = '.var_export($output, true).';'."\n\n".'?>';
-	fluxbb_write_cache_file('cache_admins.php', $content);
+	evebb_write_cache_file('cache_admins.php', $content);
 }
 
 
 //
 // Safely write out a cache file.
 //
-function fluxbb_write_cache_file($file, $content)
+function evebb_write_cache_file($file, $content)
 {
 	$fh = @fopen(FORUM_CACHE_DIR.$file, 'wb');
 	if (!$fh)
@@ -226,7 +226,7 @@ function fluxbb_write_cache_file($file, $content)
 	flock($fh, LOCK_UN);
 	fclose($fh);
 
-	fluxbb_invalidate_cached_file(FORUM_CACHE_DIR.$file);
+	evebb_invalidate_cached_file(FORUM_CACHE_DIR.$file);
 }
 
 
@@ -241,7 +241,7 @@ function clear_feed_cache()
 		if (substr($entry, 0, 10) == 'cache_feed' && substr($entry, -4) == '.php')
 		{
 			@unlink(FORUM_CACHE_DIR.$entry);
-			fluxbb_invalidate_cached_file(FORUM_CACHE_DIR.$entry);
+			evebb_invalidate_cached_file(FORUM_CACHE_DIR.$entry);
 		}
 	}
 	$d->close();
@@ -251,7 +251,7 @@ function clear_feed_cache()
 //
 // Invalidate updated php files that are cached by an opcache
 //
-function fluxbb_invalidate_cached_file($file)
+function evebb_invalidate_cached_file($file)
 {
 	if (function_exists('opcache_invalidate'))
 		opcache_invalidate($file, true);

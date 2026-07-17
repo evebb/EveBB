@@ -249,7 +249,7 @@ function preparse_tags($text, &$errors, $is_signature = false)
 
 	$split_text = preg_split('%(\[[\*a-zA-Z0-9-/]*?(?:=.*?)?\])%', $text, -1, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
 
-	$open_tags = array('fluxbb-bbcode');
+	$open_tags = array('evebb-bbcode');
 	$open_args = array('');
 	$opened_tag = 0;
 	$new_text = '';

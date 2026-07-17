@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Bootstrap for characterization tests that need FluxBB's function
+ * Bootstrap for characterization tests that need EVEBB's function
  * library and parser loaded outside a real request. Sets up the minimum
  * globals those files expect.
  */

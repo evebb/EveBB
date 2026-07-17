@@ -314,7 +314,7 @@ function forum_hmac($data, $key, $raw_output = false)
 
 
 //
-// Set a cookie, FluxBB style!
+// Set a cookie, EVEBB style!
 // Wrapper for forum_setcookie
 //
 function pun_setcookie($user_id, $password_hash, $expire)
@@ -326,7 +326,7 @@ function pun_setcookie($user_id, $password_hash, $expire)
 
 
 //
-// Set a cookie, FluxBB style!
+// Set a cookie, EVEBB style!
 //
 function forum_setcookie($name, $value, $expire)
 {
@@ -1609,7 +1609,7 @@ function error($message, $file = null, $line = null, $db_error = false)
 	if (empty($pun_config))
 	{
 		$pun_config = array(
-			'o_board_title'	=> 'FluxBB',
+			'o_board_title'	=> 'EVEBB',
 			'o_gzip'		=> '0'
 		);
 	}
@@ -1668,7 +1668,7 @@ H2 {MARGIN: 0; COLOR: #FFFFFF; BACKGROUND-COLOR: #B84623; FONT-SIZE: 1.1em; PADD
 	{
 		$file = str_replace(realpath(PUN_ROOT), '', $file);
 
-		echo "\t\t".'<strong>File:</strong> '.$file.'<br />'."\n\t\t".'<strong>Line:</strong> '.$line.'<br /><br />'."\n\t\t".'<strong>FluxBB reported</strong>: '.$message."\n";
+		echo "\t\t".'<strong>File:</strong> '.$file.'<br />'."\n\t\t".'<strong>Line:</strong> '.$line.'<br /><br />'."\n\t\t".'<strong>EVEBB reported</strong>: '.$message."\n";
 
 		if ($db_error)
 		{
