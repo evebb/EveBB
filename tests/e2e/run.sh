@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# End-to-end characterization suite for EVEBB.
+# End-to-end characterization suite for eveBB.
 #
 # Installs a fresh forum over HTTP against the configured database and
 # exercises the main user flows, asserting on rendered output and an

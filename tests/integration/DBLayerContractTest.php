@@ -36,7 +36,7 @@ class DBLayerContractTest extends TestCase
 			function error($message, $file = null, $line = null, $db_error = false)
 			{
 				$detail = is_array($db_error) ? ' ['.$db_error['error_msg'].']' : '';
-				throw new RuntimeException('EVEBB error(): '.$message.$detail);
+				throw new RuntimeException('eveBB error(): '.$message.$detail);
 			}
 		}
 

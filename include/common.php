@@ -7,7 +7,7 @@
  */
 
 if (!defined('PUN_ROOT'))
-	exit('The constant PUN_ROOT must be defined and point to a valid EVEBB installation root directory.');
+	exit('The constant PUN_ROOT must be defined and point to a valid eveBB installation root directory.');
 
 // Define the version and database revision that this code was written for
 define('FORUM_VERSION', '1.0.0-alpha');
@@ -62,7 +62,7 @@ $flux_addons = new flux_addon_manager();
 
 // Seed the random number generator for systems where this does not happen automatically
 mt_srand();
-// Make sure PHP reports all errors except E_NOTICE. EVEBB supports E_ALL, but a lot of scripts it may interact with, do not
+// Make sure PHP reports all errors except E_NOTICE. eveBB supports E_ALL, but a lot of scripts it may interact with, do not
 error_reporting(E_ALL ^ E_NOTICE);
 
 // Force POSIX locale (to prevent functions such as strtolower() from messing up UTF-8 strings)

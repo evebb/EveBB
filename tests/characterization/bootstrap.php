@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Bootstrap for characterization tests that need EVEBB's function
+ * Bootstrap for characterization tests that need eveBB's function
  * library and parser loaded outside a real request. Sets up the minimum
  * globals those files expect.
  */

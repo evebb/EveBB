@@ -1,6 +1,6 @@
 {
 	"name": "evebb/evebb",
-	"description": "EVEBB is a fast, light, user-friendly, free and open-source forum application for your website, based on FluxBB.",
+	"description": "eveBB is a fast, light, user-friendly, free and open-source forum application for your website, based on FluxBB.",
 	"type": "project",
 	"license": "GPL-2.0-or-later",
 	"homepage": "https://github.com/evebb/evebb",
@@ -11,7 +11,7 @@
 	"authors": [
 		{
 			"name": "Alan Paynter",
-			"role": "EVEBB maintainer"
+			"role": "eveBB maintainer"
 		},
 		{
 			"name": "Rickard Andersson",

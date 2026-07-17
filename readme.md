@@ -1,12 +1,16 @@
-# EVEBB
+# eveBB
 
-EVEBB is a fast, light, user-friendly forum application for your website. It is a modernized continuation of [FluxBB](https://fluxbb.org/), which ceased development after 2021, and inherits FluxBB's philosophy: fewer features, faster pages, and code you can actually read.
+[![CI](https://github.com/evebb/EveBB/actions/workflows/ci.yml/badge.svg)](https://github.com/evebb/EveBB/actions/workflows/ci.yml)
+
+A public test forum runs at [evebb.net](https://evebb.net).
+
+eveBB is a fast, light, user-friendly forum application for your website. It is a modernized continuation of [FluxBB](https://fluxbb.org/), which ceased development after 2021, and inherits FluxBB's philosophy: fewer features, faster pages, and code you can actually read.
 
 ## Version
 
-EVEBB 1.0.0-alpha. The database schema is fully compatible with FluxBB 1.5.x — existing FluxBB 1.5 boards can switch to EVEBB in place, and older 1.4/1.2 boards upgrade through the bundled `db_update.php`.
+eveBB 1.0.0-alpha. The database schema is fully compatible with FluxBB 1.5.x — existing FluxBB 1.5 boards can switch to eveBB in place, and older 1.4/1.2 boards upgrade through the bundled `db_update.php`.
 
-## What EVEBB adds over FluxBB 1.5
+## What eveBB adds over FluxBB 1.5
 
 * Runs on modern PHP: fully compatible with PHP 8.1–8.4 (FluxBB required 5.6 and fatals on PHP 8).
 * A PDO database layer alongside the classic drivers: MySQL (PDO), **SQLite3** (no database server needed — the forum runs on a single file), and PostgreSQL (PDO).
@@ -30,7 +34,7 @@ For SQLite, enter a writable file path (for example `data/forum.sqlite`) as the 
 
 ## Upgrading from FluxBB
 
-Copy your `config.php` into a fresh EVEBB tree (keeping your `img/avatars` and any custom styles), then open the forum. Boards older than 1.5 are redirected to `db_update.php` automatically. Take a database backup first, as you would for any upgrade.
+Copy your `config.php` into a fresh eveBB tree (keeping your `img/avatars` and any custom styles), then open the forum. Boards older than 1.5 are redirected to `db_update.php` automatically. Take a database backup first, as you would for any upgrade.
 
 ## Running the tests
 
@@ -45,6 +49,6 @@ The bundled `tests/lite` runner is PHPUnit-API-compatible; the same test files r
 
 ## License and lineage
 
-EVEBB is free software released under the [GNU GPL, version 2 or later](https://www.gnu.org/licenses/gpl.html).
+eveBB is free software released under the [GNU GPL, version 2 or later](https://www.gnu.org/licenses/gpl.html).
 
 It is based on FluxBB, copyright (C) 2008–2012 the FluxBB team, which was in turn based on PunBB, copyright (C) 2002–2008 Rickard Andersson. All original copyright notices are retained in the source files. Thanks to both projects for two decades of lean forum software.

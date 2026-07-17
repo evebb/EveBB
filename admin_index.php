@@ -87,9 +87,9 @@ generate_admin_menu('index');
 		<div id="adstats" class="box">
 			<div class="inbox">
 				<dl>
-					<dt><?php echo $lang_admin_index['EVEBB version label'] ?></dt>
+					<dt><?php echo $lang_admin_index['eveBB version label'] ?></dt>
 					<dd>
-						<?php printf($lang_admin_index['EVEBB version data']."\n", $pun_config['o_cur_version'], '<a href="admin_index.php?action=check_upgrade">'.$lang_admin_index['Check for upgrade'].'</a>') ?>
+						<?php printf($lang_admin_index['eveBB version data']."\n", $pun_config['o_cur_version'], '<a href="admin_index.php?action=check_upgrade">'.$lang_admin_index['Check for upgrade'].'</a>') ?>
 					</dd>
 					<dt><?php echo $lang_admin_index['Server statistics label'] ?></dt>
 					<dd>
