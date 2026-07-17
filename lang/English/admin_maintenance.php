@@ -37,4 +37,21 @@ $lang_admin_maintenance = array(
 'Confirm prune info'			=>	'Are you sure that you want to prune all topics older than %s days from %s (%s topics).',
 'Confirm prune warn'			=>	'WARNING! Pruning posts deletes them permanently.',
 
+'Updates subhead'				=>	'eveBB updates',
+'Current version info'			=>	'You are running eveBB <strong>%s</strong>.',
+'Update info'					=>	'Check whether a newer release of eveBB is available. Nothing is downloaded or changed until you choose to install an update.',
+'Check for updates'				=>	'Check for updates',
+'Update check failed'			=>	'Unable to fetch release information. The server may not have outgoing network access, or the release feed may be unreachable. Try again later or update manually.',
+'New release info'				=>	'A new release is available: eveBB %s.',
+'Running latest info'			=>	'You are running the latest release (%s).',
+'Prerelease label'				=>	'(pre-release)',
+'Release notes'					=>	'Release notes',
+'Install update subhead'		=>	'Install update',
+'Install update info'			=>	'This will download the release above and replace the forum\'s files automatically. Your configuration, avatars and database are preserved, but you should still take a backup first. If the new release changes the database schema you will be guided through the database update afterwards.',
+'Update now'					=>	'Update to %s',
+'Update confirm'				=>	'Update the forum files now? Make sure you have a backup.',
+'Already latest message'		=>	'You are already running the latest release.',
+'Update success message'		=>	'The forum was updated to eveBB %s. If a database update is required you will be redirected to it automatically on the next page load.',
+'Update failed message'			=>	'The automatic update could not be completed. The details below explain what happened. You may need to update manually.',
+
 );

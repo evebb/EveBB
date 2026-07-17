@@ -22,7 +22,41 @@ if ($pun_user['g_id'] != PUN_ADMIN)
 // Load the admin_maintenance.php language file
 require PUN_ROOT.'lang/'.$admin_language.'/admin_maintenance.php';
 
+// Load the self-update library
+require PUN_ROOT.'include/update.php';
+
 $action = isset($_REQUEST['action']) ? pun_trim($_REQUEST['action']) : '';
+
+$update_info = null;
+$update_error = null;
+
+if ($action == 'check_update')
+{
+	confirm_referrer('admin_maintenance.php');
+
+	$update_info = evebb_check_latest_release();
+	if ($update_info === false)
+		$update_error = $lang_admin_maintenance['Update check failed'];
+}
+else if ($action == 'do_update')
+{
+	confirm_referrer('admin_maintenance.php');
+
+	check_csrf($_POST['csrf_token'] ?? null);
+
+	$release = evebb_check_latest_release();
+	if ($release === false)
+		message($lang_admin_maintenance['Update check failed']);
+
+	if (!evebb_update_is_newer($release['version']))
+		message($lang_admin_maintenance['Already latest message']);
+
+	$update_log = array();
+	if (evebb_apply_update($release['zip_url'], $update_log))
+		message(sprintf($lang_admin_maintenance['Update success message'], pun_htmlspecialchars($release['version'])));
+	else
+		message($lang_admin_maintenance['Update failed message'].'<br /><br />'.implode('<br />', array_map('pun_htmlspecialchars', $update_log)));
+}
 
 if ($action == 'rebuild')
 {
@@ -250,6 +284,58 @@ generate_admin_menu('maintenance');
 	<div class="blockform">
 		<h2><span><?php echo $lang_admin_maintenance['Maintenance head'] ?></span></h2>
 		<div class="box">
+			<form method="get" action="admin_maintenance.php">
+				<div class="inform">
+					<input type="hidden" name="action" value="check_update" />
+					<fieldset>
+						<legend><?php echo $lang_admin_maintenance['Updates subhead'] ?></legend>
+						<div class="infldset">
+							<p><?php printf($lang_admin_maintenance['Current version info'], pun_htmlspecialchars(FORUM_VERSION)) ?></p>
+<?php
+
+if ($update_error !== null)
+	echo "\t\t\t\t\t\t\t".'<p><strong>'.pun_htmlspecialchars($update_error).'</strong></p>'."\n";
+else if ($update_info !== null)
+{
+	$version_label = pun_htmlspecialchars($update_info['version']).($update_info['prerelease'] ? ' '.$lang_admin_maintenance['Prerelease label'] : '');
+
+	if (evebb_update_is_newer($update_info['version']))
+		echo "\t\t\t\t\t\t\t".'<p><strong>'.sprintf($lang_admin_maintenance['New release info'], $version_label).'</strong> <a href="'.pun_htmlspecialchars($update_info['url']).'">'.$lang_admin_maintenance['Release notes'].'</a></p>'."\n";
+	else
+		echo "\t\t\t\t\t\t\t".'<p><strong>'.sprintf($lang_admin_maintenance['Running latest info'], $version_label).'</strong></p>'."\n";
+}
+
+?>
+							<p><?php echo $lang_admin_maintenance['Update info'] ?></p>
+							<div class="fsetsubmit"><input type="submit" name="check_update" value="<?php echo $lang_admin_maintenance['Check for updates'] ?>" tabindex="1" /></div>
+						</div>
+					</fieldset>
+				</div>
+			</form>
+<?php
+
+if ($update_info !== null && $update_error === null && evebb_update_is_newer($update_info['version']))
+{
+
+?>
+			<form method="post" action="admin_maintenance.php" onsubmit="return confirm('<?php echo $lang_admin_maintenance['Update confirm'] ?>')">
+				<div class="inform">
+					<input type="hidden" name="action" value="do_update" />
+					<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
+					<fieldset>
+						<legend><?php echo $lang_admin_maintenance['Install update subhead'] ?></legend>
+						<div class="infldset">
+							<p><?php echo $lang_admin_maintenance['Install update info'] ?></p>
+							<div class="fsetsubmit"><input type="submit" name="do_update" value="<?php printf($lang_admin_maintenance['Update now'], pun_htmlspecialchars($update_info['version'])) ?>" tabindex="2" /></div>
+						</div>
+					</fieldset>
+				</div>
+			</form>
+<?php
+
+}
+
+?>
 			<form method="get" action="admin_maintenance.php">
 				<div class="inform">
 					<input type="hidden" name="action" value="rebuild" />

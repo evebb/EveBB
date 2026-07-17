@@ -1,0 +1,29 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Build package and publish release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build deployment package
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          zip -rq "evebb-$VERSION.zip" . \
+            -x '.git/*' -x 'tests/*' -x '.github/*' -x 'evebb-*.zip'
+          echo "Built evebb-$VERSION.zip ($(du -h "evebb-$VERSION.zip" | cut -f1))"
+
+      - name: Publish GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: evebb-*.zip
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true
