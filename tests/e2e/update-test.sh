@@ -10,8 +10,9 @@
 #
 set -u
 
-PORT="${PORT:-8113}"
-FEED_PORT="${FEED_PORT:-8114}"
+# Random ports so concurrent/stale runs never collide
+PORT="${PORT:-$((8200 + RANDOM % 500))}"
+FEED_PORT="${FEED_PORT:-$((8700 + RANDOM % 500))}"
 
 ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 BASE="http://127.0.0.1:$PORT"
