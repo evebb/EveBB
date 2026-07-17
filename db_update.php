@@ -116,8 +116,19 @@ require PUN_ROOT.'lang/'.$default_lang.'/update.php';
 // Check current version
 $cur_version = $pun_config['o_cur_version'];
 
+// eveBB version strings (1.0.x and later) are successors of FluxBB
+// 1.5.11 even though they compare lower numerically. Any board that has
+// o_database_revision (FluxBB 1.4+ or any eveBB) is supported; its
+// eveBB-scheme version is treated as 1.5.11 for the legacy FluxBB
+// upgrade branches below. Truly ancient pre-1.2 databases lack
+// o_database_revision and are still rejected.
 if (version_compare($cur_version, '1.2', '<'))
-	error(sprintf($lang_update['Version mismatch error'], $db_name));
+{
+	if (!isset($pun_config['o_database_revision']))
+		error(sprintf($lang_update['Version mismatch error'], $db_name));
+
+	$cur_version = '1.5.11';
+}
 
 if (!isset($password_hash_cost))
 	error(sprintf($lang_update['Password cost missing error']));

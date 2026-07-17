@@ -29,6 +29,9 @@ fail() { FAIL=$((FAIL+1)); echo "  FAIL: $1"; }
 assert_contains() {
   if grep -qF -- "$2" "$1"; then ok "$3"; else fail "$3 (missing: $2)"; fi
 }
+assert_not_contains() {
+  if grep -qF -- "$2" "$1"; then fail "$3 (unexpectedly found: $2)"; else ok "$3"; fi
+}
 
 cleanup() {
   [ -n "${SERVER_PID:-}" ] && kill "$SERVER_PID" 2>/dev/null
@@ -46,7 +49,10 @@ mkdir -p "$OLD"
 tar -C "$ROOT" --exclude=.git --exclude=tests --exclude=.github \
     --exclude=config.php --exclude='cache/cache_*.php' -cf - . | tar -C "$OLD" -xf -
 rm -f "$OLD/config.php" "$OLD"/cache/cache_*.php
-sed -i "s/define('FORUM_VERSION', '[^']*');/define('FORUM_VERSION', '0.9.0');/" "$OLD/include/common.php"
+# Lower the version in BOTH files so the installed database records the
+# old version too - this makes the post-update db_update flow run, which
+# is exactly what a real upgraded board goes through
+sed -i "s/define('FORUM_VERSION', '[^']*');/define('FORUM_VERSION', '0.9.0');/" "$OLD/include/common.php" "$OLD/install.php"
 grep -q "0.9.0" "$OLD/include/common.php" && ok "old install prepared (0.9.0)" || fail "old install prepared"
 
 # --- build the release package + feed --------------------------------------
@@ -130,6 +136,30 @@ grep -q "config-sentinel-do-not-lose" "$OLD/config.php" \
   && ok "config.php preserved" || fail "config.php preserved"
 [ ! -d "$OLD/cache/evebb_update_tmp" ] && ok "temp files cleaned up" || fail "temp files cleaned up"
 [ ! -f "$OLD/cache/evebb_update.zip" ] && ok "downloaded zip cleaned up" || fail "downloaded zip cleaned up"
+
+# the database still records 0.9.0, so the forum must now demand the
+# database update wizard (regression check for the eveBB-version
+# mismatch bug: 1.0.x compares lower than FluxBB's 1.2 floor)
+curl -s -b "$JAR" -o /dev/null -w "%{url_effective}" -L "$BASE/index.php" | grep -q "db_update.php" \
+  && ok "redirected to database update" || fail "redirected to database update"
+
+curl -s -b "$JAR" "$BASE/db_update.php" -o "$WORK/dbup.html"
+assert_not_contains "$WORK/dbup.html" "Version mismatch" "eveBB version accepted by db_update"
+
+# run the wizard: for SQLite the confirmation credential is the db file
+# path; stages advance via meta-refresh, so walk them like a browser
+curl -s -b "$JAR" -e "$BASE/db_update.php" "$BASE/db_update.php" \
+  --data-urlencode "form_sent=1" \
+  --data-urlencode "stage=start" \
+  --data-urlencode "req_db_pass=$WORK/forum.sqlite" \
+  --data-urlencode "req_maintenance_message=" \
+  -o "$WORK/dbup2.html"
+for i in $(seq 1 30); do
+  NEXT=$(grep -oE 'url=db_update\.php[^"]*' "$WORK/dbup2.html" | head -1 | sed 's/^url=//')
+  [ -z "$NEXT" ] && break
+  curl -s -b "$JAR" "$BASE/$NEXT" -o "$WORK/dbup2.html"
+done
+assert_contains "$WORK/dbup2.html" "successfully updated" "database update completes"
 
 curl -s -b "$JAR" -L "$BASE/index.php" -o "$WORK/after.html" -w "%{http_code} %{url_effective}\n" > "$WORK/after.meta"
 if grep -qF "Update Test" "$WORK/after.html"; then
