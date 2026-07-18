@@ -138,38 +138,40 @@ require PUN_ROOT.'header.php';
 generate_admin_menu('plugins');
 
 ?>
-	<div id="pluginlist" class="blocktable">
+	<style type="text/css">
+/* Scoped so the plugin list looks right on any theme */
+#pluginmanage table.pluginlist { width: 100%; border-collapse: collapse; }
+#pluginmanage table.pluginlist th, #pluginmanage table.pluginlist td { padding: 0.6em 0.8em; border-bottom: 1px solid #ccc; text-align: left; vertical-align: top; }
+#pluginmanage table.pluginlist th { font-weight: bold; }
+#pluginmanage table.pluginlist td.tc2, #pluginmanage table.pluginlist th.tc2, #pluginmanage table.pluginlist td.tc3, #pluginmanage table.pluginlist th.tc3 { width: 12%; white-space: nowrap; }
+#pluginmanage table.pluginlist td.tcr, #pluginmanage table.pluginlist th.tcr { width: 22%; white-space: nowrap; }
+#pluginmanage table.pluginlist .plugindesc { display: block; margin-top: 0.3em; font-size: 0.9em; }
+	</style>
+	<div id="pluginmanage" class="blockform">
 		<h2><span><?php echo $lang_admin_plugins['Installed plugins head'] ?></span></h2>
+		<div class="box">
+			<div class="inform">
+				<fieldset>
+					<legend><?php echo $lang_admin_plugins['Installed plugins head'] ?></legend>
+					<div class="infldset">
 <?php
 
 if (empty($installed))
-{
-
-?>
-		<div class="box">
-			<div class="inbox">
-				<p><?php echo $lang_admin_plugins['No plugins'] ?></p>
-			</div>
-		</div>
-<?php
-
-}
+	echo "\t\t\t\t\t\t".'<p>'.$lang_admin_plugins['No plugins'].'</p>'."\n";
 else
 {
 
 ?>
-		<div class="box">
-			<div class="inbox">
-				<table>
-					<thead>
-						<tr>
-							<th class="tcl" scope="col"><?php echo $lang_admin_plugins['Col name'] ?></th>
-							<th class="tc2" scope="col"><?php echo $lang_admin_plugins['Col version'] ?></th>
-							<th class="tc3" scope="col"><?php echo $lang_admin_plugins['Col status'] ?></th>
-							<th class="tcr" scope="col"><?php echo $lang_admin_plugins['Col actions'] ?></th>
-						</tr>
-					</thead>
-					<tbody>
+						<table class="pluginlist">
+							<thead>
+								<tr>
+									<th class="tcl" scope="col"><?php echo $lang_admin_plugins['Col name'] ?></th>
+									<th class="tc2" scope="col"><?php echo $lang_admin_plugins['Col version'] ?></th>
+									<th class="tc3" scope="col"><?php echo $lang_admin_plugins['Col status'] ?></th>
+									<th class="tcr" scope="col"><?php echo $lang_admin_plugins['Col actions'] ?></th>
+								</tr>
+							</thead>
+							<tbody>
 <?php
 
 	$csrf = pun_csrf_token();
@@ -195,26 +197,28 @@ else
 		if ($manifest['author'] !== '')
 			$name_cell .= ' <span class="byuser">'.sprintf($lang_admin_plugins['By author'], pun_htmlspecialchars($manifest['author'])).'</span>';
 		if ($manifest['description'] !== '')
-			$name_cell .= '<br />'.pun_htmlspecialchars($manifest['description']);
+			$name_cell .= '<span class="plugindesc">'.pun_htmlspecialchars($manifest['description']).'</span>';
 
-		echo "\t\t\t\t\t\t".'<tr>'."\n";
-		echo "\t\t\t\t\t\t\t".'<td class="tcl">'.$name_cell.'</td>'."\n";
-		echo "\t\t\t\t\t\t\t".'<td class="tc2">'.pun_htmlspecialchars($manifest['version']).'</td>'."\n";
-		echo "\t\t\t\t\t\t\t".'<td class="tc3">'.$status.'</td>'."\n";
-		echo "\t\t\t\t\t\t\t".'<td class="tcr">'.implode(' | ', $actions).'</td>'."\n";
-		echo "\t\t\t\t\t\t".'</tr>'."\n";
+		echo "\t\t\t\t\t\t\t\t".'<tr>'."\n";
+		echo "\t\t\t\t\t\t\t\t\t".'<td class="tcl">'.$name_cell.'</td>'."\n";
+		echo "\t\t\t\t\t\t\t\t\t".'<td class="tc2">'.pun_htmlspecialchars($manifest['version']).'</td>'."\n";
+		echo "\t\t\t\t\t\t\t\t\t".'<td class="tc3">'.$status.'</td>'."\n";
+		echo "\t\t\t\t\t\t\t\t\t".'<td class="tcr">'.implode(' | ', $actions).'</td>'."\n";
+		echo "\t\t\t\t\t\t\t\t".'</tr>'."\n";
 	}
 
 ?>
-					</tbody>
-				</table>
-			</div>
-		</div>
+							</tbody>
+						</table>
 <?php
 
 }
 
 ?>
+					</div>
+				</fieldset>
+			</div>
+		</div>
 	</div>
 
 	<div class="blockform">
