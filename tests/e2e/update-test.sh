@@ -134,6 +134,8 @@ grep -q "define('FORUM_VERSION', '$CURRENT_VERSION')" "$OLD/include/common.php" 
   && ok "files replaced (FORUM_VERSION now $CURRENT_VERSION)" || fail "files replaced"
 grep -q "config-sentinel-do-not-lose" "$OLD/config.php" \
   && ok "config.php preserved" || fail "config.php preserved"
+# a self-update must remove install.php (the fresh install left one behind)
+[ ! -f "$OLD/install.php" ] && ok "install.php removed by self-update" || fail "install.php removed by self-update"
 [ ! -d "$OLD/cache/evebb_update_tmp" ] && ok "temp files cleaned up" || fail "temp files cleaned up"
 [ ! -f "$OLD/cache/evebb_update.zip" ] && ok "downloaded zip cleaned up" || fail "downloaded zip cleaned up"
 

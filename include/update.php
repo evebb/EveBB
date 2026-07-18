@@ -158,7 +158,11 @@ function evebb_update_entry_is_safe($name)
 
 
 //
-// Files/directories (relative to forum root) never overwritten by an update
+// Files/directories (relative to forum root) never written by an update.
+// install.php ships in the release for fresh FTP installs, but a
+// self-updating forum is already installed and must never (re)create it
+// — it is a security risk and triggers the admin "install.php still
+// exists" alert. It is skipped here and removed after applying.
 //
 function evebb_update_preserved_paths()
 {
@@ -167,6 +171,7 @@ function evebb_update_preserved_paths()
 		'img/avatars',
 		'cache',
 		'.git',
+		'install.php',
 	);
 }
 
@@ -354,6 +359,14 @@ function evebb_apply_update($zip_url, &$log)
 	// Clear cached config/lang so the new version regenerates it
 	foreach (glob(FORUM_CACHE_DIR.'cache_*.php') ?: array() as $cache_file)
 		@unlink($cache_file);
+
+	// A self-updating forum is already installed; remove install.php so
+	// it is never left behind after an update (security + the admin alert)
+	if ($ok && file_exists(PUN_ROOT.'install.php'))
+	{
+		@unlink(PUN_ROOT.'install.php');
+		$log[] = 'Removed install.php.';
+	}
 
 	evebb_update_rmtree($tmp_dir);
 	@unlink($zip_file);
