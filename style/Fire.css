@@ -236,6 +236,37 @@ html, body, .pun table, .pun div, .pun form, .pun p, .pun h1, .pun h2, .pun h3, 
 	padding: 0 0 10px 0;
 }
 
+/* Board logo (image board title) positioning */
+#brdlogo {
+	padding: 0 0 10px 0;
+}
+#brdlogo a {
+	display: inline-block;
+}
+#brdlogo img {
+	display: inline-block;
+	vertical-align: middle;
+	max-width: 100%;
+	height: auto;
+}
+#brdlogo.brdlogo-left {
+	text-align: left;
+}
+#brdlogo.brdlogo-center {
+	text-align: center;
+}
+#brdlogo.brdlogo-right {
+	text-align: right;
+}
+#brdlogo.brdlogo-full {
+	text-align: center;
+}
+#brdlogo.brdlogo-full a,
+#brdlogo.brdlogo-full img {
+	display: block;
+	width: 100%;
+}
+
 #brddesc {
 	border-top-style: dotted;
 	border-top-width: 1px;

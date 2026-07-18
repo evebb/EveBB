@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.4.0-alpha');
+define('FORUM_VERSION', '1.4.1-alpha');
 
 define('FORUM_DB_REVISION', 24);
 define('FORUM_SI_REVISION', 2);
@@ -1600,6 +1600,7 @@ else
 		'o_logo_url'				=> '',
 		'o_logo_width'				=> '',
 		'o_logo_height'				=> '',
+		'o_logo_align'				=> 'left',
 		// The bundled BBCode toolbar plugin is active out of the box
 		'o_active_plugins'			=> 'toolbar'
 	);

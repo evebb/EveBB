@@ -136,6 +136,7 @@ save_options() {
     -F "form[announcement_message]=" \
     -F "form[maintenance]=0" \
     -F "form[maintenance_message]=" \
+    -F "form[logo_align]=${LOGO_ALIGN:-left}" \
     "$@"
 }
 
@@ -148,26 +149,44 @@ assert_not_contains "$WORK/idx0.html" 'id="brdlogo"' "no logo element when no lo
 curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_options.php" -o "$WORK/opts.html"
 assert_contains "$WORK/opts.html" 'name="logo_file"' "logo upload field present"
 assert_contains "$WORK/opts.html" 'name="form[logo_width]"' "logo width field present"
+assert_contains "$WORK/opts.html" 'name="form[logo_align]"' "logo position field present"
 assert_contains "$WORK/opts.html" 'enctype="multipart/form-data"' "options form accepts uploads"
 
-# --- upload a logo as a full-width banner (width 100%) ----------------------
-save_options -F "form[logo_width]=100%" -F "form[logo_height]=" \
+# --- upload a logo (default left position) ---------------------------------
+save_options -F "form[logo_width]=250" -F "form[logo_height]=80" \
   -F "logo_file=@$WORK/logo.png;type=image/png"
 [ -f "$ROOT/img/board_logo.png" ] && ok "logo image stored to img/" || fail "logo image stored to img/"
 
 curl -s "$BASE/index.php" -o "$WORK/idx1.html"
 assert_contains "$WORK/idx1.html" 'id="brdlogo"' "logo element rendered after upload"
+assert_contains "$WORK/idx1.html" 'class="brdlogo-left"' "default left position class emitted"
 assert_contains "$WORK/idx1.html" 'img/board_logo.png' "logo image referenced in page"
-assert_contains "$WORK/idx1.html" 'width: 100%' "banner width applied"
+assert_contains "$WORK/idx1.html" 'width: 250px' "bare-number width treated as pixels"
+assert_contains "$WORK/idx1.html" 'height: 80px' "bare-number height treated as pixels"
 assert_contains "$WORK/idx1.html" 'alt="Logo Test"' "board title used as logo alt text"
 assert_not_contains "$WORK/idx1.html" ">Logo Test</a></h1>" "text title replaced by logo"
 
-# --- change size only (bare number -> pixels), keeping the logo ------------
+# --- position the logo centre (no re-upload) -------------------------------
+LOGO_ALIGN=center save_options -F "form[logo_width]=250" -F "form[logo_height]=80"
+curl -s "$BASE/index.php" -o "$WORK/idxc.html"
+assert_contains "$WORK/idxc.html" 'class="brdlogo-center"' "centre position class emitted"
+assert_contains "$WORK/idxc.html" 'img/board_logo.png' "logo preserved when only position changes"
+
+# --- full-width banner ignores the manual size -----------------------------
+LOGO_ALIGN=full save_options -F "form[logo_width]=250" -F "form[logo_height]=80"
+curl -s "$BASE/index.php" -o "$WORK/idxf.html"
+assert_contains "$WORK/idxf.html" 'class="brdlogo-full"' "full-width position class emitted"
+assert_not_contains "$WORK/idxf.html" 'width: 250px' "manual size ignored for full-width banner"
+
+# the bundled default style ships the positioning hooks
+curl -s "$BASE/style/Air.css" -o "$WORK/air.css"
+assert_contains "$WORK/air.css" "#brdlogo.brdlogo-full" "stylesheet carries full-width banner rule"
+assert_contains "$WORK/air.css" "#brdlogo.brdlogo-center" "stylesheet carries centre rule"
+
+# --- back to left so the removal test below reads cleanly ------------------
 save_options -F "form[logo_width]=250" -F "form[logo_height]=80"
 curl -s "$BASE/index.php" -o "$WORK/idx2.html"
-assert_contains "$WORK/idx2.html" 'width: 250px' "bare-number width treated as pixels"
-assert_contains "$WORK/idx2.html" 'height: 80px' "bare-number height treated as pixels"
-assert_contains "$WORK/idx2.html" 'img/board_logo.png' "logo preserved when only size changes"
+assert_contains "$WORK/idx2.html" 'img/board_logo.png' "logo preserved across position changes"
 
 # --- a non-image upload is rejected ----------------------------------------
 save_options -F "form[logo_width]=250" -F "form[logo_height]=80" \

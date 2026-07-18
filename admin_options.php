@@ -260,7 +260,13 @@ if (isset($_POST['form_sent']))
 	if ($logo_height != '' && ctype_digit($logo_height))
 		$logo_height .= 'px';
 
-	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height) as $conf_name => $conf_value)
+	// Horizontal placement (a CSS hook on #brdlogo); "full" is a banner
+	// that spans the whole content width and ignores the manual size
+	$logo_align = isset($_POST['form']['logo_align']) ? pun_trim($_POST['form']['logo_align']) : 'left';
+	if (!in_array($logo_align, array('left', 'center', 'right', 'full'), true))
+		$logo_align = 'left';
+
+	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align) as $conf_name => $conf_value)
 	{
 		$value = ($conf_value != '') ? '\''.$db->escape($conf_value).'\'' : 'NULL';
 		if (array_key_exists($conf_name, $pun_config))
@@ -330,6 +336,19 @@ generate_admin_menu('options');
 										&nbsp;<?php echo $lang_admin_options['Board logo height'] ?>
 										<input type="text" name="form[logo_height]" size="8" maxlength="12" value="<?php echo isset($pun_config['o_logo_height']) ? pun_htmlspecialchars($pun_config['o_logo_height']) : '' ?>" />
 										<span><?php echo $lang_admin_options['Board logo size help'] ?></span>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php echo $lang_admin_options['Board logo align label'] ?></th>
+									<td>
+										<?php $pun_logo_align = isset($pun_config['o_logo_align']) ? $pun_config['o_logo_align'] : 'left'; ?>
+										<select name="form[logo_align]">
+											<option value="left"<?php if ($pun_logo_align == 'left') echo ' selected="selected"' ?>><?php echo $lang_admin_options['Board logo align left'] ?></option>
+											<option value="center"<?php if ($pun_logo_align == 'center') echo ' selected="selected"' ?>><?php echo $lang_admin_options['Board logo align center'] ?></option>
+											<option value="right"<?php if ($pun_logo_align == 'right') echo ' selected="selected"' ?>><?php echo $lang_admin_options['Board logo align right'] ?></option>
+											<option value="full"<?php if ($pun_logo_align == 'full') echo ' selected="selected"' ?>><?php echo $lang_admin_options['Board logo align full'] ?></option>
+										</select>
+										<span><?php echo $lang_admin_options['Board logo align help'] ?></span>
 									</td>
 								</tr>
 								<tr>

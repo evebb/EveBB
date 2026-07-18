@@ -188,17 +188,27 @@ $tpl_main = str_replace('<pun_page>', htmlspecialchars(basename($_SERVER['SCRIPT
 $pun_logo_url = isset($pun_config['o_logo_url']) ? $pun_config['o_logo_url'] : '';
 if ($pun_logo_url != '')
 {
+	// Horizontal placement: emit a class the stylesheet positions
+	// (#brdlogo.brdlogo-left / -center / -right / -full). "full" is a
+	// banner that spans the content width, so it ignores the manual size.
+	$logo_align = isset($pun_config['o_logo_align']) ? $pun_config['o_logo_align'] : 'left';
+	if (!in_array($logo_align, array('left', 'center', 'right', 'full'), true))
+		$logo_align = 'left';
+
 	$logo_style = '';
-	$logo_width = isset($pun_config['o_logo_width']) ? $pun_config['o_logo_width'] : '';
-	$logo_height = isset($pun_config['o_logo_height']) ? $pun_config['o_logo_height'] : '';
-	// Sizes are stored already sanitised (digits + an optional CSS unit)
-	if ($logo_width != '')
-		$logo_style .= 'width: '.$logo_width.'; ';
-	if ($logo_height != '')
-		$logo_style .= 'height: '.$logo_height.'; ';
+	if ($logo_align != 'full')
+	{
+		$logo_width = isset($pun_config['o_logo_width']) ? $pun_config['o_logo_width'] : '';
+		$logo_height = isset($pun_config['o_logo_height']) ? $pun_config['o_logo_height'] : '';
+		// Sizes are stored already sanitised (digits + an optional CSS unit)
+		if ($logo_width != '')
+			$logo_style .= 'width: '.$logo_width.'; ';
+		if ($logo_height != '')
+			$logo_style .= 'height: '.$logo_height.'; ';
+	}
 
 	$logo_html = '<img src="'.pun_htmlspecialchars($pun_logo_url).'" alt="'.pun_htmlspecialchars($pun_config['o_board_title']).'"'.($logo_style != '' ? ' style="'.pun_htmlspecialchars(trim($logo_style)).'"' : '').' />';
-	$tpl_main = str_replace('<pun_title>', '<h1 id="brdlogo"><a href="index.php">'.$logo_html.'</a></h1>', $tpl_main);
+	$tpl_main = str_replace('<pun_title>', '<h1 id="brdlogo" class="brdlogo-'.$logo_align.'"><a href="index.php">'.$logo_html.'</a></h1>', $tpl_main);
 }
 else
 	$tpl_main = str_replace('<pun_title>', '<h1><a href="index.php">'.pun_htmlspecialchars($pun_config['o_board_title']).'</a></h1>', $tpl_main);
