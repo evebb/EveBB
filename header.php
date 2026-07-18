@@ -164,7 +164,13 @@ $wysiwyg_signature = defined('PUN_ACTIVE_PAGE') && PUN_ACTIVE_PAGE == 'profile' 
 
 if ($wysiwyg_enabled && ($wysiwyg_message || $wysiwyg_signature))
 {
-	$sc_base = $pun_config['o_base_url'];
+	// Assets are referenced by paths relative to the forum root (like the
+	// board stylesheet), and the URLs SCEditor needs at runtime are resolved
+	// in the browser against document.baseURI. This way they always load over
+	// the same scheme and host as the current page - avoiding mixed-content
+	// blocks when o_base_url's scheme does not match how the board is actually
+	// served (e.g. https behind a proxy while o_base_url still says http), and
+	// working the same for root and subdirectory installs.
 
 	// Only tags eveBB's parser understands (no size/font/align/table/etc.)
 	$sc_toolbar = 'bold,italic,underline,strike|color,removeformat|bulletlist,orderedlist|link,unlink,image,email|quote,code';
@@ -183,24 +189,26 @@ if ($wysiwyg_enabled && ($wysiwyg_message || $wysiwyg_signature))
 
 	$sc_opts = array(
 		'format'          => 'bbcode',
-		'style'           => $sc_base.'/js/sceditor/themes/content/default.min.css',
 		'toolbar'         => $sc_toolbar,
 		'plugins'         => 'alternative-lists',
 		'emoticonsCompat' => true,
-		'emoticonsRoot'   => $sc_base.'/img/smilies/',
 		'emoticons'       => array('dropdown' => ($pun_config['o_smilies'] == '1') ? (object) $sc_emoticons : (object) array()),
 		'resizeWidth'     => false,
 		'autoUpdate'      => true,
+		// 'style' and 'emoticonsRoot' are filled in below, in the browser
 	);
 
-	echo '<link rel="stylesheet" type="text/css" href="'.pun_htmlspecialchars($sc_base).'/js/sceditor/themes/default.min.css" />'."\n";
-	echo '<script type="text/javascript" src="'.pun_htmlspecialchars($sc_base).'/js/sceditor/sceditor.min.js"></script>'."\n";
-	echo '<script type="text/javascript" src="'.pun_htmlspecialchars($sc_base).'/js/sceditor/formats/bbcode.js"></script>'."\n";
-	echo '<script type="text/javascript" src="'.pun_htmlspecialchars($sc_base).'/js/sceditor/plugins/alternative-lists.js"></script>'."\n";
+	echo '<link rel="stylesheet" type="text/css" href="js/sceditor/themes/default.min.css" />'."\n";
+	echo '<script type="text/javascript" src="js/sceditor/sceditor.min.js"></script>'."\n";
+	echo '<script type="text/javascript" src="js/sceditor/formats/bbcode.js"></script>'."\n";
+	echo '<script type="text/javascript" src="js/sceditor/plugins/alternative-lists.js"></script>'."\n";
 	echo '<script type="text/javascript">'."\n".'/* <![CDATA[ */'."\n";
 	echo 'var evebb_sceditor_opts = '.json_encode($sc_opts).';'."\n";
 	echo 'document.addEventListener("DOMContentLoaded", function() {'."\n";
 	echo "\tif (typeof sceditor === 'undefined') return;\n";
+	echo "\t// Resolve to absolute URLs on the page's own scheme/host\n";
+	echo "\tevebb_sceditor_opts.style = new URL('js/sceditor/themes/content/default.min.css', document.baseURI).href;\n";
+	echo "\tevebb_sceditor_opts.emoticonsRoot = new URL('img/smilies/', document.baseURI).href;\n";
 	echo "\tvar tas = document.querySelectorAll('textarea[name=\"req_message\"], textarea[name=\"signature\"]');\n";
 	echo "\tfor (var i = 0; i < tas.length; i++) {\n";
 	echo "\t\t(function(ta) {\n";

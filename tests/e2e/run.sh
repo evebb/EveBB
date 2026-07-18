@@ -276,6 +276,11 @@ assert_contains "$TMP/wyz_on.html" 'js/sceditor/sceditor.min.js' "reply page loa
 assert_contains "$TMP/wyz_on.html" 'evebb_sceditor_opts' "editor is initialised over the message box"
 assert_contains "$TMP/wyz_on.html" '"format":"bbcode"' "editor runs in BBCode mode"
 assert_contains "$TMP/wyz_on.html" 'source' "editor toolbar exposes a raw-BBCode source toggle"
+# assets are referenced root-relative and resolved on the page's own scheme/host
+# (so they are not blocked as mixed content when o_base_url's scheme is wrong)
+assert_contains "$TMP/wyz_on.html" 'src="js/sceditor/sceditor.min.js"' "editor assets use root-relative paths"
+assert_contains "$TMP/wyz_on.html" 'document.baseURI' "editor resolves asset URLs on the page's own scheme/host"
+if grep -qF "$BASE/js/sceditor" "$TMP/wyz_on.html"; then fail "editor does not hardcode the base URL for assets"; else ok "editor does not hardcode the base URL for assets"; fi
 # admin toggle off -> the plain textarea is used, no editor assets
 set_wysiwyg() { # value
   php -r '
