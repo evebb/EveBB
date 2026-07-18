@@ -120,3 +120,6 @@ jobs:
 
       - name: Style manager end-to-end test
         run: ./tests/e2e/styles-test.sh
+
+      - name: Board logo end-to-end test
+        run: ./tests/e2e/logo-test.sh

@@ -181,7 +181,27 @@ $tpl_main = str_replace('<pun_page>', htmlspecialchars(basename($_SERVER['SCRIPT
 
 
 // START SUBST - <pun_title>
-$tpl_main = str_replace('<pun_title>', '<h1><a href="index.php">'.pun_htmlspecialchars($pun_config['o_board_title']).'</a></h1>', $tpl_main);
+// If a logo image has been configured, show it in place of the board-title
+// text (an admin can size it, up to a full-width banner). The board title is
+// still used as the image's alt text, and remains the fallback when no logo
+// is set.
+$pun_logo_url = isset($pun_config['o_logo_url']) ? $pun_config['o_logo_url'] : '';
+if ($pun_logo_url != '')
+{
+	$logo_style = '';
+	$logo_width = isset($pun_config['o_logo_width']) ? $pun_config['o_logo_width'] : '';
+	$logo_height = isset($pun_config['o_logo_height']) ? $pun_config['o_logo_height'] : '';
+	// Sizes are stored already sanitised (digits + an optional CSS unit)
+	if ($logo_width != '')
+		$logo_style .= 'width: '.$logo_width.'; ';
+	if ($logo_height != '')
+		$logo_style .= 'height: '.$logo_height.'; ';
+
+	$logo_html = '<img src="'.pun_htmlspecialchars($pun_logo_url).'" alt="'.pun_htmlspecialchars($pun_config['o_board_title']).'"'.($logo_style != '' ? ' style="'.pun_htmlspecialchars(trim($logo_style)).'"' : '').' />';
+	$tpl_main = str_replace('<pun_title>', '<h1 id="brdlogo"><a href="index.php">'.$logo_html.'</a></h1>', $tpl_main);
+}
+else
+	$tpl_main = str_replace('<pun_title>', '<h1><a href="index.php">'.pun_htmlspecialchars($pun_config['o_board_title']).'</a></h1>', $tpl_main);
 // END SUBST - <pun_title>
 
 

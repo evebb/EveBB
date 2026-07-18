@@ -211,6 +211,64 @@ if (isset($_POST['form_sent']))
 		}
 	}
 
+	// --- Board logo (image board title) --------------------------------
+	// These keys may be absent on a board upgraded from an older version,
+	// so insert-or-update rather than relying on the loop above (which only
+	// touches keys that already exist).
+	$logo_url = isset($pun_config['o_logo_url']) ? $pun_config['o_logo_url'] : '';
+
+	// Remove an existing logo if the admin ticked the box
+	if (isset($_POST['remove_logo']))
+	{
+		foreach (glob(PUN_ROOT.'img/board_logo.*') ?: array() as $old)
+			@unlink($old);
+		$logo_url = '';
+	}
+
+	// Handle a newly uploaded logo image
+	if (isset($_FILES['logo_file']) && is_array($_FILES['logo_file']) && isset($_FILES['logo_file']['error']) && $_FILES['logo_file']['error'] == UPLOAD_ERR_OK && is_uploaded_file($_FILES['logo_file']['tmp_name']))
+	{
+		$allowed_logo = array('image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' => 'gif', 'image/webp' => 'webp');
+		$logo_info = @getimagesize($_FILES['logo_file']['tmp_name']);
+		if ($logo_info === false || !isset($logo_info['mime']) || !isset($allowed_logo[$logo_info['mime']]))
+			message($lang_admin_options['Logo bad image message']);
+
+		$logo_ext = $allowed_logo[$logo_info['mime']];
+
+		// Remove any previous logo first (it may have a different extension)
+		foreach (glob(PUN_ROOT.'img/board_logo.*') ?: array() as $old)
+			@unlink($old);
+
+		$logo_dest = PUN_ROOT.'img/board_logo.'.$logo_ext;
+		if (!@move_uploaded_file($_FILES['logo_file']['tmp_name'], $logo_dest))
+			message($lang_admin_options['Logo move failed message']);
+		@chmod($logo_dest, 0644);
+
+		$logo_url = $pun_config['o_base_url'].'/img/board_logo.'.$logo_ext;
+	}
+
+	// Width/height: accept a bare number (treated as pixels) or a number
+	// with a CSS length unit; discard anything else
+	$logo_width = isset($_POST['form']['logo_width']) ? pun_trim($_POST['form']['logo_width']) : '';
+	$logo_height = isset($_POST['form']['logo_height']) ? pun_trim($_POST['form']['logo_height']) : '';
+	if ($logo_width != '' && !preg_match('~^[0-9]+(px|%|em|rem|vw|vh)?$~', $logo_width))
+		$logo_width = '';
+	if ($logo_height != '' && !preg_match('~^[0-9]+(px|%|em|rem|vw|vh)?$~', $logo_height))
+		$logo_height = '';
+	if ($logo_width != '' && ctype_digit($logo_width))
+		$logo_width .= 'px';
+	if ($logo_height != '' && ctype_digit($logo_height))
+		$logo_height .= 'px';
+
+	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height) as $conf_name => $conf_value)
+	{
+		$value = ($conf_value != '') ? '\''.$db->escape($conf_value).'\'' : 'NULL';
+		if (array_key_exists($conf_name, $pun_config))
+			$db->query('UPDATE '.$db->prefix.'config SET conf_value='.$value.' WHERE conf_name=\''.$conf_name.'\'') or error('Unable to update board config', __FILE__, __LINE__, $db->error());
+		else
+			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\''.$conf_name.'\', '.$value.')') or error('Unable to insert board config', __FILE__, __LINE__, $db->error());
+	}
+
 	// Regenerate the config cache
 	if (!defined('FORUM_CACHE_FUNCTIONS_LOADED'))
 		require PUN_ROOT.'include/cache.php';
@@ -231,7 +289,7 @@ generate_admin_menu('options');
 	<div class="blockform">
 		<h2><span><?php echo $lang_admin_options['Options head'] ?></span></h2>
 		<div class="box">
-			<form method="post" action="admin_options.php">
+			<form method="post" action="admin_options.php" enctype="multipart/form-data">
 				<p class="submittop"><input type="submit" name="save" value="<?php echo $lang_admin_common['Save changes'] ?>" /></p>
 				<div class="inform">
 					<input type="hidden" name="form_sent" value="1" />
@@ -251,6 +309,27 @@ generate_admin_menu('options');
 									<td>
 										<textarea name="form[board_desc]" cols="60" rows="3"><?php echo pun_htmlspecialchars($pun_config['o_board_desc']) ?></textarea>
 										<span><?php echo $lang_admin_options['Board desc help'] ?></span>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php echo $lang_admin_options['Board logo label'] ?></th>
+									<td>
+<?php $pun_logo = isset($pun_config['o_logo_url']) ? $pun_config['o_logo_url'] : ''; if ($pun_logo != ''): ?>
+										<p style="margin-bottom: .5em;"><img src="<?php echo pun_htmlspecialchars($pun_logo) ?>" alt="" style="max-width: 100%; max-height: 120px; vertical-align: middle; border: 1px solid #ccc;" /></p>
+										<label><input type="checkbox" name="remove_logo" value="1" /> <?php echo $lang_admin_options['Board logo remove'] ?></label><br />
+<?php endif; ?>
+										<input type="file" name="logo_file" accept="image/png,image/jpeg,image/gif,image/webp" />
+										<span><?php echo $lang_admin_options['Board logo help'] ?></span>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php echo $lang_admin_options['Board logo size label'] ?></th>
+									<td>
+										<?php echo $lang_admin_options['Board logo width'] ?>
+										<input type="text" name="form[logo_width]" size="8" maxlength="12" value="<?php echo isset($pun_config['o_logo_width']) ? pun_htmlspecialchars($pun_config['o_logo_width']) : '' ?>" />
+										&nbsp;<?php echo $lang_admin_options['Board logo height'] ?>
+										<input type="text" name="form[logo_height]" size="8" maxlength="12" value="<?php echo isset($pun_config['o_logo_height']) ? pun_htmlspecialchars($pun_config['o_logo_height']) : '' ?>" />
+										<span><?php echo $lang_admin_options['Board logo size help'] ?></span>
 									</td>
 								</tr>
 								<tr>
