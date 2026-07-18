@@ -1416,11 +1416,11 @@ html, body, .pun {
 }
 
 .pun a, .pun a:link, .pun a:visited {
-	color: #bf5e00;
+	color: #ed6a00;
 }
 
 .pun a:hover, .pun a:active, .pun a:focus {
-	color: #e67300;
+	color: #ff7a00;
 }
 
 .pun .postmsg .postimg a:link img, .pun .postmsg .postimg a:visited img {
@@ -1428,7 +1428,7 @@ html, body, .pun {
 }
 
 .pun .postmsg .postimg a:hover img, .pun .postmsg .postimg a:active img, .pun .postmsg .postimg a:focus img {
-	border-color: #e67300;
+	border-color: #ff7a00;
 }
 
 .pun .code {
@@ -1450,7 +1450,7 @@ html, body, .pun {
 }
 
 #brdmenu a:hover, #brdmenu a:active, #brdmenu a:focus {
-	background: #e67300;
+	background: #ff7a00;
 	border-color: #fff;
 	color: #fff;
 }
