@@ -114,3 +114,6 @@ jobs:
 
       - name: Toolbar plugin end-to-end test
         run: ./tests/e2e/toolbar-test.sh
+
+      - name: Plugin manager end-to-end test
+        run: ./tests/e2e/plugins-test.sh

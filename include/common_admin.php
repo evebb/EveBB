@@ -89,6 +89,7 @@ function generate_admin_menu($page = '')
 					<li<?php if ($page == 'groups') echo ' class="isactive"'; ?>><a href="admin_groups.php"><?php echo $lang_admin_common['User groups'] ?></a></li>
 					<li<?php if ($page == 'censoring') echo ' class="isactive"'; ?>><a href="admin_censoring.php"><?php echo $lang_admin_common['Censoring'] ?></a></li>
 					<li<?php if ($page == 'maintenance') echo ' class="isactive"'; ?>><a href="admin_maintenance.php"><?php echo $lang_admin_common['Maintenance'] ?></a></li>
+					<li<?php if ($page == 'plugins') echo ' class="isactive"'; ?>><a href="admin_plugins.php"><?php echo $lang_admin_common['Plugins'] ?></a></li>
 				</ul>
 			</div>
 		</div>

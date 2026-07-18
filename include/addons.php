@@ -26,22 +26,61 @@ class flux_addon_manager
 	{
 		$this->loaded = true;
 
+		// Legacy addons: every file in addons/ is loaded unconditionally
+		// (kept for backwards compatibility with pre-manifest plugins)
 		$d = dir(PUN_ROOT.'addons');
-		if (!$d) return;
-
-		while (($addon_file = $d->read()) !== false)
+		if ($d)
 		{
-			if (!is_dir(PUN_ROOT.'addons/'.$addon_file) && preg_match('%(\w+)\.php$%', $addon_file))
+			while (($addon_file = $d->read()) !== false)
 			{
-				$addon_name = 'addon_'.substr($addon_file, 0, -4);
+				if (!is_dir(PUN_ROOT.'addons/'.$addon_file) && preg_match('%(\w+)\.php$%', $addon_file))
+				{
+					$addon_name = 'addon_'.substr($addon_file, 0, -4);
 
-				include PUN_ROOT.'addons/'.$addon_file;
-				$addon = new $addon_name;
+					include PUN_ROOT.'addons/'.$addon_file;
+					$addon = new $addon_name;
 
+					$addon->register($this);
+				}
+			}
+			$d->close();
+		}
+
+		// Manifest plugins: load only those marked active in the registry
+		$this->load_active_plugins();
+	}
+
+	function load_active_plugins()
+	{
+		// The plugin library and config may not be available in every
+		// context that pulls in addons.php; fail closed and quietly
+		if (!function_exists('evebb_active_plugins'))
+		{
+			if (file_exists(PUN_ROOT.'include/plugins.php'))
+				require_once PUN_ROOT.'include/plugins.php';
+			else
+				return;
+		}
+
+		foreach (evebb_active_plugins() as $slug)
+		{
+			$manifest = evebb_read_manifest($slug);
+			if ($manifest === null || empty($manifest['addon']))
+				continue;
+
+			$addon_file = PUN_ROOT.'plugins/'.$slug.'/'.$manifest['addon'];
+			if (!file_exists($addon_file))
+				continue;
+
+			include $addon_file;
+
+			$class = 'plugin_'.$slug;
+			if (class_exists($class))
+			{
+				$addon = new $class;
 				$addon->register($this);
 			}
 		}
-		$d->close();
 	}
 
 	function bind($hook, $callback)

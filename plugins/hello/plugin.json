@@ -1,0 +1,9 @@
+{
+	"name": "Hello eveBB",
+	"slug": "hello",
+	"version": "1.0",
+	"author": "eveBB",
+	"description": "The reference eveBB plugin: injects a small marker into every page's <head> and shows a settings page. Copy this folder as the starting point for your own plugins.",
+	"addon": "hello.php",
+	"admin": "admin.php"
+}
