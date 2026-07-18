@@ -120,6 +120,7 @@ assert_not_contains "$WORK/adminidx.html" 'action=check_upgrade' "old GitHub-mes
 # --- server statistics: the phpinfo link is gone ---------------------------
 curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_statistics.php" -o "$WORK/stats.html"
 assert_contains "$WORK/stats.html" "PHP:" "server statistics shows the PHP version"
+assert_contains "$WORK/stats.html" "Accelerator:" "server statistics shows the accelerator line"
 assert_not_contains "$WORK/stats.html" "action=phpinfo" "phpinfo link removed from server statistics"
 
 # --- maintenance page shows the updates section ----------------------------

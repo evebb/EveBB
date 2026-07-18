@@ -70,8 +70,27 @@ if ($db_type == 'mysql' || $db_type == 'mysqli' || $db_type == 'mysql_innodb' ||
 }
 
 
-// Check for the existence of various PHP opcode caches/optimizers
-if (function_exists('mmcache'))
+// Check for a PHP opcode cache / accelerator. Zend OPcache (bundled with
+// PHP since 5.5 and usually enabled by default) and APCu are the ones used
+// on modern PHP; the older extensions below are kept only as fallbacks and
+// do not run on PHP 7+.
+$php_accelerator = $lang_admin_index['NA'];
+
+$opcache_enabled = false;
+if (function_exists('opcache_get_status'))
+{
+	// Reflects whether OPcache is actually active for this SAPI
+	$opcache_status = @opcache_get_status(false);
+	$opcache_enabled = is_array($opcache_status) && !empty($opcache_status['opcache_enabled']);
+}
+else if (extension_loaded('Zend OPcache'))
+	$opcache_enabled = (bool) ini_get('opcache.enable');
+
+if ($opcache_enabled)
+	$php_accelerator = '<a href="http://'.$lang_admin_index['Zend OPcache link'].'">'.$lang_admin_index['Zend OPcache'].'</a>';
+else if (extension_loaded('apcu') && ini_get('apc.enabled'))
+	$php_accelerator = '<a href="http://'.$lang_admin_index['APCu link'].'">'.$lang_admin_index['APCu'].'</a>';
+else if (function_exists('mmcache'))
 	$php_accelerator = '<a href="http://'.$lang_admin_index['Turck MMCache link'].'">'.$lang_admin_index['Turck MMCache'].'</a>';
 else if (isset($_PHPA))
 	$php_accelerator = '<a href="http://'.$lang_admin_index['ionCube PHP Accelerator link'].'">'.$lang_admin_index['ionCube PHP Accelerator'].'</a>';
@@ -83,8 +102,6 @@ else if (ini_get('eaccelerator.enable'))
 	$php_accelerator = '<a href="http://'.$lang_admin_index['eAccelerator link'].'">'.$lang_admin_index['eAccelerator'].'</a>';
 else if (ini_get('xcache.cacher'))
 	$php_accelerator = '<a href="http://'.$lang_admin_index['XCache link'].'">'.$lang_admin_index['XCache'].'</a>';
-else
-	$php_accelerator = $lang_admin_index['NA'];
 
 
 $page_title = array(pun_htmlspecialchars($pun_config['o_board_title']), $lang_admin_common['Admin'], $lang_admin_common['Server statistics']);
