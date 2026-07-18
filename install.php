@@ -1595,7 +1595,9 @@ else
 		'p_sig_lines'				=> 4,
 		'p_allow_banned_email'		=> 1,
 		'p_allow_dupe_email'		=> 0,
-		'p_force_guest_email'		=> 1
+		'p_force_guest_email'		=> 1,
+		// The bundled BBCode toolbar plugin is active out of the box
+		'o_active_plugins'			=> 'toolbar'
 	);
 
 	foreach ($pun_config as $conf_name => $conf_value)

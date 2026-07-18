@@ -3,7 +3,7 @@
 /**
  * eveBB BBCode toolbar - <head> integration.
  *
- * Included by addons/addon_toolbar.php through the header_head_end hook
+ * Included by plugins/toolbar/toolbar.php (the addon) through the header_head_end hook
  * on every page; emits output only on pages with a message textarea
  * (post/edit/quickpost) or the profile signature editor.
  *

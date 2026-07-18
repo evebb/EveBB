@@ -62,7 +62,14 @@ curl -s -b "$JAR" -c "$JAR" -e "$BASE/login.php" -o /dev/null -L "$BASE/login.ph
   --data-urlencode "req_username=admin" --data-urlencode "req_password=adminpass123" \
   --data-urlencode "login=Login" --data-urlencode "redirect_url=$BASE/index.php"
 
-# --- toolbar injected on the post form, not on ordinary pages --------------
+# --- toolbar is a manifest plugin, active out of the box -------------------
+curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_plugins.php" -o "$WORK/mgr.html"
+assert_contains "$WORK/mgr.html" "BBCode Toolbar" "toolbar listed in the plugin manager"
+
+# no separate legacy plugins menu any more
+assert_not_contains "$WORK/mgr.html" "admin_loader.php?plugin=AP_Toolbar" "no legacy toolbar admin link"
+
+# injected on the post form, not on ordinary pages
 curl -s -b "$JAR" "$BASE/post.php?fid=1" -o "$WORK/post.html"
 assert_contains "$WORK/post.html" "plugins/toolbar/toolbar.js" "toolbar script on post form"
 assert_contains "$WORK/post.html" "var EVEBB_TOOLBAR" "toolbar config on post form"
@@ -71,16 +78,14 @@ assert_contains "$WORK/post.html" "plugins/toolbar/style/Default/toolbar.css" "d
 curl -s -b "$JAR" "$BASE/index.php" -o "$WORK/index.html"
 assert_not_contains "$WORK/index.html" "plugins/toolbar/toolbar.js" "no toolbar on index"
 
-# --- admin page ------------------------------------------------------------
-curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_loader.php?plugin=AP_Toolbar.php" -o "$WORK/admin.html"
-assert_contains "$WORK/admin.html" "BBCode toolbar" "admin page renders"
-assert_contains "$WORK/admin.html" "Dark-buttons" "admin page lists styles"
+# --- settings page (via the plugin manager) --------------------------------
+curl -s -b "$JAR" -e "$BASE/admin_plugins.php" "$BASE/admin_plugins.php?action=settings&plugin=toolbar" -o "$WORK/settings.html"
+assert_contains "$WORK/settings.html" "Dark-buttons" "settings page lists styles"
 
 # --- change settings: Dark-buttons style + extended smilies ----------------
-TOKEN=$(grep -oE 'name="csrf_token" value="[a-f0-9]+"' "$WORK/admin.html" | grep -oE '[a-f0-9]{20,}' | head -1)
-curl -s -b "$JAR" -e "$BASE/admin_loader.php?plugin=AP_Toolbar.php" -o /dev/null -L "$BASE/admin_loader.php?plugin=AP_Toolbar.php" \
+TOKEN=$(grep -oE 'name="csrf_token" value="[a-f0-9]+"' "$WORK/settings.html" | grep -oE '[a-f0-9]{20,}' | head -1)
+curl -s -b "$JAR" -e "$BASE/admin_plugins.php?action=settings&plugin=toolbar" -o /dev/null -L "$BASE/admin_plugins.php?action=settings&plugin=toolbar" \
   --data-urlencode "csrf_token=$TOKEN" \
-  --data-urlencode "toolbar_enabled=1" \
   --data-urlencode "toolbar_style=Dark-buttons" \
   --data-urlencode "toolbar_smilies=1" \
   --data-urlencode "save_settings=Save"
@@ -99,16 +104,12 @@ curl -s -b "$JAR" "$BASE/viewtopic.php?id=2" -o "$WORK/topic.html"
 assert_contains "$WORK/topic.html" "plugins/toolbar/style/smilies/devil.png" "extended smiley rendered"
 assert_contains "$WORK/topic.html" "plugins/toolbar/style/smilies/smile.png" "classic smiley uses extended set"
 
-# --- disable the toolbar ----------------------------------------------------
-curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_loader.php?plugin=AP_Toolbar.php" -o "$WORK/admin2.html"
-TOKEN=$(grep -oE 'name="csrf_token" value="[a-f0-9]+"' "$WORK/admin2.html" | grep -oE '[a-f0-9]{20,}' | head -1)
-curl -s -b "$JAR" -e "$BASE/admin_loader.php?plugin=AP_Toolbar.php" -o /dev/null -L "$BASE/admin_loader.php?plugin=AP_Toolbar.php" \
-  --data-urlencode "csrf_token=$TOKEN" \
-  --data-urlencode "toolbar_style=Default" \
-  --data-urlencode "toolbar_smilies=0" \
-  --data-urlencode "save_settings=Save"
+# --- deactivate the toolbar via the manager --------------------------------
+curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_plugins.php" -o "$WORK/mgr2.html"
+CSRF=$(grep -oE 'action=deactivate&amp;plugin=toolbar&amp;csrf_token=[a-f0-9]{20,}' "$WORK/mgr2.html" | head -1 | grep -oE '[a-f0-9]{20,}')
+curl -s -b "$JAR" -e "$BASE/admin_plugins.php" -o /dev/null -L "$BASE/admin_plugins.php?action=deactivate&plugin=toolbar&csrf_token=$CSRF"
 curl -s -b "$JAR" "$BASE/post.php?fid=1" -o "$WORK/post3.html"
-assert_not_contains "$WORK/post3.html" "plugins/toolbar/toolbar.js" "toolbar disabled"
+assert_not_contains "$WORK/post3.html" "plugins/toolbar/toolbar.js" "deactivated toolbar stops injecting"
 
 # --- help page -------------------------------------------------------------
 code=$(curl -s -b "$JAR" -o "$WORK/help.html" -w "%{http_code}" "$BASE/plugins/toolbar/lang/English/help.php")

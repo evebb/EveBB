@@ -5,7 +5,7 @@ $lang_toolbar = array(
 
 // Admin page
 'Plugin title'					=>	'BBCode toolbar',
-'Explanation'					=>	'Gives every posting form a BBCode insertion toolbar with a choice of button styles, a smiley palette and an optional extended smiley set. This is also the standard example of an eveBB plugin: hooks in <code>addons/addon_toolbar.php</code>, settings in the database, assets under <code>plugins/toolbar/</code> — no core files are modified.',
+'Explanation'					=>	'Gives every posting form a BBCode insertion toolbar with a choice of button styles, a smiley palette and an optional extended smiley set. It is a manifest plugin (managed under Administration → Plugins): the addon lives in <code>plugins/toolbar/toolbar.php</code>, settings in the database, assets under <code>plugins/toolbar/</code> — no core files are modified.',
 'Form title'					=>	'Settings',
 'Legend status'					=>	'Status',
 'Legend style'					=>	'Button style',

@@ -1,0 +1,9 @@
+{
+	"name": "BBCode Toolbar",
+	"slug": "toolbar",
+	"version": "2.0",
+	"author": "eveBB (based on EZBBC Toolbar by Jojaba)",
+	"description": "Adds a BBCode insertion toolbar to every posting form, with a choice of button styles, a smiley palette and an optional extended smiley set.",
+	"addon": "toolbar.php",
+	"admin": "admin.php"
+}

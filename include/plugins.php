@@ -130,7 +130,15 @@ function evebb_active_plugins()
 {
 	global $pun_config;
 
-	if (empty($pun_config['o_active_plugins']))
+	// Installs predating the plugin registry have no o_active_plugins
+	// config key at all. On those, default the bundled toolbar to active
+	// so it keeps working after the upgrade (it used to be always-on).
+	// The key is created the first time anything is activated/deactivated,
+	// after which this fallback no longer applies.
+	if (!isset($pun_config['o_active_plugins']))
+		return is_dir(PUN_ROOT.'plugins/toolbar') ? array('toolbar') : array();
+
+	if ($pun_config['o_active_plugins'] === '')
 		return array();
 
 	return array_values(array_filter(array_map('trim', explode(',', $pun_config['o_active_plugins']))));
