@@ -130,6 +130,7 @@ save_options() {
     -F "form[regs_verify]=0" \
     -F "form[regs_report]=0" \
     -F "form[regs_require_profile]=1" \
+    --form-string "form[copyright_message]=${COPYRIGHT:-}" \
     -F "form[rules]=0" \
     -F "form[rules_message]=" \
     -F "form[default_email_setting]=1" \
@@ -239,6 +240,15 @@ save_options -F "form[logo_width]=" -F "form[logo_height]=" -F "remove_logo=1"
 curl -s "$BASE/index.php" -o "$WORK/idx4.html"
 assert_contains "$WORK/idx4.html" ">Logo Test</a></h1>" "text title restored after removal"
 assert_not_contains "$WORK/idx4.html" 'id="brdlogo"' "no logo element after removal"
+
+# --- footer copyright saves even when the config row is absent -------------
+# (boards upgraded before the feature landed have no o_copyright_message row;
+# the admin save must create it, not silently skip it)
+php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");$p->exec("DELETE FROM config WHERE conf_name=\"o_copyright_message\"");'
+rm -f "$ROOT"/cache/cache_config.php
+COPYRIGHT="(c) 2026 Logo Test Copyright" save_options -F "form[logo_width]=" -F "form[logo_height]="
+curl -s "$BASE/index.php" -o "$WORK/idxc.html"
+assert_contains "$WORK/idxc.html" '(c) 2026 Logo Test Copyright' "footer copyright saved when the config row was missing"
 
 if [ -s "$ERRLOG" ]; then
   fail "php error log empty"; sed 's/^/    | /' "$ERRLOG" | head -20

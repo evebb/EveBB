@@ -271,7 +271,10 @@ if (isset($_POST['form_sent']))
 	if (!in_array($logo_align, array('left', 'center', 'right', 'full', 'cover'), true))
 		$logo_align = 'left';
 
-	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align) as $conf_name => $conf_value)
+	// These keys may be absent on boards upgraded before the feature landed
+	// (the main loop above only updates keys that already exist), so
+	// insert-or-update them.
+	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align, 'o_copyright_message' => $form['copyright_message']) as $conf_name => $conf_value)
 	{
 		$value = ($conf_value != '') ? '\''.$db->escape($conf_value).'\'' : 'NULL';
 		if (array_key_exists($conf_name, $pun_config))
