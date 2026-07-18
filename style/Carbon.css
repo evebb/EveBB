@@ -1648,3 +1648,27 @@ html, body, .pun {
 .pun .inew .icon {
 	border-color: #f0c199 #ecb280 #d98a3f #e6a05c;
 }
+
+/*****************************************************************
+eveBB Carbon tweaks: rounded menu/boxes + lighter inner panels
+*****************************************************************/
+
+/* Round the main menu bar and every content box to match the outer
+   container's rounded corners */
+#brdmenu {
+	border-radius: 8px;
+	overflow: hidden;
+}
+.pun .box,
+#adintro, #adstats,
+#postpreview, #posterror {
+	border-radius: 8px;
+	overflow: hidden;
+}
+
+/* Lift the innermost info panels to white so they stand out clearly from
+   their (grey) surrounding box */
+.pun .infldset,
+#adintro .inbox, #adstats .inbox {
+	background: #ffffff;
+}

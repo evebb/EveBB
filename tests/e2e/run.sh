@@ -86,7 +86,7 @@ code=$(curl -s -o "$TMP/install.html" -w "%{http_code}" "$BASE/install.php" \
   --data-urlencode "desc=E2E" \
   --data-urlencode "req_base_url=$BASE" \
   --data-urlencode "req_default_lang=English" \
-  --data-urlencode "req_default_style=Air" \
+  --data-urlencode "req_default_style=Carbon" \
   --data-urlencode "start=Start install")
 assert_code 200 "$code" "installer responds"
 [ -f config.php ] && ok "config.php written" || fail "config.php written"

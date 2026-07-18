@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.7.0-alpha');
+define('FORUM_VERSION', '1.8.0-alpha');
 
 define('FORUM_DB_REVISION', 25);
 define('FORUM_SI_REVISION', 2);
@@ -127,7 +127,7 @@ if (!isset($_POST['form_sent']))
 	$title = $lang_install['My eveBB Forum'];
 	$description = '<p><span>'.$lang_install['Description'].'</span></p>';
 	$default_lang = $install_lang;
-	$default_style = 'Air';
+	$default_style = 'Carbon';
 }
 else
 {

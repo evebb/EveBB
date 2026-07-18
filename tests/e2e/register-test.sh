@@ -43,7 +43,7 @@ curl -s -o /dev/null "$BASE/install.php" \
   --data-urlencode "req_db_name=$DB" --data-urlencode "db_username=" --data-urlencode "db_password=" --data-urlencode "db_prefix=" \
   --data-urlencode "req_username=admin" --data-urlencode "req_password1=adminpass123" --data-urlencode "req_password2=adminpass123" \
   --data-urlencode "req_email=admin@example.com" --data-urlencode "req_title=Reg Test" --data-urlencode "desc=x" \
-  --data-urlencode "req_base_url=$BASE" --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Air" \
+  --data-urlencode "req_base_url=$BASE" --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Carbon" \
   --data-urlencode "start=Start install"
 [ -f config.php ] && ok "forum installed" || fail "forum installed"
 

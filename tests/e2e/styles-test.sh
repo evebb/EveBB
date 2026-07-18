@@ -66,7 +66,7 @@ curl -s -o /dev/null "$BASE/install.php" \
   --data-urlencode "req_password2=adminpass123" --data-urlencode "req_email=admin@example.com" \
   --data-urlencode "req_title=Style Test" --data-urlencode "desc=x" \
   --data-urlencode "req_base_url=$BASE" \
-  --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Air" \
+  --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Carbon" \
   --data-urlencode "start=Start install"
 [ -f config.php ] && ok "forum installed" || fail "forum installed"
 
@@ -82,12 +82,12 @@ assert_contains "$WORK/adminidx.html" "admin_styles.php" "Styles menu item prese
 
 curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_styles.php" -o "$WORK/mgr.html"
 assert_contains "$WORK/mgr.html" "Installed styles" "manager page renders"
-assert_contains "$WORK/mgr.html" ">Air<" "bundled Air style listed"
+assert_contains "$WORK/mgr.html" ">Carbon<" "bundled Carbon style listed"
 assert_contains "$WORK/mgr.html" "Default" "a default style is marked"
 
 # --- FTP drop-in appears ---------------------------------------------------
-cp "$ROOT/style/Fire.css" "$ROOT/style/Ftpstyle.css"
-mkdir -p "$ROOT/style/Ftpstyle" && cp -r "$ROOT/style/Fire/." "$ROOT/style/Ftpstyle/" 2>/dev/null || true
+cp "$ROOT/style/Carbon.css" "$ROOT/style/Ftpstyle.css"
+mkdir -p "$ROOT/style/Ftpstyle" && cp -r "$ROOT/style/Carbon/." "$ROOT/style/Ftpstyle/" 2>/dev/null || true
 curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_styles.php" -o "$WORK/mgrftp.html"
 assert_contains "$WORK/mgrftp.html" "Ftpstyle" "FTP-dropped style appears in manager"
 

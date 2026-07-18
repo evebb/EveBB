@@ -92,7 +92,7 @@ curl -s -o /dev/null "$BASE/install.php" \
   --data-urlencode "req_password2=adminpass123" --data-urlencode "req_email=admin@example.com" \
   --data-urlencode "req_title=Update Test" --data-urlencode "desc=x" \
   --data-urlencode "req_base_url=$BASE" \
-  --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Air" \
+  --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Carbon" \
   --data-urlencode "start=Start install"
 if [ -f "$OLD/config.php" ] && grep -qF "forum.sqlite" "$OLD/config.php"; then
   ok "old forum installed"

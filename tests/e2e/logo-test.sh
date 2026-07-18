@@ -60,7 +60,7 @@ curl -s -o /dev/null "$BASE/install.php" \
   --data-urlencode "req_password2=adminpass123" --data-urlencode "req_email=admin@example.com" \
   --data-urlencode "req_title=Logo Test" --data-urlencode "desc=x" \
   --data-urlencode "req_base_url=$BASE" \
-  --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Air" \
+  --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Carbon" \
   --data-urlencode "start=Start install"
 [ -f config.php ] && ok "forum installed" || fail "forum installed"
 
@@ -83,7 +83,7 @@ save_options() {
     -F "form[default_timezone]=0" \
     -F "form[default_dst]=0" \
     -F "form[default_lang]=English" \
-    -F "form[default_style]=Air" \
+    -F "form[default_style]=Carbon" \
     -F "form[time_format]=H:i:s" \
     -F "form[date_format]=Y-m-d" \
     -F "form[timeout_visit]=1800" \
@@ -214,10 +214,10 @@ curl -s "$BASE/index.php" -o "$WORK/idxcov2.html"
 assert_contains "$WORK/idxcov2.html" 'height: 200px' "cover uses default band height when blank"
 
 # the bundled default style ships the positioning hooks
-curl -s "$BASE/style/Air.css" -o "$WORK/air.css"
-assert_contains "$WORK/air.css" "#brdlogo.brdlogo-full" "stylesheet carries full-width banner rule"
-assert_contains "$WORK/air.css" "#brdlogo.brdlogo-cover" "stylesheet carries fixed-height cover rule"
-assert_contains "$WORK/air.css" "#brdlogo.brdlogo-center" "stylesheet carries centre rule"
+curl -s "$BASE/style/Carbon.css" -o "$WORK/carbon.css"
+assert_contains "$WORK/carbon.css" "#brdlogo.brdlogo-full" "stylesheet carries full-width banner rule"
+assert_contains "$WORK/carbon.css" "#brdlogo.brdlogo-cover" "stylesheet carries fixed-height cover rule"
+assert_contains "$WORK/carbon.css" "#brdlogo.brdlogo-center" "stylesheet carries centre rule"
 
 # --- back to left so the removal test below reads cleanly ------------------
 save_options -F "form[logo_width]=250" -F "form[logo_height]=80"

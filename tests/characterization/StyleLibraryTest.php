@@ -15,8 +15,8 @@ class StyleLibraryTest extends TestCase
 {
 	public function testValidSlugs()
 	{
-		// Style names allow uppercase (Air, Dark-buttons)
-		$this->assertTrue(evebb_style_slug_is_valid('Air'));
+		// Style names allow uppercase (Carbon, Dark-buttons)
+		$this->assertTrue(evebb_style_slug_is_valid('Carbon'));
 		$this->assertTrue(evebb_style_slug_is_valid('Dark-buttons'));
 		$this->assertTrue(evebb_style_slug_is_valid('my_style2'));
 	}
@@ -57,21 +57,17 @@ class StyleLibraryTest extends TestCase
 
 	public function testInstalledStylesIncludeBundled()
 	{
-		// The bundled Air/Earth/Fire styles must be discovered, with Air
-		// marked default (bootstrap sets no default, so just check presence)
-		$GLOBALS['pun_config']['o_default_style'] = 'Air';
+		// The bundled Carbon style must be discovered and marked default
+		$GLOBALS['pun_config']['o_default_style'] = 'Carbon';
 		$styles = evebb_installed_styles();
 
-		$this->assertArrayHasKey('Air', $styles);
-		$this->assertArrayHasKey('Earth', $styles);
-		$this->assertArrayHasKey('Fire', $styles);
-		$this->assertTrue($styles['Air']['is_default']);
-		$this->assertFalse($styles['Earth']['is_default']);
+		$this->assertArrayHasKey('Carbon', $styles);
+		$this->assertTrue($styles['Carbon']['is_default']);
 	}
 
 	public function testStyleExists()
 	{
-		$this->assertTrue(evebb_style_exists('Air'));
+		$this->assertTrue(evebb_style_exists('Carbon'));
 		$this->assertFalse(evebb_style_exists('Nonexistent'));
 		$this->assertFalse(evebb_style_exists('../evil'));
 	}
