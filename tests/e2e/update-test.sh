@@ -116,6 +116,8 @@ curl -s -b "$JAR" -c "$JAR" -e "$BASE/login.php" -o /dev/null -L "$BASE/login.ph
 curl -s -b "$JAR" "$BASE/admin_index.php" -o "$WORK/adminidx.html"
 assert_contains "$WORK/adminidx.html" 'admin_maintenance.php?action=check_update' "version upgrade link goes to the updater"
 assert_not_contains "$WORK/adminidx.html" 'action=check_upgrade' "old GitHub-message upgrade link removed"
+# a newer release is offered by the feed, so the admin index shows the alert
+assert_contains "$WORK/adminidx.html" "A new version of eveBB" "admin index shows update-available alert"
 
 # --- server statistics: the phpinfo link is gone ---------------------------
 curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_statistics.php" -o "$WORK/stats.html"

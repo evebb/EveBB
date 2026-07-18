@@ -73,9 +73,9 @@ function evebb_http_get($url, $timeout = 30)
 // Query the releases feed. Returns an array describing the newest
 // release (preferring stable over prereleases), or false on failure.
 //
-function evebb_check_latest_release()
+function evebb_check_latest_release($timeout = 30)
 {
-	$body = evebb_http_get(evebb_update_api_url());
+	$body = evebb_http_get(evebb_update_api_url(), $timeout);
 	if ($body === false)
 		return false;
 
@@ -375,4 +375,72 @@ function evebb_apply_update($zip_url, &$log)
 		$log[] = 'Update applied.';
 
 	return $ok;
+}
+
+
+//
+// Cached "is an update available?" check, used by the admin index alert so
+// it does not hit the network on every page load.
+//
+function evebb_update_cache_file()
+{
+	return FORUM_CACHE_DIR.'cache_update_check.php';
+}
+
+
+//
+// Persist the last update check (version + timestamp) to the cache dir.
+//
+function evebb_write_update_cache($version, $url)
+{
+	$data = array('version' => (string) $version, 'url' => (string) $url, 'checked' => time());
+	@file_put_contents(evebb_update_cache_file(), '<?php'."\n".'$update_cache = '.var_export($data, true).';'."\n");
+}
+
+
+//
+// Read the cached update check, or null if there is none.
+//
+function evebb_read_update_cache()
+{
+	$file = evebb_update_cache_file();
+	if (is_file($file))
+	{
+		$update_cache = null;
+		include $file;
+		if (is_array($update_cache))
+			return $update_cache;
+	}
+
+	return null;
+}
+
+
+//
+// Returns array('version' => x, 'url' => y) if a newer release is available,
+// or false otherwise. The result is cached and only refreshed at most once
+// every $max_age seconds (default 12 hours), with a short network timeout so
+// the admin index never stalls waiting on GitHub.
+//
+function evebb_update_available($max_age = 43200)
+{
+	$cache = evebb_read_update_cache();
+
+	if ($cache === null || !isset($cache['checked']) || (time() - (int) $cache['checked']) > $max_age)
+	{
+		$release = evebb_check_latest_release(6);
+		if ($release !== false)
+			evebb_write_update_cache($release['version'], $release['url']);
+		else
+			// Record the attempt (keeping any known version) so a failed
+			// check doesn't retry on every single page load
+			evebb_write_update_cache(isset($cache['version']) ? $cache['version'] : FORUM_VERSION, isset($cache['url']) ? $cache['url'] : '');
+
+		$cache = evebb_read_update_cache();
+	}
+
+	if (is_array($cache) && isset($cache['version']) && evebb_update_is_newer($cache['version']))
+		return array('version' => $cache['version'], 'url' => isset($cache['url']) ? $cache['url'] : '');
+
+	return false;
 }

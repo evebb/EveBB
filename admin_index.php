@@ -35,6 +35,10 @@ if ($action == 'remove_install_file')
 
 $install_file_exists = is_file(PUN_ROOT.'install.php');
 
+// Is a newer eveBB release available? (cached; see include/update.php)
+require PUN_ROOT.'include/update.php';
+$update_info = evebb_update_available();
+
 $page_title = array(pun_htmlspecialchars($pun_config['o_board_title']), $lang_admin_common['Admin'], $lang_admin_common['Index']);
 define('PUN_ACTIVE_PAGE', 'admin');
 require PUN_ROOT.'header.php';
@@ -61,10 +65,15 @@ generate_admin_menu('index');
 			</div>
 		</div>
 
-<?php if ($install_file_exists) : ?>
+<?php if ($install_file_exists || $update_info) : ?>
 		<h2 class="block2"><span><?php echo $lang_admin_index['Alerts head'] ?></span></h2>
 		<div id="adalerts" class="box">
+<?php if ($update_info) : ?>
+			<p><?php printf($lang_admin_index['Update available'], pun_htmlspecialchars($update_info['version']), '<a href="admin_maintenance.php?action=check_update">'.$lang_admin_index['Update available link'].'</a>') ?></p>
+<?php endif; ?>
+<?php if ($install_file_exists) : ?>
 			<p><?php printf($lang_admin_index['Install file exists'], '<a href="admin_index.php?action=remove_install_file">'.$lang_admin_index['Delete install file'].'</a>') ?></p>
+<?php endif; ?>
 		</div>
 <?php endif; ?>
 
