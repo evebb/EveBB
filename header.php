@@ -158,7 +158,7 @@ function process_form(the_form)
 // When enabled, wrap the message/signature textarea in SCEditor. It edits
 // visually but reads and writes BBCode, so stored posts are unchanged; a
 // "Source" button drops to raw BBCode. This replaced the old toolbar plugin.
-$wysiwyg_enabled   = !isset($pun_config['o_wysiwyg']) || $pun_config['o_wysiwyg'] == '1';
+$wysiwyg_enabled   = evebb_wysiwyg_enabled();
 $wysiwyg_message   = isset($required_fields['req_message']) && basename($_SERVER['PHP_SELF']) != 'misc.php';
 $wysiwyg_signature = defined('PUN_ACTIVE_PAGE') && PUN_ACTIVE_PAGE == 'profile' && $pun_config['o_signatures'] == '1';
 

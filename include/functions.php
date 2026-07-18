@@ -651,6 +651,18 @@ function resize_avatar($src_path, $dest_path, $type, $max_w, $max_h)
 
 
 //
+// Is the visual (WYSIWYG) editor enabled on this board? Boards upgraded
+// before the option existed count as enabled (it ships on by default).
+//
+function evebb_wysiwyg_enabled()
+{
+	global $pun_config;
+
+	return !isset($pun_config['o_wysiwyg']) || $pun_config['o_wysiwyg'] == '1';
+}
+
+
+//
 // One-time cleanup of the retired BBCode toolbar plugin: remove its unused
 // config rows (o_toolbar_style, o_toolbar_smilies) and drop its slug from the
 // active-plugins list. Idempotent, so it is safe to call on every upgrade.

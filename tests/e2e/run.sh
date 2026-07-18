@@ -291,10 +291,17 @@ $pdo->exec("UPDATE config SET conf_value=$val WHERE conf_name=".$pdo->quote("o_w
 ' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$1" 2>/dev/null
   rm -f "$ROOT"/cache/cache_config.php
 }
+# with the editor on, the BBCode/tag/smilies hint line is redundant and hidden
+for u in "post.php?tid=2" "viewtopic.php?id=2" "edit.php?id=2&action=edit" "profile.php?section=personality&id=2"; do
+  curl -s -b "$JAR" "$BASE/$u" -o "$TMP/bbl.html"
+  if grep -qF 'class="bblinks"' "$TMP/bbl.html"; then fail "BBCode hints hidden with editor on ($u)"; else ok "BBCode hints hidden with editor on ($u)"; fi
+done
 set_wysiwyg 0
 curl -s -b "$JAR" "$BASE/post.php?tid=2" -o "$TMP/wyz_off.html"
 if grep -qF 'js/sceditor/sceditor.min.js' "$TMP/wyz_off.html"; then fail "visual editor is skipped when disabled"; else ok "visual editor is skipped when disabled"; fi
 assert_contains "$TMP/wyz_off.html" 'name="req_message"' "plain message box still present when editor disabled"
+# ... and the hint line returns for the plain textarea
+assert_contains "$TMP/wyz_off.html" 'class="bblinks"' "BBCode hints shown again when editor disabled"
 set_wysiwyg 1
 
 # --- smiley set: modern (Noto) images, rendered at 20px --------------------
