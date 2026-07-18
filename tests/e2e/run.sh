@@ -297,6 +297,19 @@ if grep -qF 'js/sceditor/sceditor.min.js' "$TMP/wyz_off.html"; then fail "visual
 assert_contains "$TMP/wyz_off.html" 'name="req_message"' "plain message box still present when editor disabled"
 set_wysiwyg 1
 
+# --- smiley set: modern (Noto) images, rendered at 20px --------------------
+SMW=$(php -r '$s=@getimagesize($argv[1]);echo (int)($s[0]??0);' "$ROOT/img/smilies/smile.png")
+[ "${SMW:-0}" -ge 32 ] && ok "modern smiley images shipped (${SMW}px source)" || fail "modern smiley images shipped (got ${SMW}px)"
+# a smiley in a post renders as the image at the new 20px size
+php -r '
+$type=$argv[1];$host=$argv[2];$name=$argv[3];$user=$argv[4];$pass=$argv[5];
+$dsn=$type==="sqlite"?"sqlite:$name":((strpos($type,"pgsql")===0?"pgsql":"mysql").":host=$host;dbname=$name");
+$pdo=new PDO($dsn,$type==="sqlite"?null:$user,$type==="sqlite"?null:$pass);
+$pdo->exec("UPDATE posts SET message=".$pdo->quote("hi :)")." WHERE id=1");
+' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" 2>/dev/null
+curl -s -b "$JAR" "$BASE/viewtopic.php?id=1" -o "$TMP/smpost.html"
+assert_contains "$TMP/smpost.html" 'img/smilies/smile.png" width="20" height="20"' "smiley renders as a 20px image"
+
 # --- admin + misc pages ----------------------------------------------------
 for p in userlist.php help.php "extern.php?action=feed&type=atom" admin_index.php admin_options.php admin_users.php admin_maintenance.php; do
   code=$(curl -s -b "$JAR" -e "$BASE/index.php" -o "$TMP/page.html" -w "%{http_code}" "$BASE/$p")

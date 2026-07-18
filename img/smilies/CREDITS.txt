@@ -1,0 +1,9 @@
+The smiley images in this directory are from the Noto Emoji project by Google,
+licensed under the Apache License 2.0.
+
+  https://github.com/googlefonts/noto-emoji
+  https://www.apache.org/licenses/LICENSE-2.0
+
+Files are mapped to eveBB's smiley codes (see include/parser.php). Replacing a
+file with another PNG of the same name changes that smiley everywhere - in
+rendered posts and in the visual editor's emoticon picker.

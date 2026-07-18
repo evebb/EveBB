@@ -916,8 +916,9 @@ function do_smilies($text)
 	global $smilies, $smiley_base;
 
 	$base = isset($smiley_base) ? $smiley_base : 'img/smilies';
-	// The stock 15x15 size only applies to the bundled smiley set
-	$size_attrs = ($base == 'img/smilies') ? ' width="15" height="15"' : '';
+	// The bundled set (modern Noto emoji) renders at 20x20; the source images
+	// are larger so they stay crisp on high-DPI screens
+	$size_attrs = ($base == 'img/smilies') ? ' width="20" height="20"' : '';
 
 	$text = ' '.$text.' ';
 

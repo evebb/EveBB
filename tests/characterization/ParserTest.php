@@ -78,7 +78,7 @@ class ParserTest extends TestCase
 	public function testSmileyRendersAsImage()
 	{
 		$this->assertSame(
-			'<p>hi <img src="http://example.test/img/smilies/smile.png" width="15" height="15" alt="smile" /></p>',
+			'<p>hi <img src="http://example.test/img/smilies/smile.png" width="20" height="20" alt="smile" /></p>',
 			$this->render('hi :)')
 		);
 	}
