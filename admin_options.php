@@ -49,6 +49,7 @@ if (isset($_POST['form_sent']))
 		'indent_num_spaces'		=> (intval($_POST['form']['indent_num_spaces']) >= 0) ? intval($_POST['form']['indent_num_spaces']) : 0,
 		'quote_depth'			=> (intval($_POST['form']['quote_depth']) > 0) ? intval($_POST['form']['quote_depth']) : 1,
 		'quickpost'				=> $_POST['form']['quickpost'] != '1' ? '0' : '1',
+		'wysiwyg'				=> isset($_POST['form']['wysiwyg']) ? ($_POST['form']['wysiwyg'] != '1' ? '0' : '1') : (isset($pun_config['o_wysiwyg']) ? $pun_config['o_wysiwyg'] : '1'),
 		'users_online'			=> $_POST['form']['users_online'] != '1' ? '0' : '1',
 		'censoring'				=> $_POST['form']['censoring'] != '1' ? '0' : '1',
 		'signatures'			=> $_POST['form']['signatures'] != '1' ? '0' : '1',
@@ -306,7 +307,7 @@ if (isset($_POST['form_sent']))
 	// These keys may be absent on boards upgraded before the feature landed
 	// (the main loop above only updates keys that already exist), so
 	// insert-or-update them.
-	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align, 'o_copyright_message' => $form['copyright_message'], 'o_default_avatar' => $default_avatar) as $conf_name => $conf_value)
+	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align, 'o_copyright_message' => $form['copyright_message'], 'o_default_avatar' => $default_avatar, 'o_wysiwyg' => $form['wysiwyg']) as $conf_name => $conf_value)
 	{
 		$value = ($conf_value != '') ? '\''.$db->escape($conf_value).'\'' : 'NULL';
 		if (array_key_exists($conf_name, $pun_config))
@@ -654,6 +655,15 @@ generate_admin_menu('options');
 										<label class="conl"><input type="radio" name="form[quickpost]" value="1"<?php if ($pun_config['o_quickpost'] == '1') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['Yes'] ?></strong></label>
 										<label class="conl"><input type="radio" name="form[quickpost]" value="0"<?php if ($pun_config['o_quickpost'] == '0') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['No'] ?></strong></label>
 										<span class="clearb"><?php echo $lang_admin_options['Quick post help'] ?></span>
+									</td>
+								</tr>
+								<tr>
+<?php $o_wysiwyg = isset($pun_config['o_wysiwyg']) ? $pun_config['o_wysiwyg'] : '1'; ?>
+									<th scope="row"><?php echo $lang_admin_options['WYSIWYG label'] ?></th>
+									<td>
+										<label class="conl"><input type="radio" name="form[wysiwyg]" value="1"<?php if ($o_wysiwyg == '1') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['Yes'] ?></strong></label>
+										<label class="conl"><input type="radio" name="form[wysiwyg]" value="0"<?php if ($o_wysiwyg == '0') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['No'] ?></strong></label>
+										<span class="clearb"><?php echo $lang_admin_options['WYSIWYG help'] ?></span>
 									</td>
 								</tr>
 								<tr>

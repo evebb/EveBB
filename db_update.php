@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script updates to
-define('UPDATE_TO', '1.16.0-alpha');
+define('UPDATE_TO', '1.17.0-alpha');
 
 define('UPDATE_TO_DB_REVISION', 25);
 define('UPDATE_TO_SI_REVISION', 2);
@@ -778,6 +778,10 @@ switch ($stage)
 		// eveBB: generic default avatar for members without an upload
 		if (!array_key_exists('o_default_avatar', $pun_config))
 			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_default_avatar\', \'img/default_avatar.png\')') or error('Unable to insert config value \'o_default_avatar\'', __FILE__, __LINE__, $db->error());
+
+		// The visual (WYSIWYG) editor replaced the toolbar plugin; on by default
+		if (!array_key_exists('o_wysiwyg', $pun_config))
+			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_wysiwyg\', \'1\')') or error('Unable to insert config value \'o_wysiwyg\'', __FILE__, __LINE__, $db->error());
 
 		// Make sure we have o_additional_navlinks (was added in 1.2.1)
 		if (!array_key_exists('o_additional_navlinks', $pun_config))

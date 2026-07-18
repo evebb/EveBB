@@ -154,6 +154,64 @@ function process_form(the_form)
 
 }
 
+// --- Visual (WYSIWYG) editor -----------------------------------------------
+// When enabled, wrap the message/signature textarea in SCEditor. It edits
+// visually but reads and writes BBCode, so stored posts are unchanged; a
+// "Source" button drops to raw BBCode. This replaced the old toolbar plugin.
+$wysiwyg_enabled   = !isset($pun_config['o_wysiwyg']) || $pun_config['o_wysiwyg'] == '1';
+$wysiwyg_message   = isset($required_fields['req_message']) && basename($_SERVER['PHP_SELF']) != 'misc.php';
+$wysiwyg_signature = defined('PUN_ACTIVE_PAGE') && PUN_ACTIVE_PAGE == 'profile' && $pun_config['o_signatures'] == '1';
+
+if ($wysiwyg_enabled && ($wysiwyg_message || $wysiwyg_signature))
+{
+	$sc_base = $pun_config['o_base_url'];
+
+	// Only tags eveBB's parser understands (no size/font/align/table/etc.)
+	$sc_toolbar = 'bold,italic,underline,strike|color,removeformat|bulletlist,orderedlist|link,unlink,image,email|quote,code';
+	if ($pun_config['o_smilies'] == '1')
+		$sc_toolbar .= '|emoticon';
+	$sc_toolbar .= '|source';
+
+	// eveBB's own smiley set, so what the editor inserts round-trips through
+	// the server-side smiley parser (never SCEditor's default emoticon codes)
+	$sc_emoticons = array(
+		':)' => 'smile.png', ';)' => 'wink.png', ':|' => 'neutral.png',
+		':(' => 'sad.png',    ':D' => 'big_smile.png', ':o' => 'yikes.png',
+		':/' => 'hmm.png',    ':P' => 'tongue.png', ':lol:' => 'lol.png',
+		':mad:' => 'mad.png', ':rolleyes:' => 'roll.png', ':cool:' => 'cool.png',
+	);
+
+	$sc_opts = array(
+		'format'          => 'bbcode',
+		'style'           => $sc_base.'/js/sceditor/themes/content/default.min.css',
+		'toolbar'         => $sc_toolbar,
+		'plugins'         => 'alternative-lists',
+		'emoticonsCompat' => true,
+		'emoticonsRoot'   => $sc_base.'/img/smilies/',
+		'emoticons'       => array('dropdown' => ($pun_config['o_smilies'] == '1') ? (object) $sc_emoticons : (object) array()),
+		'resizeWidth'     => false,
+		'autoUpdate'      => true,
+	);
+
+	echo '<link rel="stylesheet" type="text/css" href="'.pun_htmlspecialchars($sc_base).'/js/sceditor/themes/default.min.css" />'."\n";
+	echo '<script type="text/javascript" src="'.pun_htmlspecialchars($sc_base).'/js/sceditor/sceditor.min.js"></script>'."\n";
+	echo '<script type="text/javascript" src="'.pun_htmlspecialchars($sc_base).'/js/sceditor/formats/bbcode.js"></script>'."\n";
+	echo '<script type="text/javascript" src="'.pun_htmlspecialchars($sc_base).'/js/sceditor/plugins/alternative-lists.js"></script>'."\n";
+	echo '<script type="text/javascript">'."\n".'/* <![CDATA[ */'."\n";
+	echo 'var evebb_sceditor_opts = '.json_encode($sc_opts).';'."\n";
+	echo 'document.addEventListener("DOMContentLoaded", function() {'."\n";
+	echo "\tif (typeof sceditor === 'undefined') return;\n";
+	echo "\tvar tas = document.querySelectorAll('textarea[name=\"req_message\"], textarea[name=\"signature\"]');\n";
+	echo "\tfor (var i = 0; i < tas.length; i++) {\n";
+	echo "\t\t(function(ta) {\n";
+	echo "\t\t\tsceditor.create(ta, evebb_sceditor_opts);\n";
+	echo "\t\t\tvar inst = sceditor.instance(ta);\n";
+	echo "\t\t\tif (inst) inst.bind('valuechanged', function() { ta.value = inst.val(); });\n";
+	echo "\t\t})(tas[i]);\n";
+	echo "\t}\n";
+	echo '});'."\n".'/* ]]> */'."\n".'</script>'."\n";
+}
+
 if (!empty($page_head))
 	echo implode("\n", $page_head)."\n";
 

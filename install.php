@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.16.0-alpha');
+define('FORUM_VERSION', '1.17.0-alpha');
 
 define('FORUM_DB_REVISION', 25);
 define('FORUM_SI_REVISION', 2);
@@ -1555,6 +1555,7 @@ else
 		'o_indent_num_spaces'		=> 4,
 		'o_quote_depth'				=> 3,
 		'o_quickpost'				=> 1,
+		'o_wysiwyg'					=> 1,
 		'o_users_online'			=> 1,
 		'o_censoring'				=> 0,
 		'o_show_dot'				=> 0,
@@ -1618,8 +1619,8 @@ else
 		'o_logo_width'				=> '300px',
 		'o_logo_height'				=> '',
 		'o_logo_align'				=> 'left',
-		// The bundled BBCode toolbar plugin is active out of the box
-		'o_active_plugins'			=> 'toolbar'
+		// No plugins active out of the box (the visual editor is built in)
+		'o_active_plugins'			=> ''
 	);
 
 	foreach ($pun_config as $conf_name => $conf_value)

@@ -265,6 +265,33 @@ assert_contains "$TMP/em2.html" 'misc.php?email=2' "admin can still form-email a
 if grep -qF 'mailto:admin@example.com' "$TMP/em2.html"; then fail "fully hidden email not exposed via mailto to admin"; else ok "fully hidden email not exposed via mailto to admin"; fi
 set_email_setting 1
 
+# --- visual (WYSIWYG) editor -----------------------------------------------
+# vendored SCEditor assets ship with the board
+for f in js/sceditor/sceditor.min.js js/sceditor/formats/bbcode.js js/sceditor/plugins/alternative-lists.js js/sceditor/themes/default.min.css; do
+  [ -f "$ROOT/$f" ] && ok "shipped $f" || fail "shipped $f"
+done
+# enabled by default: the reply page loads the editor over the message box
+curl -s -b "$JAR" "$BASE/post.php?tid=2" -o "$TMP/wyz_on.html"
+assert_contains "$TMP/wyz_on.html" 'js/sceditor/sceditor.min.js' "reply page loads the visual editor when enabled"
+assert_contains "$TMP/wyz_on.html" 'evebb_sceditor_opts' "editor is initialised over the message box"
+assert_contains "$TMP/wyz_on.html" '"format":"bbcode"' "editor runs in BBCode mode"
+assert_contains "$TMP/wyz_on.html" 'source' "editor toolbar exposes a raw-BBCode source toggle"
+# admin toggle off -> the plain textarea is used, no editor assets
+set_wysiwyg() { # value
+  php -r '
+$type=$argv[1];$host=$argv[2];$name=$argv[3];$user=$argv[4];$pass=$argv[5];$val=(int)$argv[6];
+$dsn=$type==="sqlite"?"sqlite:$name":((strpos($type,"pgsql")===0?"pgsql":"mysql").":host=$host;dbname=$name");
+$pdo=new PDO($dsn,$type==="sqlite"?null:$user,$type==="sqlite"?null:$pass);
+$pdo->exec("UPDATE config SET conf_value=$val WHERE conf_name=".$pdo->quote("o_wysiwyg"));
+' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$1" 2>/dev/null
+  rm -f "$ROOT"/cache/cache_config.php
+}
+set_wysiwyg 0
+curl -s -b "$JAR" "$BASE/post.php?tid=2" -o "$TMP/wyz_off.html"
+if grep -qF 'js/sceditor/sceditor.min.js' "$TMP/wyz_off.html"; then fail "visual editor is skipped when disabled"; else ok "visual editor is skipped when disabled"; fi
+assert_contains "$TMP/wyz_off.html" 'name="req_message"' "plain message box still present when editor disabled"
+set_wysiwyg 1
+
 # --- admin + misc pages ----------------------------------------------------
 for p in userlist.php help.php "extern.php?action=feed&type=atom" admin_index.php admin_options.php admin_users.php admin_maintenance.php; do
   code=$(curl -s -b "$JAR" -e "$BASE/index.php" -o "$TMP/page.html" -w "%{http_code}" "$BASE/$p")
