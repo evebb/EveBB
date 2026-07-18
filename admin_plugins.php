@@ -138,25 +138,35 @@ require PUN_ROOT.'header.php';
 generate_admin_menu('plugins');
 
 ?>
-	<div class="blockform">
+	<div id="pluginlist" class="blocktable">
 		<h2><span><?php echo $lang_admin_plugins['Installed plugins head'] ?></span></h2>
-		<div class="box">
-			<div class="inbox">
 <?php
 
 if (empty($installed))
-	echo "\t\t\t\t".'<p>'.$lang_admin_plugins['No plugins'].'</p>'."\n";
+{
+
+?>
+		<div class="box">
+			<div class="inbox">
+				<p><?php echo $lang_admin_plugins['No plugins'] ?></p>
+			</div>
+		</div>
+<?php
+
+}
 else
 {
 
 ?>
+		<div class="box">
+			<div class="inbox">
 				<table>
 					<thead>
 						<tr>
-							<th scope="col"><?php echo $lang_admin_plugins['Col name'] ?></th>
-							<th scope="col"><?php echo $lang_admin_plugins['Col version'] ?></th>
-							<th scope="col"><?php echo $lang_admin_plugins['Col status'] ?></th>
-							<th scope="col"><?php echo $lang_admin_plugins['Col actions'] ?></th>
+							<th class="tcl" scope="col"><?php echo $lang_admin_plugins['Col name'] ?></th>
+							<th class="tc2" scope="col"><?php echo $lang_admin_plugins['Col version'] ?></th>
+							<th class="tc3" scope="col"><?php echo $lang_admin_plugins['Col status'] ?></th>
+							<th class="tcr" scope="col"><?php echo $lang_admin_plugins['Col actions'] ?></th>
 						</tr>
 					</thead>
 					<tbody>
@@ -166,7 +176,7 @@ else
 	foreach ($installed as $cur_slug => $manifest)
 	{
 		$active = evebb_plugin_is_active($cur_slug);
-		$status = $active ? '<strong style="color: green;">'.$lang_admin_plugins['Active'].'</strong>' : '<span style="color: #999;">'.$lang_admin_plugins['Inactive'].'</span>';
+		$status = $active ? '<strong style="color: #107a3d;">'.$lang_admin_plugins['Active'].'</strong>' : '<span style="color: #888;">'.$lang_admin_plugins['Inactive'].'</span>';
 
 		$actions = array();
 		if ($active)
@@ -181,26 +191,34 @@ else
 			$actions[] = '<a href="admin_plugins.php?action=delete&amp;plugin='.urlencode($cur_slug).'&amp;csrf_token='.$csrf.'" onclick="return confirm(\''.$lang_admin_plugins['Delete confirm'].'\')">'.$lang_admin_plugins['Delete'].'</a>';
 		}
 
+		$name_cell = '<strong>'.pun_htmlspecialchars($manifest['name']).'</strong>';
+		if ($manifest['author'] !== '')
+			$name_cell .= ' <span class="byuser">'.sprintf($lang_admin_plugins['By author'], pun_htmlspecialchars($manifest['author'])).'</span>';
+		if ($manifest['description'] !== '')
+			$name_cell .= '<br />'.pun_htmlspecialchars($manifest['description']);
+
 		echo "\t\t\t\t\t\t".'<tr>'."\n";
-		echo "\t\t\t\t\t\t\t".'<td><strong>'.pun_htmlspecialchars($manifest['name']).'</strong>'.($manifest['description'] !== '' ? '<br /><span class="byuser">'.pun_htmlspecialchars($manifest['description']).'</span>' : '').($manifest['author'] !== '' ? '<br /><small>'.sprintf($lang_admin_plugins['By author'], pun_htmlspecialchars($manifest['author'])).'</small>' : '').'</td>'."\n";
-		echo "\t\t\t\t\t\t\t".'<td>'.pun_htmlspecialchars($manifest['version']).'</td>'."\n";
-		echo "\t\t\t\t\t\t\t".'<td>'.$status.'</td>'."\n";
-		echo "\t\t\t\t\t\t\t".'<td>'.implode(' | ', $actions).'</td>'."\n";
+		echo "\t\t\t\t\t\t\t".'<td class="tcl">'.$name_cell.'</td>'."\n";
+		echo "\t\t\t\t\t\t\t".'<td class="tc2">'.pun_htmlspecialchars($manifest['version']).'</td>'."\n";
+		echo "\t\t\t\t\t\t\t".'<td class="tc3">'.$status.'</td>'."\n";
+		echo "\t\t\t\t\t\t\t".'<td class="tcr">'.implode(' | ', $actions).'</td>'."\n";
 		echo "\t\t\t\t\t\t".'</tr>'."\n";
 	}
 
 ?>
 					</tbody>
 				</table>
+			</div>
+		</div>
 <?php
 
 }
 
 ?>
-			</div>
-		</div>
+	</div>
 
-		<h2 class="block2"><span><?php echo $lang_admin_plugins['Upload head'] ?></span></h2>
+	<div class="blockform">
+		<h2><span><?php echo $lang_admin_plugins['Upload head'] ?></span></h2>
 		<div class="box">
 			<form method="post" enctype="multipart/form-data" action="admin_plugins.php?action=upload">
 				<div class="inform">
