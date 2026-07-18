@@ -119,6 +119,18 @@ ROW=$(php -r '$p=new PDO("sqlite:'"$DB"'");$s=$p->query("SELECT realname,country
 echo "    stored: $ROW"
 [ "$ROW" = "Daphne Blake|United Kingdom|1990-05-15" ] && ok "valid registration stored realname/country/birthday" || fail "stored details ($ROW)"
 
+# --- the registered details populate the profile Personal page -------------
+DAPHNE_ID=$(php -r '$p=new PDO("sqlite:'"$DB"'");echo $p->query("SELECT id FROM users WHERE username=\"daphne\"")->fetchColumn();')
+TOKEN=$(curl -s -c "$JAR" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+curl -s -b "$JAR" -c "$JAR" -e "$BASE/login.php" -o /dev/null -L "$BASE/login.php?action=in" \
+  --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKEN" \
+  --data-urlencode "req_username=admin" --data-urlencode "req_password=adminpass123" \
+  --data-urlencode "login=Login" --data-urlencode "redirect_url=$BASE/index.php"
+curl -s -b "$JAR" "$BASE/profile.php?section=personal&id=$DAPHNE_ID" -o "$WORK/prof.html"
+assert_contains "$WORK/prof.html" 'name="form[realname]" value="Daphne Blake"' "real name populated in profile"
+assert_contains "$WORK/prof.html" 'name="form[birthday]" value="1990-05-15"' "date of birth populated in profile"
+assert_contains "$WORK/prof.html" '<option value="United Kingdom" selected="selected">' "country populated in profile"
+
 if [ -s "$ERRLOG" ]; then fail "php error log empty"; sed 's/^/    | /' "$ERRLOG" | head -15; else ok "php error log empty"; fi
 
 rm -f config.php cache/cache_*.php

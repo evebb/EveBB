@@ -807,7 +807,21 @@ else if (isset($_POST['form_sent']))
 				'realname'		=> isset($_POST['form']['realname']) ? pun_trim($_POST['form']['realname']) : '',
 				'url'			=> isset($_POST['form']['url']) ? pun_trim($_POST['form']['url']) : '',
 				'location'		=> isset($_POST['form']['location']) ? pun_trim($_POST['form']['location']) : '',
+				'country'		=> isset($_POST['form']['country']) ? pun_trim($_POST['form']['country']) : '',
+				'birthday'		=> isset($_POST['form']['birthday']) ? pun_trim($_POST['form']['birthday']) : '',
 			);
+
+			// Country must be one of the known countries (or blank)
+			require_once PUN_ROOT.'include/countries.php';
+			if ($form['country'] != '' && !in_array($form['country'], evebb_country_list(), true))
+				$form['country'] = '';
+
+			// Date of birth: a valid ISO date (or blank)
+			if ($form['birthday'] != '')
+			{
+				if (!preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $form['birthday'], $bd_m) || !checkdate((int) $bd_m[2], (int) $bd_m[3], (int) $bd_m[1]) || (int) $bd_m[1] < 1900)
+					message($lang_profile['Invalid birthday']);
+			}
 
 			// Add http:// if the URL doesn't contain it already (while allowing https://, too)
 			if ($pun_user['g_post_links'] == '1')
@@ -1043,7 +1057,7 @@ else if (isset($_POST['form_sent']))
 flux_hook('profile_after_form_handling');
 
 
-$result = $db->query('SELECT u.username, u.email, u.title, u.realname, u.url, u.jabber, u.icq, u.msn, u.yahoo, u.location, u.signature, u.disp_topics, u.disp_posts, u.email_setting, u.notify_with_post, u.auto_notify, u.show_smilies, u.show_img, u.show_img_sig, u.show_avatars, u.show_sig, u.timezone, u.dst, u.language, u.style, u.num_posts, u.last_post, u.registered, u.registration_ip, u.admin_note, u.date_format, u.time_format, u.last_visit, g.g_id, g.g_user_title, g.g_moderator FROM '.$db->prefix.'users AS u LEFT JOIN '.$db->prefix.'groups AS g ON g.g_id=u.group_id WHERE u.id='.$id) or error('Unable to fetch user info', __FILE__, __LINE__, $db->error());
+$result = $db->query('SELECT u.username, u.email, u.title, u.realname, u.url, u.jabber, u.icq, u.msn, u.yahoo, u.location, u.country, u.birthday, u.signature, u.disp_topics, u.disp_posts, u.email_setting, u.notify_with_post, u.auto_notify, u.show_smilies, u.show_img, u.show_img_sig, u.show_avatars, u.show_sig, u.timezone, u.dst, u.language, u.style, u.num_posts, u.last_post, u.registered, u.registration_ip, u.admin_note, u.date_format, u.time_format, u.last_visit, g.g_id, g.g_user_title, g.g_moderator FROM '.$db->prefix.'users AS u LEFT JOIN '.$db->prefix.'groups AS g ON g.g_id=u.group_id WHERE u.id='.$id) or error('Unable to fetch user info', __FILE__, __LINE__, $db->error());
 if (!$db->has_rows($result))
 	message($lang_common['Bad request'], false, '404 Not Found');
 
@@ -1085,6 +1099,18 @@ if ($pun_user['id'] != $id &&																	// If we aren't the user (i.e. edi
 	{
 		$user_personal[] = '<dt>'.$lang_profile['Location'].'</dt>';
 		$user_personal[] = '<dd>'.pun_htmlspecialchars(($pun_config['o_censoring'] == '1') ? censor_words($user['location']) : $user['location']).'</dd>';
+	}
+
+	if (isset($user['country']) && $user['country'] != '')
+	{
+		$user_personal[] = '<dt>'.$lang_profile['Country'].'</dt>';
+		$user_personal[] = '<dd>'.pun_htmlspecialchars($user['country']).'</dd>';
+	}
+
+	if (isset($user['birthday']) && $user['birthday'] != '')
+	{
+		$user_personal[] = '<dt>'.$lang_profile['Birthday'].'</dt>';
+		$user_personal[] = '<dd>'.pun_htmlspecialchars($user['birthday']).'</dd>';
 	}
 
 	if ($user['url'] != '')
@@ -1483,6 +1509,11 @@ else
 						<div class="infldset">
 							<input type="hidden" name="form_sent" value="1" />
 							<label><?php echo $lang_profile['Realname'] ?><br /><input type="text" name="form[realname]" value="<?php echo pun_htmlspecialchars($user['realname']) ?>" size="40" maxlength="40" /><br /></label>
+							<label><?php echo $lang_profile['Birthday'] ?><br /><input type="date" name="form[birthday]" value="<?php echo pun_htmlspecialchars(isset($user['birthday']) ? $user['birthday'] : '') ?>" min="1900-01-01" /><br /></label>
+							<label><?php echo $lang_profile['Country'] ?><br /><select name="form[country]">
+								<option value=""><?php echo $lang_profile['Country choose'] ?></option>
+<?php require_once PUN_ROOT.'include/countries.php'; $cur_c = isset($user['country']) ? $user['country'] : ''; foreach (evebb_country_list() as $prof_c) echo "								".'<option value="'.pun_htmlspecialchars($prof_c).'"'.($prof_c === $cur_c ? ' selected="selected"' : '').'>'.pun_htmlspecialchars($prof_c).'</option>'."\n"; ?>
+							</select><br /></label>
 <?php if (isset($title_field)): ?>							<?php echo $title_field ?>
 <?php endif; ?>							<label><?php echo $lang_profile['Location'] ?><br /><input type="text" name="form[location]" value="<?php echo pun_htmlspecialchars($user['location']) ?>" size="30" maxlength="30" /><br /></label>
 <?php if ($pun_user['g_post_links'] == '1' || $pun_user['g_id'] == PUN_ADMIN) : ?>							<label><?php echo $lang_profile['Website'] ?><br /><input type="text" name="form[url]" value="<?php echo pun_htmlspecialchars($user['url']) ?>" size="50" maxlength="80" /><br /></label>
