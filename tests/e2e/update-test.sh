@@ -133,6 +133,12 @@ curl -s -b "$JAR" -e "$BASE/admin_maintenance.php" "$BASE/admin_maintenance.php?
 assert_contains "$WORK/check.html" "A new release is available: eveBB $CURRENT_VERSION" "new release detected"
 assert_contains "$WORK/check.html" "Update to $CURRENT_VERSION" "update button offered"
 
+# clicking the admin-index link arrives with admin_index.php as the referer;
+# the read-only check must not trip the referrer guard
+curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_maintenance.php?action=check_update" -o "$WORK/checkidx.html"
+assert_not_contains "$WORK/checkidx.html" "Bad HTTP_REFERER" "check-update link from admin index is not blocked"
+assert_contains "$WORK/checkidx.html" "A new release is available: eveBB $CURRENT_VERSION" "check-update works from the admin index link"
+
 # --- run the one-click update ----------------------------------------------
 TOKEN=$(grep -oE 'name="csrf_token" value="[a-f0-9]+"' "$WORK/check.html" | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -b "$JAR" -e "$BASE/admin_maintenance.php" -o "$WORK/update.html" "$BASE/admin_maintenance.php" \

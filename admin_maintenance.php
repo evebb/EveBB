@@ -32,8 +32,11 @@ $update_error = null;
 
 if ($action == 'check_update')
 {
-	confirm_referrer('admin_maintenance.php');
-
+	// Read-only: just queries the releases feed and changes nothing, so it
+	// needs no referrer/CSRF guard. This also lets the "Check for upgrade"
+	// link on the admin index (a plain GET from admin_index.php) reach it
+	// without a "Bad HTTP_REFERER" error. The state-changing do_update
+	// action below keeps its confirm_referrer + CSRF checks.
 	$update_info = evebb_check_latest_release();
 	if ($update_info === false)
 		$update_error = $lang_admin_maintenance['Update check failed'];
