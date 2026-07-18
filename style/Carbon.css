@@ -1673,34 +1673,41 @@ html, body, .pun {
 }
 
 /*****************************************************************
-eveBB forum-index new-post indicator
+eveBB new-post indicator (forum index + topic list)
 *****************************************************************
 
-The little square beside each forum on the index is replaced by the eveBB
-chat-bubble mark: orange when the forum has unread posts, light grey when
-there is nothing new. The shape is a CSS mask, so the colour lives in the
-stylesheet, not in the image.
+The little square beside each forum on the index - and beside each topic in a
+forum's topic list - is replaced by the eveBB chat-bubble mark: orange when
+there are unread posts, light grey when there is nothing new. The shape is a
+CSS mask, so the colour lives in the stylesheet, not in the image.
 
 Theming a new style: override any of these four custom properties (or the
 rules below) in your own stylesheet - no new image is required unless you
 want a different silhouette.
 
 	--newpost-icon         mask image (a single-colour silhouette / SVG)
-	--newpost-color-new    colour when the forum has unread posts
+	--newpost-color-new    colour when there are unread posts
 	--newpost-color-read   colour when there is nothing new
 	--newpost-icon-size    width & height of the indicator
 
-Only the forum index (#punindex) uses the bubble; topic and search lists keep
-the compact classic indicator. */
+The forum index and topic list (#punindex, #punviewforum) use the bubble;
+search lists keep the compact classic indicator. The topic list uses a
+slightly smaller bubble to suit its shorter rows. */
 
-#punindex.pun {
+#punindex.pun,
+#punviewforum.pun {
 	--newpost-icon: url(../img/icon-newpost.svg);
 	--newpost-color-new: #e8720c;
 	--newpost-color-read: #ccd1d9;
 	--newpost-icon-size: 44px;
 }
 
-#punindex .icon {
+#punviewforum.pun {
+	--newpost-icon-size: 34px;
+}
+
+#punindex .icon,
+#punviewforum .icon {
 	border: 0;
 	padding: 0;
 	float: left;
@@ -1712,11 +1719,13 @@ the compact classic indicator. */
 	        mask: var(--newpost-icon, url(../img/icon-newpost.svg)) no-repeat center / contain;
 }
 
-#punindex .inew .icon {
+#punindex .inew .icon,
+#punviewforum .inew .icon {
 	background-color: var(--newpost-color-new, #e8720c);
 }
 
-#punindex .iredirect .icon {
+#punindex .iredirect .icon,
+#punviewforum .iredirect .icon {
 	background-color: var(--newpost-color-read, #ccd1d9);
 }
 

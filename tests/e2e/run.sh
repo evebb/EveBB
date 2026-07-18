@@ -186,6 +186,10 @@ assert_contains "$TMP/postav2.html" 'avatars/2.png' "member's own avatar overrid
 # ... and the last-poster avatar appears on the index
 curl -s -b "$JAR" "$BASE/index.php" -o "$TMP/idxav.html"
 assert_contains "$TMP/idxav.html" 'lastpostavatar' "last-poster avatar shown on the index"
+# ... and on the topic list (viewforum) too
+curl -s -b "$JAR" "$BASE/viewforum.php?id=1" -o "$TMP/vfav.html"
+assert_contains "$TMP/vfav.html" 'lastpostavatar' "last-poster avatar shown on the topic list"
+assert_contains "$TMP/vfav.html" 'avatars/2.png' "topic list last-post avatar uses the poster's upload"
 rm -f "$ROOT/img/avatars/2.png"
 
 # --- forum-index new-post indicator (themeable chat-bubble mask) -----------
@@ -197,6 +201,10 @@ assert_contains "$ROOT/style/Carbon.css" 'mask: var(--newpost-icon' "new-post in
 # the forum row still carries the status classes the CSS targets
 curl -s -b "$JAR" "$BASE/index.php" -o "$TMP/idxicon.html"
 assert_contains "$TMP/idxicon.html" 'class="icon' "forum index emits the status-icon element"
+# the topic list uses the same indicator + is scoped for it in the stylesheet
+curl -s -b "$JAR" "$BASE/viewforum.php?id=1" -o "$TMP/vficon.html"
+assert_contains "$TMP/vficon.html" 'class="icon' "topic list emits the status-icon element"
+assert_contains "$ROOT/style/Carbon.css" '#punviewforum .icon' "topic-list indicator is styled"
 
 # oversized uploads are resized to fit rather than rejected (admin is id 2)
 rm -f "$ROOT"/img/avatars/2.*

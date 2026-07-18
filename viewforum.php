@@ -164,12 +164,12 @@ if ($db->has_rows($result))
 	if ($pun_user['is_guest'] || $pun_config['o_show_dot'] == '0')
 	{
 		// Without "the dot"
-		$sql = 'SELECT id, poster, subject, posted, last_post, last_post_id, last_poster, num_views, num_replies, closed, sticky, moved_to FROM '.$db->prefix.'topics WHERE id IN('.implode(',', $topic_ids).') ORDER BY sticky DESC, '.$sort_by.', id DESC';
+		$sql = 'SELECT t.id, t.poster, t.subject, t.posted, t.last_post, t.last_post_id, t.last_poster, t.num_views, t.num_replies, t.closed, t.sticky, t.moved_to, lpu.id AS last_poster_id FROM '.$db->prefix.'topics AS t LEFT JOIN '.$db->prefix.'users AS lpu ON lpu.username=t.last_poster WHERE t.id IN('.implode(',', $topic_ids).') ORDER BY t.sticky DESC, t.'.$sort_by.', t.id DESC';
 	}
 	else
 	{
 		// With "the dot"
-		$sql = 'SELECT p.poster_id AS has_posted, t.id, t.subject, t.poster, t.posted, t.last_post, t.last_post_id, t.last_poster, t.num_views, t.num_replies, t.closed, t.sticky, t.moved_to FROM '.$db->prefix.'topics AS t LEFT JOIN '.$db->prefix.'posts AS p ON t.id=p.topic_id AND p.poster_id='.$pun_user['id'].' WHERE t.id IN('.implode(',', $topic_ids).') GROUP BY t.id'.($db_type == 'pgsql' ? ', t.subject, t.poster, t.posted, t.last_post, t.last_post_id, t.last_poster, t.num_views, t.num_replies, t.closed, t.sticky, t.moved_to, p.poster_id' : '').' ORDER BY t.sticky DESC, t.'.$sort_by.', t.id DESC';
+		$sql = 'SELECT p.poster_id AS has_posted, t.id, t.subject, t.poster, t.posted, t.last_post, t.last_post_id, t.last_poster, t.num_views, t.num_replies, t.closed, t.sticky, t.moved_to, lpu.id AS last_poster_id FROM '.$db->prefix.'topics AS t LEFT JOIN '.$db->prefix.'posts AS p ON t.id=p.topic_id AND p.poster_id='.$pun_user['id'].' LEFT JOIN '.$db->prefix.'users AS lpu ON lpu.username=t.last_poster WHERE t.id IN('.implode(',', $topic_ids).') GROUP BY t.id'.($db_type == 'pgsql' ? ', t.subject, t.poster, t.posted, t.last_post, t.last_post_id, t.last_poster, t.num_views, t.num_replies, t.closed, t.sticky, t.moved_to, p.poster_id, lpu.id' : '').' ORDER BY t.sticky DESC, t.'.$sort_by.', t.id DESC';
 	}
 
 	$result = $db->query($sql) or error('Unable to fetch topic list', __FILE__, __LINE__, $db->error());
@@ -183,7 +183,19 @@ if ($db->has_rows($result))
 		$icon_type = 'icon';
 
 		if (is_null($cur_topic['moved_to']))
-			$last_post = '<a href="viewtopic.php?pid='.$cur_topic['last_post_id'].'#p'.$cur_topic['last_post_id'].'">'.format_time($cur_topic['last_post']).'</a> <span class="byuser">'.$lang_common['by'].' '.pun_htmlspecialchars($cur_topic['last_poster']).'</span>';
+		{
+			// A small avatar of the last poster, when avatars are enabled and
+			// the viewer wants to see them (empty if they have none)
+			$last_post_avatar = '';
+			if ($pun_config['o_avatars'] == '1' && $pun_user['show_avatars'] != '0' && !empty($cur_topic['last_poster_id']))
+			{
+				$av = generate_avatar_display($cur_topic['last_poster_id']);
+				if ($av != '')
+					$last_post_avatar = '<span class="lastpostavatar">'.$av.'</span>';
+			}
+
+			$last_post = $last_post_avatar.'<a href="viewtopic.php?pid='.$cur_topic['last_post_id'].'#p'.$cur_topic['last_post_id'].'">'.format_time($cur_topic['last_post']).'</a> <span class="byuser">'.$lang_common['by'].' '.pun_htmlspecialchars($cur_topic['last_poster']).'</span>';
+		}
 		else
 			$last_post = '- - -';
 
