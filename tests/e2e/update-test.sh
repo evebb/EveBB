@@ -100,6 +100,17 @@ else
   fail "old forum installed (config missing or not pointing at the test database)"
 fi
 
+# seed the retired BBCode toolbar plugin's leftovers, to prove the upgrade
+# tidies them away (config rows + its slug in the active-plugins list)
+php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");
+$p->exec("DELETE FROM config WHERE conf_name IN (\"o_toolbar_style\",\"o_toolbar_smilies\")");
+$p->exec("INSERT INTO config (conf_name,conf_value) VALUES (\"o_toolbar_style\",\"Default\")");
+$p->exec("INSERT INTO config (conf_name,conf_value) VALUES (\"o_toolbar_smilies\",\"1\")");
+$n=$p->query("SELECT COUNT(*) FROM config WHERE conf_name=\"o_active_plugins\"")->fetchColumn();
+if($n) $p->exec("UPDATE config SET conf_value=\"toolbar\" WHERE conf_name=\"o_active_plugins\"");
+else $p->exec("INSERT INTO config (conf_name,conf_value) VALUES (\"o_active_plugins\",\"toolbar\")");'
+rm -f "$OLD"/cache/cache_config.php
+
 # point the updater at the local feed, and mark config so we can prove
 # it survives the update
 echo "define('FORUM_UPDATE_API', '$FEED/releases.json');" >> "$OLD/config.php"
@@ -173,6 +184,16 @@ else
   sed -n '1,12p' "$WORK/after.html" | sed 's/^/    | /'
 fi
 
+# the silent upgrade (common.php) tidies the retired toolbar plugin's leftovers
+TB=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (int)$p->query("SELECT COUNT(*) FROM config WHERE conf_name IN (\"o_toolbar_style\",\"o_toolbar_smilies\")")->fetchColumn();')
+[ "$TB" = "0" ] && ok "legacy toolbar config rows removed on silent upgrade" || fail "legacy toolbar config rows removed on silent upgrade (found $TB)"
+AP=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (string)$p->query("SELECT conf_value FROM config WHERE conf_name=\"o_active_plugins\"")->fetchColumn();')
+echo ",$AP," | grep -q ",toolbar," && fail "toolbar slug removed from active plugins (still: $AP)" || ok "toolbar slug removed from active plugins"
+
+# re-seed one leftover to prove the guided database update tidies it too
+php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");$p->exec("INSERT INTO config (conf_name,conf_value) VALUES (\"o_toolbar_style\",\"Default\")");'
+rm -f "$OLD"/cache/cache_config.php
+
 # scenario B: a release that DOES change the database still routes
 # through the guided update. Simulate one by lowering the parser
 # revision (its migration - re-preparsing posts - is safe to re-run).
@@ -198,6 +219,10 @@ for i in $(seq 1 30); do
   curl -s -b "$JAR" "$BASE/$NEXT" -o "$WORK/dbup2.html"
 done
 assert_contains "$WORK/dbup2.html" "successfully updated" "database update completes"
+
+# the guided database update (db_update.php 'start') also tidies the leftover
+TB2=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (int)$p->query("SELECT COUNT(*) FROM config WHERE conf_name=\"o_toolbar_style\"")->fetchColumn();')
+[ "$TB2" = "0" ] && ok "legacy toolbar config removed by the guided update too" || fail "legacy toolbar config removed by the guided update too (found $TB2)"
 
 curl -s -b "$JAR" -L "$BASE/index.php" -o "$WORK/after2.html"
 assert_contains "$WORK/after2.html" "Update Test" "forum works after guided update"

@@ -10,7 +10,7 @@ if (!defined('PUN_ROOT'))
 	exit('The constant PUN_ROOT must be defined and point to a valid eveBB installation root directory.');
 
 // Define the version and database revision that this code was written for
-define('FORUM_VERSION', '1.17.0-alpha');
+define('FORUM_VERSION', '1.17.1-alpha');
 
 define('FORUM_DB_REVISION', 25);
 define('FORUM_SI_REVISION', 2);
@@ -117,6 +117,9 @@ else if (version_compare($pun_config['o_cur_version'], FORUM_VERSION, '<'))
 	// changes, e.g. installed through the one-click updater) - finish
 	// the update silently instead of sending everyone to db_update.php
 	$db->query('UPDATE '.$db->prefix.'config SET conf_value=\''.$db->escape(FORUM_VERSION).'\' WHERE conf_name=\'o_cur_version\'') or error('Unable to update version', __FILE__, __LINE__, $db->error());
+
+	// Tidy up leftovers from the retired BBCode toolbar plugin
+	evebb_remove_legacy_toolbar();
 
 	if (!defined('FORUM_CACHE_FUNCTIONS_LOADED'))
 		require PUN_ROOT.'include/cache.php';

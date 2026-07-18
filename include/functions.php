@@ -651,6 +651,33 @@ function resize_avatar($src_path, $dest_path, $type, $max_w, $max_h)
 
 
 //
+// One-time cleanup of the retired BBCode toolbar plugin: remove its unused
+// config rows (o_toolbar_style, o_toolbar_smilies) and drop its slug from the
+// active-plugins list. Idempotent, so it is safe to call on every upgrade.
+// The caller is responsible for regenerating the config cache afterwards.
+//
+function evebb_remove_legacy_toolbar()
+{
+	global $db, $pun_config;
+
+	$db->query('DELETE FROM '.$db->prefix.'config WHERE conf_name IN (\'o_toolbar_style\', \'o_toolbar_smilies\')') or error('Unable to remove legacy toolbar config', __FILE__, __LINE__, $db->error());
+	unset($pun_config['o_toolbar_style'], $pun_config['o_toolbar_smilies']);
+
+	if (isset($pun_config['o_active_plugins']) && $pun_config['o_active_plugins'] !== '')
+	{
+		$slugs = array_values(array_filter(array_map('trim', explode(',', $pun_config['o_active_plugins']))));
+		$kept  = array_values(array_diff($slugs, array('toolbar')));
+		if (count($kept) !== count($slugs))
+		{
+			$new = implode(',', $kept);
+			$db->query('UPDATE '.$db->prefix.'config SET conf_value=\''.$db->escape($new).'\' WHERE conf_name=\'o_active_plugins\'') or error('Unable to update active plugins', __FILE__, __LINE__, $db->error());
+			$pun_config['o_active_plugins'] = $new;
+		}
+	}
+}
+
+
+//
 // Generate browser's title
 //
 function generate_page_title($page_title, $p = null)

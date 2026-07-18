@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script updates to
-define('UPDATE_TO', '1.17.0-alpha');
+define('UPDATE_TO', '1.17.1-alpha');
 
 define('UPDATE_TO_DB_REVISION', 25);
 define('UPDATE_TO_SI_REVISION', 2);
@@ -700,6 +700,11 @@ switch ($stage)
 	// Start by updating the database structure
 	case 'start':
 		$query_str = '?stage=preparse_posts';
+
+		// Tidy up leftovers from the retired BBCode toolbar plugin. This runs
+		// on every guided update (before the schema-revision gate below), so
+		// it applies even for parser/search-index-only upgrades.
+		evebb_remove_legacy_toolbar();
 
 		// If we don't need to update the database, skip this stage
 		if (isset($pun_config['o_database_revision']) && $pun_config['o_database_revision'] >= UPDATE_TO_DB_REVISION)
