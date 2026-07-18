@@ -131,21 +131,21 @@ assert_contains "$WORK/prof.html" 'name="form[realname]" value="Daphne Blake"' "
 assert_contains "$WORK/prof.html" 'name="form[birthday]" value="1990-05-15"' "date of birth populated in profile"
 assert_contains "$WORK/prof.html" '<option value="United Kingdom" selected="selected">' "country populated in profile"
 
-# --- generic rules backfilled on upgrade for boards that never set any -----
-# unset-rules board (rules off + placeholder message) + a version bump -> the
-# silent update path fills in the generic rules and enables them
+# --- updates never auto-modify an existing board's rules -------------------
+# a board with rules deliberately OFF (placeholder message) must stay OFF
+# after a version bump - we cannot tell "deliberately off" from "never set",
+# so we never auto-enable
 php -r '$p=new PDO("sqlite:'"$DB"'");$p->exec("UPDATE config SET conf_value=\"0\" WHERE conf_name=\"o_rules\"");$p->exec("UPDATE config SET conf_value=\"Enter your rules here\" WHERE conf_name=\"o_rules_message\"");$p->exec("UPDATE config SET conf_value=\"0.9.0\" WHERE conf_name=\"o_cur_version\"");'
 rm -f cache/cache_config.php
 curl -s -o /dev/null "$BASE/index.php"
-[ "$(cfg o_rules)" = "1" ] && ok "generic rules enabled on upgrade when unset" || fail "generic rules enabled on upgrade when unset"
-cfg o_rules_message | grep -qF "Treat everyone with respect" && ok "generic rules message backfilled when unset" || fail "generic rules message backfilled when unset"
+[ "$(cfg o_rules)" = "0" ] && ok "disabled rules stay disabled after update" || fail "disabled rules stay disabled after update"
+cfg o_rules_message | grep -qxF "Enter your rules here" && ok "unset rules message left untouched" || fail "unset rules message left untouched"
 
-# a board with custom rules must NOT be clobbered by the backfill
-php -r '$p=new PDO("sqlite:'"$DB"'");$p->exec("UPDATE config SET conf_value=\"0\" WHERE conf_name=\"o_rules\"");$p->exec("UPDATE config SET conf_value=\"<p>MY CUSTOM RULES</p>\" WHERE conf_name=\"o_rules_message\"");$p->exec("UPDATE config SET conf_value=\"0.9.0\" WHERE conf_name=\"o_cur_version\"");'
+# a board with custom rules must be left exactly as-is
+php -r '$p=new PDO("sqlite:'"$DB"'");$p->exec("UPDATE config SET conf_value=\"1\" WHERE conf_name=\"o_rules\"");$p->exec("UPDATE config SET conf_value=\"<p>MY CUSTOM RULES</p>\" WHERE conf_name=\"o_rules_message\"");$p->exec("UPDATE config SET conf_value=\"0.9.0\" WHERE conf_name=\"o_cur_version\"");'
 rm -f cache/cache_config.php
 curl -s -o /dev/null "$BASE/index.php"
-cfg o_rules_message | grep -qF "MY CUSTOM RULES" && ok "custom rules not clobbered by backfill" || fail "custom rules not clobbered by backfill"
-[ "$(cfg o_rules)" = "0" ] && ok "custom board's rules toggle left as-is" || fail "custom board's rules toggle left as-is"
+cfg o_rules_message | grep -qF "MY CUSTOM RULES" && ok "custom rules left untouched on update" || fail "custom rules left untouched on update"
 
 if [ -s "$ERRLOG" ]; then fail "php error log empty"; sed 's/^/    | /' "$ERRLOG" | head -15; else ok "php error log empty"; fi
 

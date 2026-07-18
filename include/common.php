@@ -10,7 +10,7 @@ if (!defined('PUN_ROOT'))
 	exit('The constant PUN_ROOT must be defined and point to a valid eveBB installation root directory.');
 
 // Define the version and database revision that this code was written for
-define('FORUM_VERSION', '1.10.1-alpha');
+define('FORUM_VERSION', '1.10.2-alpha');
 
 define('FORUM_DB_REVISION', 25);
 define('FORUM_SI_REVISION', 2);
@@ -117,16 +117,6 @@ else if (version_compare($pun_config['o_cur_version'], FORUM_VERSION, '<'))
 	// changes, e.g. installed through the one-click updater) - finish
 	// the update silently instead of sending everyone to db_update.php
 	$db->query('UPDATE '.$db->prefix.'config SET conf_value=\''.$db->escape(FORUM_VERSION).'\' WHERE conf_name=\'o_cur_version\'') or error('Unable to update version', __FILE__, __LINE__, $db->error());
-
-	// Backfill the shipped generic forum rules (enabled) on boards that
-	// never set their own - so the eveBB default reaches upgraded boards
-	// too, without clobbering an admin's custom rules.
-	if (!isset($pun_config['o_rules_message']) || evebb_rules_are_unset($pun_config['o_rules_message']))
-	{
-		$rules = $db->escape(evebb_default_forum_rules());
-		$db->query('UPDATE '.$db->prefix.'config SET conf_value=\''.$rules.'\' WHERE conf_name=\'o_rules_message\'') or error('Unable to update rules', __FILE__, __LINE__, $db->error());
-		$db->query('UPDATE '.$db->prefix.'config SET conf_value=\'1\' WHERE conf_name=\'o_rules\'') or error('Unable to enable rules', __FILE__, __LINE__, $db->error());
-	}
 
 	if (!defined('FORUM_CACHE_FUNCTIONS_LOADED'))
 		require PUN_ROOT.'include/cache.php';

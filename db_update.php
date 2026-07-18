@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script updates to
-define('UPDATE_TO', '1.10.1-alpha');
+define('UPDATE_TO', '1.10.2-alpha');
 
 define('UPDATE_TO_DB_REVISION', 25);
 define('UPDATE_TO_SI_REVISION', 2);
@@ -774,15 +774,6 @@ switch ($stage)
 		// eveBB: optional admin-supplied footer copyright line (empty default)
 		if (!array_key_exists('o_copyright_message', $pun_config))
 			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_copyright_message\', \'\')') or error('Unable to insert config value \'o_copyright_message\'', __FILE__, __LINE__, $db->error());
-
-		// eveBB: backfill the shipped generic forum rules (enabled) on boards
-		// that never set their own, without clobbering custom rules
-		if (!array_key_exists('o_rules_message', $pun_config) || evebb_rules_are_unset($pun_config['o_rules_message']))
-		{
-			$rules = $db->escape(evebb_default_forum_rules());
-			$db->query('UPDATE '.$db->prefix.'config SET conf_value=\''.$rules.'\' WHERE conf_name=\'o_rules_message\'') or error('Unable to update rules', __FILE__, __LINE__, $db->error());
-			$db->query('UPDATE '.$db->prefix.'config SET conf_value=\'1\' WHERE conf_name=\'o_rules\'') or error('Unable to enable rules', __FILE__, __LINE__, $db->error());
-		}
 
 		// Make sure we have o_additional_navlinks (was added in 1.2.1)
 		if (!array_key_exists('o_additional_navlinks', $pun_config))
