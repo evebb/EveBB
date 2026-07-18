@@ -207,7 +207,7 @@ if ($wysiwyg_enabled && ($wysiwyg_message || $wysiwyg_signature))
 	echo 'document.addEventListener("DOMContentLoaded", function() {'."\n";
 	echo "\tif (typeof sceditor === 'undefined') return;\n";
 	echo "\t// Resolve to absolute URLs on the page's own scheme/host\n";
-	echo "\tevebb_sceditor_opts.style = new URL('js/sceditor/themes/content/default.min.css', document.baseURI).href;\n";
+	echo "\tevebb_sceditor_opts.style = new URL('js/sceditor/themes/content/evebb.css', document.baseURI).href;\n";
 	echo "\tevebb_sceditor_opts.emoticonsRoot = new URL('img/smilies/', document.baseURI).href;\n";
 	echo "\tvar tas = document.querySelectorAll('textarea[name=\"req_message\"], textarea[name=\"signature\"]');\n";
 	echo "\tfor (var i = 0; i < tas.length; i++) {\n";

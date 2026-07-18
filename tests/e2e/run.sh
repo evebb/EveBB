@@ -309,6 +309,10 @@ $pdo->exec("UPDATE posts SET message=".$pdo->quote("hi :)")." WHERE id=1");
 ' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" 2>/dev/null
 curl -s -b "$JAR" "$BASE/viewtopic.php?id=1" -o "$TMP/smpost.html"
 assert_contains "$TMP/smpost.html" 'img/smilies/smile.png" width="20" height="20"' "smiley renders as a 20px image"
+# the editor's content stylesheet sizes emoticons down to the text size
+assert_contains "$ROOT/js/sceditor/themes/content/evebb.css" 'img[data-sceditor-emoticon]{width:20px' "editor content CSS sizes emoticons to the text"
+curl -s -b "$JAR" "$BASE/post.php?tid=2" -o "$TMP/wyzcss.html"
+assert_contains "$TMP/wyzcss.html" 'themes/content/evebb.css' "editor loads the eveBB content stylesheet"
 
 # --- admin + misc pages ----------------------------------------------------
 for p in userlist.php help.php "extern.php?action=feed&type=atom" admin_index.php admin_options.php admin_users.php admin_maintenance.php; do
