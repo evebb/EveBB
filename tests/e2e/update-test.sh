@@ -112,6 +112,16 @@ curl -s -b "$JAR" -c "$JAR" -e "$BASE/login.php" -o /dev/null -L "$BASE/login.ph
   --data-urlencode "req_username=admin" --data-urlencode "req_password=adminpass123" \
   --data-urlencode "login=Login" --data-urlencode "redirect_url=$BASE/index.php"
 
+# --- admin index: upgrade link points at the one-click updater -------------
+curl -s -b "$JAR" "$BASE/admin_index.php" -o "$WORK/adminidx.html"
+assert_contains "$WORK/adminidx.html" 'admin_maintenance.php?action=check_update' "version upgrade link goes to the updater"
+assert_not_contains "$WORK/adminidx.html" 'action=check_upgrade' "old GitHub-message upgrade link removed"
+
+# --- server statistics: the phpinfo link is gone ---------------------------
+curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_statistics.php" -o "$WORK/stats.html"
+assert_contains "$WORK/stats.html" "PHP:" "server statistics shows the PHP version"
+assert_not_contains "$WORK/stats.html" "action=phpinfo" "phpinfo link removed from server statistics"
+
 # --- maintenance page shows the updates section ----------------------------
 curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_maintenance.php" -o "$WORK/maint.html"
 assert_contains "$WORK/maint.html" "You are running eveBB <strong>0.9.0</strong>" "current version shown"

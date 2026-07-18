@@ -23,18 +23,6 @@ require PUN_ROOT.'lang/'.$admin_language.'/admin_index.php';
 $action = isset($_GET['action']) ? $_GET['action'] : null;
 
 
-// Show phpinfo() output
-if ($action == 'phpinfo' && $pun_user['g_id'] == PUN_ADMIN)
-{
-	// Is phpinfo() a disabled function?
-	if (strpos(strtolower((string) ini_get('disable_functions')), 'phpinfo') !== false)
-		message($lang_admin_index['PHPinfo disabled message']);
-
-	phpinfo();
-	exit;
-}
-
-
 // Get the server load averages (if possible)
 if (@file_exists('/proc/loadavg') && is_readable('/proc/loadavg'))
 {
@@ -118,7 +106,7 @@ generate_admin_menu('index');
 <?php if ($pun_user['g_id'] == PUN_ADMIN): ?>					<dt><?php echo $lang_admin_index['Environment label'] ?></dt>
 					<dd>
 						<?php printf($lang_admin_index['Environment data OS'], PHP_OS) ?><br />
-						<?php printf($lang_admin_index['Environment data version'], phpversion(), '<a href="admin_statistics.php?action=phpinfo">'.$lang_admin_index['Show info'].'</a>') ?><br />
+						<?php printf($lang_admin_index['Environment data version'], phpversion()) ?><br />
 						<?php printf($lang_admin_index['Environment data acc']."\n", $php_accelerator) ?>
 					</dd>
 					<dt><?php echo $lang_admin_index['Database label'] ?></dt>
