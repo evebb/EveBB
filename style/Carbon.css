@@ -824,7 +824,30 @@ MAIN POSTS
 
 .pun .blockpost .postleft .postavatar {
 	display: block;
-	margin: 0 0 4px 0;
+	margin: 0 0 6px 0;
+}
+
+/* Post avatar: a fixed 90x90 square with rounded corners. object-fit: cover
+   fills the square from any aspect ratio without distorting the image. */
+.pun .blockpost .postleft .postavatar img {
+	display: block;
+	width: 90px;
+	height: 90px;
+	object-fit: cover;
+	border-radius: 8px;
+}
+
+/* Small last-poster avatar on the forum index */
+.pun .lastpostavatar {
+	float: left;
+	margin: 1px 8px 0 0;
+}
+.pun .lastpostavatar img {
+	display: block;
+	width: 32px;
+	height: 32px;
+	object-fit: cover;
+	border-radius: 5px;
 }
 
 .pun .blockpost .postright {

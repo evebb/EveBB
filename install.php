@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.10.2-alpha');
+define('FORUM_VERSION', '1.11.0-alpha');
 
 define('FORUM_DB_REVISION', 25);
 define('FORUM_SI_REVISION', 2);
@@ -1570,9 +1570,9 @@ else
 		'o_mailing_list'			=> $email,
 		'o_avatars'					=> $avatars,
 		'o_avatars_dir'				=> 'img/avatars',
-		'o_avatars_width'			=> 60,
-		'o_avatars_height'			=> 60,
-		'o_avatars_size'			=> 10240,
+		'o_avatars_width'			=> 90,
+		'o_avatars_height'			=> 90,
+		'o_avatars_size'			=> 256000,
 		'o_search_all_forums'		=> 1,
 		'o_base_url'				=> $base_url,
 		'o_admin_email'				=> $email,

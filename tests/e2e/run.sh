@@ -167,6 +167,20 @@ rm -f cache/cache_config.php
 curl -s "$BASE/index.php" -o "$TMP/footer.html"
 assert_contains "$TMP/footer.html" '(c) 2026 E2E Copyright' "admin copyright line shows in the footer"
 
+# --- avatars: bigger defaults + last-poster avatar on the index ------------
+AV_W=$(php -r '
+$type=$argv[1];$host=$argv[2];$name=$argv[3];$user=$argv[4];$pass=$argv[5];
+$dsn=$type==="sqlite"?"sqlite:$name":((strpos($type,"pgsql")===0?"pgsql":"mysql").":host=$host;dbname=$name");
+$pdo=new PDO($dsn,$type==="sqlite"?null:$user,$type==="sqlite"?null:$pass);
+echo $pdo->query("SELECT conf_value FROM config WHERE conf_name=".$pdo->quote("o_avatars_width"))->fetchColumn();
+' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" 2>/dev/null)
+[ "$AV_W" = "90" ] && ok "avatar default size is 90" || fail "avatar default size is 90 (got $AV_W)"
+# admin (user id 2) is the last poster; give them an avatar and check the index
+printf '\x89PNG\r\n\x1a\n' > "$TMP/av.png"; php -r 'file_put_contents($argv[1], base64_decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="));' "$ROOT/img/avatars/2.png"
+curl -s -b "$JAR" "$BASE/index.php" -o "$TMP/idxav.html"
+assert_contains "$TMP/idxav.html" 'lastpostavatar' "last-poster avatar shown on the index"
+rm -f "$ROOT/img/avatars/2.png"
+
 # --- admin + misc pages ----------------------------------------------------
 for p in userlist.php help.php "extern.php?action=feed&type=atom" admin_index.php admin_options.php admin_users.php admin_maintenance.php; do
   code=$(curl -s -b "$JAR" -e "$BASE/index.php" -o "$TMP/page.html" -w "%{http_code}" "$BASE/$p")
