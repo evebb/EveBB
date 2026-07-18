@@ -1672,3 +1672,14 @@ eveBB Carbon tweaks: rounded menu/boxes + lighter inner panels
 #adintro .inbox, #adstats .inbox {
 	background: #ffffff;
 }
+
+/* Round the inner white info panels too (they sit inset within their grey
+   box, so their own corners were still square) */
+.pun .forminfo,
+.pun .infldset,
+.pun .inbox,
+.pun .error-info,
+#adintro .inbox, #adstats .inbox {
+	border-radius: 5px;
+	overflow: hidden;
+}
