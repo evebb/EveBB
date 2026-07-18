@@ -1683,3 +1683,20 @@ eveBB Carbon tweaks: rounded menu/boxes + lighter inner panels
 	border-radius: 5px;
 	overflow: hidden;
 }
+
+/* Round each topic/post block as its own card, and separate stacked posts
+   (the base style overlaps their borders with a negative margin) */
+.pun .blockpost {
+	border-radius: 8px;
+	margin-bottom: 12px;
+}
+.pun .blockpost .box,
+.pun .blockpost .inbox {
+	border-radius: 0;
+}
+
+/* Vertically centre the main menu labels (base padding is top-heavy) */
+#brdmenu a:link, #brdmenu a:visited {
+	padding-top: 9px;
+	padding-bottom: 9px;
+}
