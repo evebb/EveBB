@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.5.3-alpha');
+define('FORUM_VERSION', '1.6.0-alpha');
 
 define('FORUM_DB_REVISION', 24);
 define('FORUM_SI_REVISION', 2);
@@ -1596,10 +1596,12 @@ else
 		'p_allow_banned_email'		=> 1,
 		'p_allow_dupe_email'		=> 0,
 		'p_force_guest_email'		=> 1,
-		// Optional logo image shown in place of the board-title text
-		'o_logo_url'				=> '',
+		// Logo image shown in place of the board-title text. eveBB ships
+		// with its own logo on the left by default; an admin can replace or
+		// remove it in Admin -> Options.
+		'o_logo_url'				=> 'img/evebb-logo.png',
 		'o_logo_width'				=> '',
-		'o_logo_height'				=> '',
+		'o_logo_height'				=> '50px',
 		'o_logo_align'				=> 'left',
 		// The bundled BBCode toolbar plugin is active out of the box
 		'o_active_plugins'			=> 'toolbar'

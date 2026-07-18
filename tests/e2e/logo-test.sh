@@ -140,10 +140,16 @@ save_options() {
     "$@"
 }
 
-# --- baseline: no logo -> text board title ---------------------------------
+# --- a fresh install ships the eveBB logo enabled by default ---------------
 curl -s "$BASE/index.php" -o "$WORK/idx0.html"
-assert_contains "$WORK/idx0.html" ">Logo Test</a></h1>" "text board title shown when no logo"
-assert_not_contains "$WORK/idx0.html" 'id="brdlogo"' "no logo element when no logo set"
+assert_contains "$WORK/idx0.html" 'id="brdlogo"' "eveBB logo shown by default on a fresh install"
+assert_contains "$WORK/idx0.html" 'img/evebb-logo.png' "default logo is the shipped eveBB logo"
+
+# remove it to establish the text-title baseline for the rest of the test
+save_options -F "form[logo_width]=" -F "form[logo_height]=" -F "remove_logo=1"
+curl -s "$BASE/index.php" -o "$WORK/idx0.html"
+assert_contains "$WORK/idx0.html" ">Logo Test</a></h1>" "text board title shown when logo removed"
+assert_not_contains "$WORK/idx0.html" 'id="brdlogo"' "no logo element when logo removed"
 
 # --- the Options page exposes the logo controls ----------------------------
 curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_options.php" -o "$WORK/opts.html"
