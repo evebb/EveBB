@@ -96,6 +96,11 @@ ob_start();
 // Define $p if it's not set to avoid a PHP notice
 $p = isset($p) ? $p : null;
 
+// Size the layout to the device on phones/tablets (the styles carry the
+// matching responsive rules). The admin console keeps the desktop layout.
+if (!defined('PUN_ADMIN_CONSOLE'))
+	echo '<meta name="viewport" content="width=device-width, initial-scale=1" />'."\n";
+
 // Is this a page that we want search index spiders to index?
 if (!defined('PUN_ALLOW_INDEX'))
 	echo '<meta name="ROBOTS" content="NOINDEX, FOLLOW" />'."\n";

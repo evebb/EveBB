@@ -316,6 +316,14 @@ $pdo->exec("UPDATE posts SET message=".$pdo->quote("hi :)")." WHERE id=1");
 ' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" 2>/dev/null
 curl -s -b "$JAR" "$BASE/viewtopic.php?id=1" -o "$TMP/smpost.html"
 assert_contains "$TMP/smpost.html" 'img/smilies/smile.png" width="20" height="20"' "smiley renders as a 20px image"
+
+# --- mobile-friendly layout ------------------------------------------------
+# forum pages carry the responsive viewport tag; the admin console does not
+assert_contains "$TMP/smpost.html" 'name="viewport" content="width=device-width' "forum pages carry the viewport meta tag"
+curl -s -b "$JAR" "$BASE/admin_options.php" -o "$TMP/adminvp.html"
+if grep -qF 'name="viewport"' "$TMP/adminvp.html"; then fail "admin console keeps the desktop layout (no viewport tag)"; else ok "admin console keeps the desktop layout (no viewport tag)"; fi
+# the default style ships the responsive layer
+assert_contains "$ROOT/style/Carbon.css" '@media (max-width: 720px)' "Carbon carries the responsive layer"
 # the editor's content stylesheet sizes emoticons down to the text size
 assert_contains "$ROOT/js/sceditor/themes/content/evebb.css" 'img[data-sceditor-emoticon]{width:20px' "editor content CSS sizes emoticons to the text"
 curl -s -b "$JAR" "$BASE/post.php?tid=2" -o "$TMP/wyzcss.html"

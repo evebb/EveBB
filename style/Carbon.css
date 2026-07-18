@@ -1780,3 +1780,148 @@ eveBB Carbon tweaks: rounded menu/boxes + lighter inner panels
 	padding-top: 9px;
 	padding-bottom: 9px;
 }
+
+/*****************************************************************
+eveBB responsive layer: phones and small tablets
+*****************************************************************
+
+The board is sized to the device via the viewport meta tag (header.php);
+these rules reflow the desktop layout on narrow screens. Style authors can
+copy this block as a starting point for their own styles - everything is a
+plain override of the desktop rules above, scoped to one media query. */
+
+@media (max-width: 720px) {
+
+	/* Page frame: use the small screen edge-to-edge */
+	.pun {
+		padding: 6px;
+	}
+	.pun .punwrap {
+		padding: 10px;
+		border-radius: 8px;
+	}
+
+	/* Header area: welcome/status lines stack instead of floating apart */
+	#brdwelcome .conl, #brdwelcome .conr,
+	#brdstats .conl, #brdstats .conr {
+		float: none;
+		text-align: left;
+		width: auto;
+	}
+
+	/* Forum and topic tables: drop the count columns, keep name + last post.
+	   The counts still show on each forum/topic page itself. */
+	.pun .blocktable .tc2, .pun .blocktable .tc3 {
+		display: none;
+	}
+	.pun .blocktable .tcr {
+		width: 42%;
+	}
+	.pun .blocktable td .newtext, .pun .blocktable td .pagestext, .pun .blocktable td .byuser {
+		white-space: normal;
+	}
+
+	/* Slightly smaller status bubble on phones */
+	#punindex.pun {
+		--newpost-icon-size: 34px;
+	}
+	#punviewforum.pun {
+		--newpost-icon-size: 28px;
+	}
+
+	/* Posts: the 194px author sidebar becomes a compact strip above the
+	   message - avatar on the left, name and details beside it */
+	.pun .blockpost h2 {
+		height: auto;
+		white-space: normal;
+		padding: 0.538em 8px 0.538em 12px;
+	}
+	#punviewtopic .blockpost dt, #punmoderate .blockpost dt {
+		position: static;
+		width: auto;
+		height: auto;
+		padding: 0 0 2px 0;
+	}
+	.pun .blockpost .inbox {
+		float: none;
+	}
+	.pun .blockpost .postbody, .pun .blockpost .postfoot {
+		float: none;
+		margin-right: 0;
+		border-left: 0;
+		width: auto;
+	}
+	.pun .blockpost .postleft, .pun .blockpost .postfootleft {
+		float: none;
+		width: auto;
+		margin-left: 0;
+		padding: 8px 12px 0 12px;
+	}
+	.pun .blockpost .postleft dl {
+		overflow: hidden;
+	}
+	.pun .blockpost .postleft .postavatar {
+		float: left;
+		margin: 0 10px 2px 0;
+	}
+	.pun .blockpost .postleft .postavatar img {
+		width: 56px;
+		height: 56px;
+	}
+	.pun .blockpost .postright, .pun .blockpost .postfootright {
+		padding: 4px 12px 7px 12px;
+	}
+	.pun .blockpost .postfootright {
+		text-align: left;
+	}
+
+	/* Anything inside a post scales down instead of overflowing */
+	.pun .postmsg img, .pun .postsignature img {
+		max-width: 100%;
+		height: auto;
+	}
+	.pun .postmsg {
+		overflow-wrap: anywhere;
+	}
+
+	/* Forms and the visual editor fill the width */
+	.pun textarea, .pun input.longinput, .pun select {
+		width: 100%;
+		max-width: 100%;
+		box-sizing: border-box;
+	}
+	.pun .inform {
+		padding: 0 6px;
+	}
+	.pun .infldset {
+		padding: 10px 8px;
+	}
+	.pun legend {
+		padding-left: 8px;
+		padding-right: 8px;
+	}
+	/* The post-form heading is a fixed-width overlay on desktop; let it
+	   flow normally on phones */
+	#punpost .blockform h2, #punedit .blockform h2, .pun #quickpost h2,
+	#posterror h2, #pundelete .blockform h2 {
+		position: static;
+		width: auto;
+		white-space: normal;
+		margin: 0;
+		padding: 8px 12px 4px 12px;
+	}
+	.pun .sceditor-container {
+		width: 100% !important;
+	}
+
+	/* Profile / admin two-column pages: the section menu sits above the
+	   form instead of beside it */
+	.pun .blockmenu {
+		float: none;
+		width: auto;
+		padding-bottom: 6px;
+	}
+	.pun .block2col .blockform, .pun .block2col .block {
+		margin-left: 0;
+	}
+}
