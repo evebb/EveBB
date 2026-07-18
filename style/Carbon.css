@@ -1416,11 +1416,11 @@ html, body, .pun {
 }
 
 .pun a, .pun a:link, .pun a:visited {
-	color: #bf5e00;
+	color: #ed6a00;
 }
 
 .pun a:hover, .pun a:active, .pun a:focus {
-	color: #e67300;
+	color: #ff7a00;
 }
 
 .pun .postmsg .postimg a:link img, .pun .postmsg .postimg a:visited img {
@@ -1428,7 +1428,7 @@ html, body, .pun {
 }
 
 .pun .postmsg .postimg a:hover img, .pun .postmsg .postimg a:active img, .pun .postmsg .postimg a:focus img {
-	border-color: #e67300;
+	border-color: #ff7a00;
 }
 
 .pun .code {
@@ -1450,7 +1450,7 @@ html, body, .pun {
 }
 
 #brdmenu a:hover, #brdmenu a:active, #brdmenu a:focus {
-	background: #e67300;
+	background: #ff7a00;
 	border-color: #fff;
 	color: #fff;
 }
@@ -1647,4 +1647,99 @@ html, body, .pun {
 
 .pun .inew .icon {
 	border-color: #f0c199 #ecb280 #d98a3f #e6a05c;
+}
+
+/*****************************************************************
+NODE49 CARD LAYOUT (Carbon)
+Overrides the base layout to sit white, rounded cards on the grey
+page, with floating category titles and roomy rows/separators.
+*****************************************************************/
+
+/* Page + outer wrap: let the grey page show between cards */
+html, body, .pun {
+	background: #e9ebef;
+}
+.pun .punwrap {
+	background: transparent;
+	border: none;
+}
+.pun {
+	padding: 24px 28px;
+}
+
+/* Board title + description sit on the page (no card) */
+#brdtitle {
+	padding-bottom: 4px;
+}
+
+/* Primary menu: charcoal bar, gently rounded */
+#brdmenu {
+	border-radius: 6px;
+	overflow: hidden;
+}
+
+/* Each category becomes a white rounded card with a soft shadow */
+.pun .blocktable .box,
+.pun .blockpost,
+.pun .blockform .box,
+.pun #viewprofile .box,
+#punmisc #rules .box, #punhelp .box,
+#adintro, #adstats {
+	background: #ffffff;
+	border: 1px solid #e2e5ea;
+	border-radius: 8px;
+	box-shadow: 0 6px 7px -3px rgba(15, 18, 25, 0.05);
+	overflow: hidden;
+}
+
+/* Space between category cards */
+.pun #brdmain .blocktable {
+	margin-bottom: 22px;
+}
+
+/* Floating category title above its card (node49 style) */
+#punindex #brdmain .blocktable h2, #punsearch #vf h2 {
+	position: static;
+	background: transparent;
+	color: #1c1f24;
+	font: 700 1.35em/1.3 Arial, Helvetica, sans-serif;
+	margin: 0 2px 9px 2px;
+	padding: 2px 0;
+	white-space: normal;
+}
+#punindex #brdmain .blocktable h2 span, #punsearch #vf h2 span {
+	background: transparent;
+}
+
+/* Column header row: quiet, uppercase-ish small labels */
+.pun .blocktable th {
+	background: #f4f5f7;
+	color: #7a828d;
+	font-size: 0.85em;
+	font-weight: 600;
+	padding: 9px 14px;
+	border-bottom: 1px solid #e6e8ec;
+}
+
+/* Roomier rows with light separators + hover */
+.pun .blocktable td {
+	padding: 14px;
+	border-bottom: 1px solid #eceef1;
+}
+.pun .blocktable tbody tr:last-child td,
+.pun .blocktable tr:last-child td {
+	border-bottom: none;
+}
+.pun .blocktable tr:hover td {
+	background: #faf7f2;
+}
+
+/* Forum name a touch larger/bolder like node49 */
+.pun .blocktable .tclcon h3 {
+	font-size: 1.12em;
+}
+
+/* Posts: rounded header + clean body */
+.pun .blockpost h2 {
+	border-radius: 0;
 }
