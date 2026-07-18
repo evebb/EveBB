@@ -144,6 +144,7 @@ save_options() {
 curl -s "$BASE/index.php" -o "$WORK/idx0.html"
 assert_contains "$WORK/idx0.html" 'id="brdlogo"' "eveBB logo shown by default on a fresh install"
 assert_contains "$WORK/idx0.html" 'img/evebb-logo.png' "default logo is the shipped eveBB logo"
+assert_contains "$WORK/idx0.html" 'width: 300px' "default logo is 300px wide"
 
 # remove it to establish the text-title baseline for the rest of the test
 save_options -F "form[logo_width]=" -F "form[logo_height]=" -F "remove_logo=1"
