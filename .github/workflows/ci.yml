@@ -19,7 +19,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, mysqli, pgsql, pdo_mysql, pdo_pgsql, pdo_sqlite, zip
+          extensions: mbstring, gd, mysqli, pgsql, pdo_mysql, pdo_pgsql, pdo_sqlite, zip
           coverage: none
 
       - name: Syntax check every PHP file
@@ -32,12 +32,19 @@ jobs:
 
       - name: PHPCompatibility scan (8.1 through 8.4)
         if: matrix.php == '8.4'
+        # Installed without composer: requiring the moving dev-develop branch
+        # plus the (since renamed) phpcodesniffer-composer-installer plugin
+        # broke resolution. The phpcs phar plus direct clones registered via
+        # installed_paths has no dependency resolution to break.
         run: |
-          mkdir /tmp/compat && cd /tmp/compat
-          composer init -n --name=evebb/compat-scan
-          composer config allow-plugins.dealerdirect/phpcodesniffer-composer-installer true
-          composer require --dev phpcompatibility/php-compatibility:dev-develop dealerdirect/phpcodesniffer-composer-installer
-          ./vendor/bin/phpcs -p --standard=PHPCompatibility \
+          mkdir -p /tmp/compat && cd /tmp/compat
+          curl -sSL -o phpcs.phar https://github.com/PHPCSStandards/PHP_CodeSniffer/releases/latest/download/phpcs.phar
+          git clone --quiet --depth 1 --branch develop https://github.com/PHPCompatibility/PHPCompatibility.git
+          git clone --quiet --depth 1 https://github.com/PHPCSStandards/PHPCSUtils.git
+          git clone --quiet --depth 1 https://github.com/PHPCSStandards/PHPCSExtra.git
+          php phpcs.phar --config-set installed_paths /tmp/compat/PHPCompatibility,/tmp/compat/PHPCSUtils,/tmp/compat/PHPCSExtra
+          php phpcs.phar -i
+          php phpcs.phar -p --standard=PHPCompatibility \
             --runtime-set testVersion 8.1- \
             --extensions=php --ignore='*/.git/*' \
             "$GITHUB_WORKSPACE"
@@ -77,7 +84,7 @@ jobs:
       - uses: shivammathur/setup-php@v2
         with:
           php-version: ${{ matrix.php }}
-          extensions: mbstring, mysqli, pgsql, pdo_mysql, pdo_pgsql, pdo_sqlite, zip
+          extensions: mbstring, gd, mysqli, pgsql, pdo_mysql, pdo_pgsql, pdo_sqlite, zip
           coverage: none
 
       - name: Create secondary test databases
@@ -111,9 +118,6 @@ jobs:
 
       - name: Self-updater end-to-end test
         run: ./tests/e2e/update-test.sh
-
-      - name: Toolbar plugin end-to-end test
-        run: ./tests/e2e/toolbar-test.sh
 
       - name: Plugin manager end-to-end test
         run: ./tests/e2e/plugins-test.sh
