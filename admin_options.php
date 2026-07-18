@@ -263,7 +263,7 @@ if (isset($_POST['form_sent']))
 	// Horizontal placement (a CSS hook on #brdlogo); "full" is a banner
 	// that spans the whole content width and ignores the manual size
 	$logo_align = isset($_POST['form']['logo_align']) ? pun_trim($_POST['form']['logo_align']) : 'left';
-	if (!in_array($logo_align, array('left', 'center', 'right', 'full'), true))
+	if (!in_array($logo_align, array('left', 'center', 'right', 'full', 'cover'), true))
 		$logo_align = 'left';
 
 	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align) as $conf_name => $conf_value)
@@ -347,6 +347,7 @@ generate_admin_menu('options');
 											<option value="center"<?php if ($pun_logo_align == 'center') echo ' selected="selected"' ?>><?php echo $lang_admin_options['Board logo align center'] ?></option>
 											<option value="right"<?php if ($pun_logo_align == 'right') echo ' selected="selected"' ?>><?php echo $lang_admin_options['Board logo align right'] ?></option>
 											<option value="full"<?php if ($pun_logo_align == 'full') echo ' selected="selected"' ?>><?php echo $lang_admin_options['Board logo align full'] ?></option>
+											<option value="cover"<?php if ($pun_logo_align == 'cover') echo ' selected="selected"' ?>><?php echo $lang_admin_options['Board logo align cover'] ?></option>
 										</select>
 										<span><?php echo $lang_admin_options['Board logo align help'] ?></span>
 									</td>

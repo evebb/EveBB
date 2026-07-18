@@ -180,9 +180,23 @@ assert_contains "$WORK/idxf.html" 'width: 100%' "full-width banner filled inline
 assert_contains "$WORK/idxf.html" 'height: auto' "full-width banner keeps aspect ratio (no distortion)"
 assert_not_contains "$WORK/idxf.html" 'width: 250px' "manual size ignored for full-width banner"
 
+# --- full-width fixed-height band crops to fill (object-fit: cover) ---------
+LOGO_ALIGN=cover save_options -F "form[logo_width]=250" -F "form[logo_height]=180"
+curl -s "$BASE/index.php" -o "$WORK/idxcov.html"
+assert_contains "$WORK/idxcov.html" 'class="brdlogo-cover"' "cover position class emitted"
+assert_contains "$WORK/idxcov.html" 'object-fit: cover' "cover fills the band without distortion"
+assert_contains "$WORK/idxcov.html" 'height: 180px' "height box sets the band height"
+assert_contains "$WORK/idxcov.html" 'width: 100%' "cover band fills full width"
+
+# cover with no height falls back to the default band height
+LOGO_ALIGN=cover save_options -F "form[logo_width]=" -F "form[logo_height]="
+curl -s "$BASE/index.php" -o "$WORK/idxcov2.html"
+assert_contains "$WORK/idxcov2.html" 'height: 200px' "cover uses default band height when blank"
+
 # the bundled default style ships the positioning hooks
 curl -s "$BASE/style/Air.css" -o "$WORK/air.css"
 assert_contains "$WORK/air.css" "#brdlogo.brdlogo-full" "stylesheet carries full-width banner rule"
+assert_contains "$WORK/air.css" "#brdlogo.brdlogo-cover" "stylesheet carries fixed-height cover rule"
 assert_contains "$WORK/air.css" "#brdlogo.brdlogo-center" "stylesheet carries centre rule"
 
 # --- back to left so the removal test below reads cleanly ------------------

@@ -193,22 +193,37 @@ if ($pun_logo_url != '')
 	// behaviour is also emitted inline so it works on ANY active style,
 	// not only the bundled ones.
 	$logo_align = isset($pun_config['o_logo_align']) ? $pun_config['o_logo_align'] : 'left';
-	if (!in_array($logo_align, array('left', 'center', 'right', 'full'), true))
+	if (!in_array($logo_align, array('left', 'center', 'right', 'full', 'cover'), true))
 		$logo_align = 'left';
 
 	$logo_style = '';		// inline style on the <img>
 	$wrap_style = '';		// inline style on the <h1> wrapper
 	$link_style = '';		// inline style on the <a>
 
-	if ($logo_align == 'full')
+	if ($logo_align == 'full' || $logo_align == 'cover')
 	{
-		// A full-width banner fills the header from edge to edge. width:100%
-		// with height:auto scales it to the content width while keeping its
-		// aspect ratio — it fills, it does not stretch/distort. The manual
-		// size is intentionally ignored here.
-		$logo_style = 'display: block; width: 100%; height: auto;';
+		// Both span the full header width, edge to edge. Emitted inline so
+		// they work on ANY active style, not only the bundled ones.
 		$wrap_style = 'margin: 0; padding: 0 0 10px 0; width: 100%;';
 		$link_style = 'display: block; width: 100%;';
+
+		if ($logo_align == 'cover')
+		{
+			// A fixed-height band: the image is cropped to fill the band
+			// (object-fit: cover) so the header height stays constant
+			// whatever the image's proportions. It fills without distorting.
+			// The Height box sets the band height (default 200px); Width is
+			// ignored.
+			$band_height = (isset($pun_config['o_logo_height']) && $pun_config['o_logo_height'] != '') ? $pun_config['o_logo_height'] : '200px';
+			$logo_style = 'display: block; width: 100%; height: '.$band_height.'; object-fit: cover; object-position: center;';
+		}
+		else
+		{
+			// Whole image, scaled to the content width with its aspect ratio
+			// preserved — it fills, it does not stretch/distort. Manual size
+			// is intentionally ignored.
+			$logo_style = 'display: block; width: 100%; height: auto;';
+		}
 	}
 	else
 	{
