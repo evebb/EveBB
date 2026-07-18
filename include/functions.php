@@ -581,6 +581,76 @@ function generate_avatar_display($user_id)
 
 
 //
+// Resize an image down so it fits within $max_w x $max_h, preserving aspect
+// ratio (never upscaling). Reads $src_path (a $type from getimagesize) and
+// writes the result to $dest_path in the same format. Transparency is
+// preserved for GIF and PNG. Returns true on success, false on failure (so
+// the caller can fall back to rejecting the upload). Animated GIFs are
+// flattened to their first frame.
+//
+function resize_avatar($src_path, $dest_path, $type, $max_w, $max_h)
+{
+	if (!function_exists('imagecreatetruecolor') || !function_exists('imagecopyresampled'))
+		return false;
+
+	$info = @getimagesize($src_path);
+	if (empty($info) || empty($info[0]) || empty($info[1]))
+		return false;
+
+	$width  = $info[0];
+	$height = $info[1];
+
+	// Scale to fit inside the box, preserving aspect ratio. Never upscale.
+	$ratio = min($max_w / $width, $max_h / $height);
+	if ($ratio > 1)
+		$ratio = 1;
+	$new_w = max(1, (int) round($width * $ratio));
+	$new_h = max(1, (int) round($height * $ratio));
+
+	switch ($type)
+	{
+		case IMAGETYPE_GIF:  $src = @imagecreatefromgif($src_path); break;
+		case IMAGETYPE_JPEG: $src = @imagecreatefromjpeg($src_path); break;
+		case IMAGETYPE_PNG:  $src = @imagecreatefrompng($src_path); break;
+		default: return false;
+	}
+	if (!$src)
+		return false;
+
+	$dst = imagecreatetruecolor($new_w, $new_h);
+	if (!$dst)
+	{
+		imagedestroy($src);
+		return false;
+	}
+
+	// Preserve transparency for GIF and PNG.
+	if ($type == IMAGETYPE_GIF || $type == IMAGETYPE_PNG)
+	{
+		imagealphablending($dst, false);
+		imagesavealpha($dst, true);
+		$transparent = imagecolorallocatealpha($dst, 0, 0, 0, 127);
+		imagefilledrectangle($dst, 0, 0, $new_w, $new_h, $transparent);
+	}
+
+	imagecopyresampled($dst, $src, 0, 0, 0, 0, $new_w, $new_h, $width, $height);
+
+	switch ($type)
+	{
+		case IMAGETYPE_GIF:  $ok = @imagegif($dst, $dest_path); break;
+		case IMAGETYPE_JPEG: $ok = @imagejpeg($dst, $dest_path, 90); break;
+		case IMAGETYPE_PNG:  $ok = @imagepng($dst, $dest_path); break;
+		default: $ok = false;
+	}
+
+	imagedestroy($src);
+	imagedestroy($dst);
+
+	return (bool) $ok;
+}
+
+
+//
 // Generate browser's title
 //
 function generate_page_title($page_title, $p = null)

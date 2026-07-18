@@ -188,6 +188,37 @@ curl -s -b "$JAR" "$BASE/index.php" -o "$TMP/idxav.html"
 assert_contains "$TMP/idxav.html" 'lastpostavatar' "last-poster avatar shown on the index"
 rm -f "$ROOT/img/avatars/2.png"
 
+# oversized uploads are resized to fit rather than rejected (admin is id 2)
+rm -f "$ROOT"/img/avatars/2.*
+php -r '$im=imagecreatetruecolor(460,460);imagefill($im,0,0,imagecolorallocate($im,120,90,60));imagepng($im,$argv[1]);' "$TMP/big_avatar.png"
+curl -s -b "$JAR" -e "$BASE/profile.php?action=upload_avatar&id=2" \
+  -F "form_sent=1" -F "req_file=@$TMP/big_avatar.png;type=image/png" \
+  "$BASE/profile.php?action=upload_avatar2&id=2" -o "$TMP/upl.html"
+STORED=$(ls "$ROOT"/img/avatars/2.* 2>/dev/null | head -1)
+if [ -n "$STORED" ]; then
+  set -- $(php -r 'list($w,$h)=getimagesize($argv[1]);echo "$w $h";' "$STORED")
+  if [ "${1:-0}" -gt 0 ] && [ "${1:-0}" -le 90 ] && [ "${2:-0}" -le 90 ]; then
+    ok "oversized avatar resized to fit 90x90 (got ${1}x${2})"
+  else
+    fail "oversized avatar resized to fit 90x90 (got ${1:-?}x${2:-?})"
+  fi
+else
+  fail "oversized avatar resized to fit 90x90 (nothing stored)"
+fi
+
+# an image beyond the 1024x1024 cap is rejected and nothing is stored
+rm -f "$ROOT"/img/avatars/2.*
+php -r '$im=imagecreatetruecolor(1200,1200);imagefill($im,0,0,imagecolorallocate($im,10,20,30));imagepng($im,$argv[1]);' "$TMP/huge_avatar.png"
+curl -s -b "$JAR" -e "$BASE/profile.php?action=upload_avatar&id=2" \
+  -F "form_sent=1" -F "req_file=@$TMP/huge_avatar.png;type=image/png" \
+  "$BASE/profile.php?action=upload_avatar2&id=2" -o "$TMP/upl2.html"
+if [ -z "$(ls "$ROOT"/img/avatars/2.* 2>/dev/null)" ]; then
+  ok "avatar beyond the 1024px cap is rejected"
+else
+  fail "avatar beyond the 1024px cap is rejected (a file was stored)"
+fi
+rm -f "$ROOT"/img/avatars/2.*
+
 # --- admin + misc pages ----------------------------------------------------
 for p in userlist.php help.php "extern.php?action=feed&type=atom" admin_index.php admin_options.php admin_users.php admin_maintenance.php; do
   code=$(curl -s -b "$JAR" -e "$BASE/index.php" -o "$TMP/page.html" -w "%{http_code}" "$BASE/$p")

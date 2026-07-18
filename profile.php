@@ -392,17 +392,46 @@ else if ($action == 'upload_avatar' || $action == 'upload_avatar2')
 				message($lang_profile['Bad type']);
 			}
 
-			// Now check the width/height
-			if (empty($width) || empty($height) || $width > $pun_config['o_avatars_width'] || $height > $pun_config['o_avatars_height'])
+			$tmp_path   = PUN_ROOT.$pun_config['o_avatars_dir'].'/'.$id.'.tmp';
+			$final_path = PUN_ROOT.$pun_config['o_avatars_dir'].'/'.$id.$extension;
+
+			// Sanity cap on source dimensions: images larger than this are
+			// rejected rather than resized (guards against decompression bombs).
+			$max_upload_dimension = 1024;
+
+			// Must be a readable image
+			if (empty($width) || empty($height))
 			{
-				@unlink(PUN_ROOT.$pun_config['o_avatars_dir'].'/'.$id.'.tmp');
-				message(sprintf($lang_profile['Too wide or high'], $pun_config['o_avatars_width'], $pun_config['o_avatars_height']));
+				@unlink($tmp_path);
+				message($lang_profile['Bad type']);
+			}
+
+			// Too large even to resize
+			if ($width > $max_upload_dimension || $height > $max_upload_dimension)
+			{
+				@unlink($tmp_path);
+				message(sprintf($lang_profile['Too large dimensions'], $max_upload_dimension, $max_upload_dimension));
 			}
 
 			// Delete any old avatars and put the new one in place
 			delete_avatar($id);
-			@rename(PUN_ROOT.$pun_config['o_avatars_dir'].'/'.$id.'.tmp', PUN_ROOT.$pun_config['o_avatars_dir'].'/'.$id.$extension);
-			@chmod(PUN_ROOT.$pun_config['o_avatars_dir'].'/'.$id.$extension, 0644);
+
+			if ($width > $pun_config['o_avatars_width'] || $height > $pun_config['o_avatars_height'])
+			{
+				// Larger than the display size: resize down to fit, preserving aspect ratio
+				if (!resize_avatar($tmp_path, $final_path, $type, $pun_config['o_avatars_width'], $pun_config['o_avatars_height']))
+				{
+					@unlink($tmp_path);
+					message($lang_profile['Resize failed']);
+				}
+				@unlink($tmp_path);
+			}
+			else
+			{
+				// Already within the display size: store as-is
+				@rename($tmp_path, $final_path);
+			}
+			@chmod($final_path, 0644);
 		}
 		else
 			message($lang_profile['Unknown failure']);
