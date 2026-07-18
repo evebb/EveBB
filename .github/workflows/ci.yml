@@ -117,3 +117,6 @@ jobs:
 
       - name: Plugin manager end-to-end test
         run: ./tests/e2e/plugins-test.sh
+
+      - name: Style manager end-to-end test
+        run: ./tests/e2e/styles-test.sh

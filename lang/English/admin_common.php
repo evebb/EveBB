@@ -18,6 +18,7 @@ $lang_admin_common = array(
 'Bans'					=>	'Bans',
 'Prune'					=>	'Prune',
 'Maintenance'			=>	'Maintenance',
+'Styles'				=>	'Styles',
 'Plugins'				=>	'Plugins',
 'Plugin settings link'	=>	'%s Settings',
 'Reports'				=>	'Reports',
