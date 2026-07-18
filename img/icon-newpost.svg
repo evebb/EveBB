@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 50 60">
+  <!-- Single-colour silhouette of the eveBB chat-bubble mark, used as a CSS
+       mask so the indicator colour is set in the stylesheet (orange = unread,
+       grey = read). The three dots are transparent holes. -->
+  <defs>
+    <mask id="evebb-newpost-holes" maskUnits="userSpaceOnUse" x="0" y="0" width="50" height="60">
+      <rect x="2" y="8" width="46" height="38" rx="10" fill="#fff"/>
+      <path d="M14 43 L14 57 L29 44 Z" fill="#fff"/>
+      <circle cx="16" cy="27" r="4.2" fill="#000"/>
+      <circle cx="25" cy="27" r="4.2" fill="#000"/>
+      <circle cx="34" cy="27" r="4.2" fill="#000"/>
+    </mask>
+  </defs>
+  <rect width="50" height="60" fill="#000" mask="url(#evebb-newpost-holes)"/>
+</svg>

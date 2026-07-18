@@ -188,6 +188,16 @@ curl -s -b "$JAR" "$BASE/index.php" -o "$TMP/idxav.html"
 assert_contains "$TMP/idxav.html" 'lastpostavatar' "last-poster avatar shown on the index"
 rm -f "$ROOT/img/avatars/2.png"
 
+# --- forum-index new-post indicator (themeable chat-bubble mask) -----------
+[ -f "$ROOT/img/icon-newpost.svg" ] && ok "new-post indicator SVG shipped" || fail "new-post indicator SVG shipped"
+php -r 'exit(@(new DOMDocument())->load($argv[1])?0:1);' "$ROOT/img/icon-newpost.svg" && ok "new-post indicator SVG is well-formed" || fail "new-post indicator SVG is well-formed"
+assert_contains "$ROOT/style/Carbon.css" '--newpost-color-new' "new-post indicator colour is themeable"
+assert_contains "$ROOT/style/Carbon.css" '--newpost-color-read' "read-state indicator colour is themeable"
+assert_contains "$ROOT/style/Carbon.css" 'mask: var(--newpost-icon' "new-post indicator is drawn with a CSS mask"
+# the forum row still carries the status classes the CSS targets
+curl -s -b "$JAR" "$BASE/index.php" -o "$TMP/idxicon.html"
+assert_contains "$TMP/idxicon.html" 'class="icon' "forum index emits the status-icon element"
+
 # oversized uploads are resized to fit rather than rejected (admin is id 2)
 rm -f "$ROOT"/img/avatars/2.*
 php -r '$im=imagecreatetruecolor(460,460);imagefill($im,0,0,imagecolorallocate($im,120,90,60));imagepng($im,$argv[1]);' "$TMP/big_avatar.png"

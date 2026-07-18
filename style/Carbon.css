@@ -1673,6 +1673,54 @@ html, body, .pun {
 }
 
 /*****************************************************************
+eveBB forum-index new-post indicator
+*****************************************************************
+
+The little square beside each forum on the index is replaced by the eveBB
+chat-bubble mark: orange when the forum has unread posts, light grey when
+there is nothing new. The shape is a CSS mask, so the colour lives in the
+stylesheet, not in the image.
+
+Theming a new style: override any of these four custom properties (or the
+rules below) in your own stylesheet - no new image is required unless you
+want a different silhouette.
+
+	--newpost-icon         mask image (a single-colour silhouette / SVG)
+	--newpost-color-new    colour when the forum has unread posts
+	--newpost-color-read   colour when there is nothing new
+	--newpost-icon-size    width & height of the indicator
+
+Only the forum index (#punindex) uses the bubble; topic and search lists keep
+the compact classic indicator. */
+
+#punindex.pun {
+	--newpost-icon: url(../img/icon-newpost.svg);
+	--newpost-color-new: #e8720c;
+	--newpost-color-read: #ccd1d9;
+	--newpost-icon-size: 44px;
+}
+
+#punindex .icon {
+	border: 0;
+	padding: 0;
+	float: left;
+	width: var(--newpost-icon-size, 44px);
+	height: var(--newpost-icon-size, 44px);
+	margin: 1px 8px 0 0;
+	background-color: var(--newpost-color-read, #ccd1d9);
+	-webkit-mask: var(--newpost-icon, url(../img/icon-newpost.svg)) no-repeat center / contain;
+	        mask: var(--newpost-icon, url(../img/icon-newpost.svg)) no-repeat center / contain;
+}
+
+#punindex .inew .icon {
+	background-color: var(--newpost-color-new, #e8720c);
+}
+
+#punindex .iredirect .icon {
+	background-color: var(--newpost-color-read, #ccd1d9);
+}
+
+/*****************************************************************
 eveBB Carbon tweaks: rounded menu/boxes + lighter inner panels
 *****************************************************************/
 
