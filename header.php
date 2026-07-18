@@ -188,15 +188,29 @@ $tpl_main = str_replace('<pun_page>', htmlspecialchars(basename($_SERVER['SCRIPT
 $pun_logo_url = isset($pun_config['o_logo_url']) ? $pun_config['o_logo_url'] : '';
 if ($pun_logo_url != '')
 {
-	// Horizontal placement: emit a class the stylesheet positions
-	// (#brdlogo.brdlogo-left / -center / -right / -full). "full" is a
-	// banner that spans the content width, so it ignores the manual size.
+	// Horizontal placement. A CSS hook (#brdlogo.brdlogo-left / -center /
+	// -right / -full) lets a style refine placement, but the essential
+	// behaviour is also emitted inline so it works on ANY active style,
+	// not only the bundled ones.
 	$logo_align = isset($pun_config['o_logo_align']) ? $pun_config['o_logo_align'] : 'left';
 	if (!in_array($logo_align, array('left', 'center', 'right', 'full'), true))
 		$logo_align = 'left';
 
-	$logo_style = '';
-	if ($logo_align != 'full')
+	$logo_style = '';		// inline style on the <img>
+	$wrap_style = '';		// inline style on the <h1> wrapper
+	$link_style = '';		// inline style on the <a>
+
+	if ($logo_align == 'full')
+	{
+		// A full-width banner fills the header from edge to edge. width:100%
+		// with height:auto scales it to the content width while keeping its
+		// aspect ratio — it fills, it does not stretch/distort. The manual
+		// size is intentionally ignored here.
+		$logo_style = 'display: block; width: 100%; height: auto;';
+		$wrap_style = 'margin: 0; padding: 0 0 10px 0; width: 100%;';
+		$link_style = 'display: block; width: 100%;';
+	}
+	else
 	{
 		$logo_width = isset($pun_config['o_logo_width']) ? $pun_config['o_logo_width'] : '';
 		$logo_height = isset($pun_config['o_logo_height']) ? $pun_config['o_logo_height'] : '';
@@ -205,10 +219,11 @@ if ($pun_logo_url != '')
 			$logo_style .= 'width: '.$logo_width.'; ';
 		if ($logo_height != '')
 			$logo_style .= 'height: '.$logo_height.'; ';
+		$logo_style = trim($logo_style);
 	}
 
-	$logo_html = '<img src="'.pun_htmlspecialchars($pun_logo_url).'" alt="'.pun_htmlspecialchars($pun_config['o_board_title']).'"'.($logo_style != '' ? ' style="'.pun_htmlspecialchars(trim($logo_style)).'"' : '').' />';
-	$tpl_main = str_replace('<pun_title>', '<h1 id="brdlogo" class="brdlogo-'.$logo_align.'"><a href="index.php">'.$logo_html.'</a></h1>', $tpl_main);
+	$logo_html = '<img src="'.pun_htmlspecialchars($pun_logo_url).'" alt="'.pun_htmlspecialchars($pun_config['o_board_title']).'"'.($logo_style != '' ? ' style="'.pun_htmlspecialchars($logo_style).'"' : '').' />';
+	$tpl_main = str_replace('<pun_title>', '<h1 id="brdlogo" class="brdlogo-'.$logo_align.'"'.($wrap_style != '' ? ' style="'.pun_htmlspecialchars($wrap_style).'"' : '').'><a href="index.php"'.($link_style != '' ? ' style="'.pun_htmlspecialchars($link_style).'"' : '').'>'.$logo_html.'</a></h1>', $tpl_main);
 }
 else
 	$tpl_main = str_replace('<pun_title>', '<h1><a href="index.php">'.pun_htmlspecialchars($pun_config['o_board_title']).'</a></h1>', $tpl_main);

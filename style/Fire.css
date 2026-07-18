@@ -265,6 +265,7 @@ html, body, .pun table, .pun div, .pun form, .pun p, .pun h1, .pun h2, .pun h3, 
 #brdlogo.brdlogo-full img {
 	display: block;
 	width: 100%;
+	height: auto;
 }
 
 #brddesc {

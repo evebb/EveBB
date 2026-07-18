@@ -172,10 +172,12 @@ curl -s "$BASE/index.php" -o "$WORK/idxc.html"
 assert_contains "$WORK/idxc.html" 'class="brdlogo-center"' "centre position class emitted"
 assert_contains "$WORK/idxc.html" 'img/board_logo.png' "logo preserved when only position changes"
 
-# --- full-width banner ignores the manual size -----------------------------
+# --- full-width banner fills the width (inline), ignores the manual size ----
 LOGO_ALIGN=full save_options -F "form[logo_width]=250" -F "form[logo_height]=80"
 curl -s "$BASE/index.php" -o "$WORK/idxf.html"
 assert_contains "$WORK/idxf.html" 'class="brdlogo-full"' "full-width position class emitted"
+assert_contains "$WORK/idxf.html" 'width: 100%' "full-width banner filled inline (works on any style)"
+assert_contains "$WORK/idxf.html" 'height: auto' "full-width banner keeps aspect ratio (no distortion)"
 assert_not_contains "$WORK/idxf.html" 'width: 250px' "manual size ignored for full-width banner"
 
 # the bundled default style ships the positioning hooks
