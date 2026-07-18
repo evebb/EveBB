@@ -147,7 +147,28 @@ generate_admin_menu('plugins');
 #pluginmanage table.pluginlist td.tcr, #pluginmanage table.pluginlist th.tcr { width: 22%; white-space: nowrap; }
 #pluginmanage table.pluginlist .plugindesc { display: block; margin-top: 0.3em; font-size: 0.9em; }
 	</style>
-	<div id="pluginmanage" class="blockform">
+	<div id="pluginmanage">
+	<div class="blockform">
+		<h2><span><?php echo $lang_admin_plugins['Upload head'] ?></span></h2>
+		<div class="box">
+			<form method="post" enctype="multipart/form-data" action="admin_plugins.php?action=upload">
+				<div class="inform">
+					<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
+					<fieldset>
+						<legend><?php echo $lang_admin_plugins['Upload legend'] ?></legend>
+						<div class="infldset">
+							<p><?php echo $lang_admin_plugins['Upload info'] ?></p>
+							<p><strong><?php echo $lang_admin_plugins['Upload warning'] ?></strong></p>
+							<p><input type="file" name="plugin_file" accept=".zip" /></p>
+							<p class="topspace"><input type="submit" name="upload_plugin" value="<?php echo $lang_admin_plugins['Upload button'] ?>" /></p>
+						</div>
+					</fieldset>
+				</div>
+			</form>
+		</div>
+	</div>
+
+	<div class="blockform">
 		<h2><span><?php echo $lang_admin_plugins['Installed plugins head'] ?></span></h2>
 		<div class="box">
 			<div class="inform">
@@ -220,25 +241,6 @@ else
 			</div>
 		</div>
 	</div>
-
-	<div class="blockform">
-		<h2><span><?php echo $lang_admin_plugins['Upload head'] ?></span></h2>
-		<div class="box">
-			<form method="post" enctype="multipart/form-data" action="admin_plugins.php?action=upload">
-				<div class="inform">
-					<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
-					<fieldset>
-						<legend><?php echo $lang_admin_plugins['Upload legend'] ?></legend>
-						<div class="infldset">
-							<p><?php echo $lang_admin_plugins['Upload info'] ?></p>
-							<p><strong><?php echo $lang_admin_plugins['Upload warning'] ?></strong></p>
-							<p><input type="file" name="plugin_file" accept=".zip" /></p>
-							<p class="topspace"><input type="submit" name="upload_plugin" value="<?php echo $lang_admin_plugins['Upload button'] ?>" /></p>
-						</div>
-					</fieldset>
-				</div>
-			</form>
-		</div>
 	</div>
 	<div class="clearer"></div>
 </div>
