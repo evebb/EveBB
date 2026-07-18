@@ -148,6 +148,43 @@ if (isset($_POST['form_sent']))
 	if ($email_setting < 0 || $email_setting > 2)
 		$email_setting = $pun_config['o_default_email_setting'];
 
+	// eveBB: mandatory profile fields (real name, date of birth, country)
+	$realname = '';
+	$country = '';
+	$birthday = null;
+	if ($pun_config['o_regs_require_profile'] == '1')
+	{
+		require_once PUN_ROOT.'include/countries.php';
+		$country_list = evebb_country_list();
+
+		$realname = isset($_POST['req_realname']) ? pun_trim($_POST['req_realname']) : '';
+		if ($realname == '')
+			$errors[] = $lang_prof_reg['Realname required'];
+		else if (pun_strlen($realname) > 40)
+			$errors[] = $lang_prof_reg['Realname too long'];
+
+		$country = isset($_POST['req_country']) ? pun_trim($_POST['req_country']) : '';
+		if ($country == '' || !in_array($country, $country_list, true))
+			$errors[] = $lang_prof_reg['Country required'];
+
+		$birthday_in = isset($_POST['req_birthday']) ? pun_trim($_POST['req_birthday']) : '';
+		if ($birthday_in === '' || !preg_match('/^(\d{4})-(\d{2})-(\d{2})$/', $birthday_in, $bd_m))
+			$errors[] = $lang_prof_reg['Birthday required'];
+		else if (!checkdate((int) $bd_m[2], (int) $bd_m[3], (int) $bd_m[1]) || (int) $bd_m[1] < 1900)
+			$errors[] = $lang_prof_reg['Birthday invalid'];
+		else
+		{
+			$bd_now = getdate();
+			$age = $bd_now['year'] - (int) $bd_m[1] - (($bd_now['mon'] < (int) $bd_m[2] || ($bd_now['mon'] == (int) $bd_m[2] && $bd_now['mday'] < (int) $bd_m[3])) ? 1 : 0);
+			if ($age < 0 || $age > 120)
+				$errors[] = $lang_prof_reg['Birthday invalid'];
+			else if ($age < 13)
+				$errors[] = $lang_prof_reg['Birthday too young'];
+			else
+				$birthday = sprintf('%04d-%02d-%02d', (int) $bd_m[1], (int) $bd_m[2], (int) $bd_m[3]);
+		}
+	}
+
 	flux_hook('register_after_validation');
 
 	// Did everything go according to plan?
@@ -160,7 +197,12 @@ if (isset($_POST['form_sent']))
 		$password_hash = flux_password_hash($password1);
 
 		// Add the user
-		$db->query('INSERT INTO '.$db->prefix.'users (username, group_id, password, email, email_setting, timezone, dst, language, style, registered, registration_ip, last_visit) VALUES(\''.$db->escape($username).'\', '.$intial_group_id.', \''.$db->escape($password_hash).'\', \''.$db->escape($email1).'\', '.$email_setting.', '.$timezone.' , '.$dst.', \''.$db->escape($language).'\', \''.$pun_config['o_default_style'].'\', '.$now.', \''.$db->escape(get_remote_address()).'\', '.$now.')') or error('Unable to create user', __FILE__, __LINE__, $db->error());
+		// eveBB profile fields (empty/NULL unless o_regs_require_profile is on)
+		$realname_sql = ($realname != '') ? '\''.$db->escape($realname).'\'' : 'NULL';
+		$country_sql = ($country != '') ? '\''.$db->escape($country).'\'' : 'NULL';
+		$birthday_sql = ($birthday !== null) ? '\''.$db->escape($birthday).'\'' : 'NULL';
+
+		$db->query('INSERT INTO '.$db->prefix.'users (username, group_id, password, email, email_setting, timezone, dst, language, style, realname, country, birthday, registered, registration_ip, last_visit) VALUES(\''.$db->escape($username).'\', '.$intial_group_id.', \''.$db->escape($password_hash).'\', \''.$db->escape($email1).'\', '.$email_setting.', '.$timezone.' , '.$dst.', \''.$db->escape($language).'\', \''.$pun_config['o_default_style'].'\', '.$realname_sql.', '.$country_sql.', '.$birthday_sql.', '.$now.', \''.$db->escape(get_remote_address()).'\', '.$now.')') or error('Unable to create user', __FILE__, __LINE__, $db->error());
 		$new_uid = $db->insert_id();
 
 		if ($pun_config['o_regs_verify'] == '0')
@@ -266,6 +308,12 @@ if (isset($_POST['form_sent']))
 
 $page_title = array(pun_htmlspecialchars($pun_config['o_board_title']), $lang_register['Register']);
 $required_fields = array('req_user' => $lang_common['Username'], 'req_password1' => $lang_common['Password'], 'req_password2' => $lang_prof_reg['Confirm pass'], 'req_email1' => $lang_common['Email'], 'req_email2' => $lang_common['Email'].' 2');
+if ($pun_config['o_regs_require_profile'] == '1')
+{
+	$required_fields['req_realname'] = $lang_prof_reg['Realname'];
+	$required_fields['req_birthday'] = $lang_prof_reg['Birthday'];
+	$required_fields['req_country'] = $lang_prof_reg['Country'];
+}
 $focus_element = array('register', 'req_user');
 
 flux_hook('register_before_header');
@@ -342,7 +390,27 @@ if (!empty($errors))
 <?php endif; ?>					</div>
 				</fieldset>
 			</div>
-			<div class="inform">
+<?php if ($pun_config['o_regs_require_profile'] == '1'): require_once PUN_ROOT.'include/countries.php'; ?>			<div class="inform">
+				<fieldset>
+					<legend><?php echo $lang_prof_reg['Personal legend'] ?></legend>
+					<div class="infldset">
+						<p><?php echo $lang_prof_reg['Personal info'] ?></p>
+						<label class="required"><strong><?php echo $lang_prof_reg['Realname'] ?> <span><?php echo $lang_common['Required'] ?></span></strong><br /><input type="text" name="req_realname" value="<?php if (isset($_POST['req_realname'])) echo pun_htmlspecialchars($_POST['req_realname']); ?>" size="40" maxlength="40" /><br /></label>
+						<label class="required"><strong><?php echo $lang_prof_reg['Birthday'] ?> <span><?php echo $lang_common['Required'] ?></span></strong><br /><input type="date" name="req_birthday" value="<?php if (isset($_POST['req_birthday'])) echo pun_htmlspecialchars($_POST['req_birthday']); ?>" min="1900-01-01" /><br /><span><?php echo $lang_prof_reg['Birthday info'] ?></span></label>
+						<label class="required"><strong><?php echo $lang_prof_reg['Country'] ?> <span><?php echo $lang_common['Required'] ?></span></strong><br /><select name="req_country">
+							<option value=""><?php echo $lang_prof_reg['Country choose'] ?></option>
+<?php
+					foreach (evebb_country_list() as $cur_country)
+					{
+						$sel = (isset($_POST['req_country']) && $_POST['req_country'] === $cur_country) ? ' selected="selected"' : '';
+						echo "\t\t\t\t\t\t\t".'<option value="'.pun_htmlspecialchars($cur_country).'"'.$sel.'>'.pun_htmlspecialchars($cur_country).'</option>'."\n";
+					}
+?>
+						</select><br /></label>
+					</div>
+				</fieldset>
+			</div>
+<?php endif; ?>			<div class="inform">
 				<fieldset>
 					<legend><?php echo $lang_prof_reg['Localisation legend'] ?></legend>
 					<div class="infldset">

@@ -20,6 +20,21 @@ $lang_prof_reg = array(
 'Privacy options legend'	=>	'Set your privacy options',
 'Confirm pass'				=>	'Confirm password',
 
+// Mandatory profile fields at registration (eveBB)
+'Personal legend'			=>	'Personal details (required)',
+'Personal info'				=>	'These details are required to complete your registration.',
+'Realname'					=>	'Real name',
+'Birthday'					=>	'Date of birth',
+'Birthday info'				=>	'You must be at least 13 years old to register.',
+'Country'					=>	'Country',
+'Country choose'			=>	'- Select your country -',
+'Realname required'			=>	'You must enter your real name.',
+'Realname too long'			=>	'Real names must not be more than 40 characters long.',
+'Country required'			=>	'You must select your country from the list.',
+'Birthday required'			=>	'You must enter your date of birth.',
+'Birthday invalid'			=>	'Please enter a valid date of birth.',
+'Birthday too young'		=>	'You must be at least 13 years old to register.',
+
 'Username too short'		=>	'Usernames must be at least 2 characters long. Please choose another (longer) username.',
 'Username too long'			=>	'Usernames must not be more than 25 characters long. Please choose another (shorter) username.',
 'Username guest'			=>	'The username guest is reserved. Please choose another username.',

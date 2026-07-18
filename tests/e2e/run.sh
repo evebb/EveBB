@@ -137,7 +137,12 @@ $dsn = $type === "sqlite" ? "sqlite:$name" : ((strpos($type, "pgsql") === 0 ? "p
 $pdo = new PDO($dsn, $type === "sqlite" ? null : $user, $type === "sqlite" ? null : $pass);
 // Single-quoted literals: double quotes are identifiers in PostgreSQL
 $pdo->exec("UPDATE users SET registered = registered - 7200, registration_ip = ".$pdo->quote("10.9.9.9")." WHERE username = ".$pdo->quote("admin"));
+// This test exercises the basic register+auto-login path, so disable the
+// new defaults (email verification and required profile fields), which are
+// covered by register-test.sh
+$pdo->exec("UPDATE config SET conf_value = ".$pdo->quote("0")." WHERE conf_name IN (".$pdo->quote("o_regs_verify").", ".$pdo->quote("o_regs_require_profile").", ".$pdo->quote("o_rules").")");
 ' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" 2>/dev/null || true
+rm -f cache/cache_config.php
 TOKEN=$(curl -s -c "$TMP/reg.txt" "$BASE/register.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
 curl -s -b "$TMP/reg.txt" -c "$TMP/reg.txt" -e "$BASE/register.php" -o /dev/null -L "$BASE/register.php?action=register" \
   --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKEN" \

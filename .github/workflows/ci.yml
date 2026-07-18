@@ -123,3 +123,6 @@ jobs:
 
       - name: Board logo end-to-end test
         run: ./tests/e2e/logo-test.sh
+
+      - name: Registration end-to-end test
+        run: ./tests/e2e/register-test.sh

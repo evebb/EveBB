@@ -77,6 +77,7 @@ if (isset($_POST['form_sent']))
 		'regs_allow'			=> $_POST['form']['regs_allow'] != '1' ? '0' : '1',
 		'regs_verify'			=> $_POST['form']['regs_verify'] != '1' ? '0' : '1',
 		'regs_report'			=> $_POST['form']['regs_report'] != '1' ? '0' : '1',
+		'regs_require_profile'	=> $_POST['form']['regs_require_profile'] != '1' ? '0' : '1',
 		'rules'					=> $_POST['form']['rules'] != '1' ? '0' : '1',
 		'rules_message'			=> pun_trim($_POST['form']['rules_message']),
 		'default_email_setting'	=> intval($_POST['form']['default_email_setting']),
@@ -897,6 +898,14 @@ generate_admin_menu('options');
 										<label class="conl"><input type="radio" name="form[regs_report]" value="1"<?php if ($pun_config['o_regs_report'] == '1') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['Yes'] ?></strong></label>
 										<label class="conl"><input type="radio" name="form[regs_report]" value="0"<?php if ($pun_config['o_regs_report'] == '0') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['No'] ?></strong></label>
 										<span class="clearb"><?php echo $lang_admin_options['Report new help'] ?></span>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php echo $lang_admin_options['Require profile label'] ?></th>
+									<td>
+										<label class="conl"><input type="radio" name="form[regs_require_profile]" value="1"<?php if ($pun_config['o_regs_require_profile'] == '1') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['Yes'] ?></strong></label>
+										<label class="conl"><input type="radio" name="form[regs_require_profile]" value="0"<?php if ($pun_config['o_regs_require_profile'] == '0') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['No'] ?></strong></label>
+										<span class="clearb"><?php echo $lang_admin_options['Require profile help'] ?></span>
 									</td>
 								</tr>
 								<tr>

@@ -129,6 +129,7 @@ save_options() {
     -F "form[regs_allow]=1" \
     -F "form[regs_verify]=0" \
     -F "form[regs_report]=0" \
+    -F "form[regs_require_profile]=1" \
     -F "form[rules]=0" \
     -F "form[rules_message]=" \
     -F "form[default_email_setting]=1" \

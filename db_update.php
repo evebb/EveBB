@@ -7,9 +7,9 @@
  */
 
 // The eveBB version this script updates to
-define('UPDATE_TO', '1.6.2-alpha');
+define('UPDATE_TO', '1.7.0-alpha');
 
-define('UPDATE_TO_DB_REVISION', 24);
+define('UPDATE_TO_DB_REVISION', 25);
 define('UPDATE_TO_SI_REVISION', 2);
 define('UPDATE_TO_PARSER_REVISION', 2);
 
@@ -732,6 +732,11 @@ switch ($stage)
 		// Add the last_search column to the users table
 		$db->add_field('users', 'last_search', 'INT(10) UNSIGNED', true, null, 'last_post') or error('Unable to add last_search field', __FILE__, __LINE__, $db->error());
 
+		// Add the country and birthday columns to the users table (eveBB:
+		// collected at registration when o_regs_require_profile is on)
+		$db->add_field('users', 'country', 'VARCHAR(60)', true, null, 'location') or error('Unable to add country field', __FILE__, __LINE__, $db->error());
+		$db->add_field('users', 'birthday', 'DATE', true, null, 'country') or error('Unable to add birthday field', __FILE__, __LINE__, $db->error());
+
 		// Drop use_avatar column from users table
 		$db->drop_field('users', 'use_avatar') or error('Unable to drop use_avatar field', __FILE__, __LINE__, $db->error());
 
@@ -759,6 +764,12 @@ switch ($stage)
 		// Add default email setting option
 		if (!array_key_exists('o_default_email_setting', $pun_config))
 			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_default_email_setting\', \'1\')') or error('Unable to insert config value \'o_default_email_setting\'', __FILE__, __LINE__, $db->error());
+
+		// eveBB: require real name / DOB / country at registration. Off for
+		// existing boards (they opt in via Admin -> Options); fresh installs
+		// default it on.
+		if (!array_key_exists('o_regs_require_profile', $pun_config))
+			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_regs_require_profile\', \'0\')') or error('Unable to insert config value \'o_regs_require_profile\'', __FILE__, __LINE__, $db->error());
 
 		// Make sure we have o_additional_navlinks (was added in 1.2.1)
 		if (!array_key_exists('o_additional_navlinks', $pun_config))
