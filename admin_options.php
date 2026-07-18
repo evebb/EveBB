@@ -244,7 +244,10 @@ if (isset($_POST['form_sent']))
 			message($lang_admin_options['Logo move failed message']);
 		@chmod($logo_dest, 0644);
 
-		$logo_url = $pun_config['o_base_url'].'/img/board_logo.'.$logo_ext;
+		// Each upload is written to the same filename, so append a
+		// cache-busting token — otherwise browsers keep showing the
+		// previously cached image at that URL.
+		$logo_url = $pun_config['o_base_url'].'/img/board_logo.'.$logo_ext.'?v='.time();
 	}
 
 	// Width/height: accept a bare number (treated as pixels) or a number

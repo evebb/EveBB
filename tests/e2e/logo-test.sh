@@ -161,10 +161,22 @@ curl -s "$BASE/index.php" -o "$WORK/idx1.html"
 assert_contains "$WORK/idx1.html" 'id="brdlogo"' "logo element rendered after upload"
 assert_contains "$WORK/idx1.html" 'class="brdlogo-left"' "default left position class emitted"
 assert_contains "$WORK/idx1.html" 'img/board_logo.png' "logo image referenced in page"
+assert_contains "$WORK/idx1.html" 'board_logo.png?v=' "logo URL carries a cache-busting token"
 assert_contains "$WORK/idx1.html" 'width: 250px' "bare-number width treated as pixels"
 assert_contains "$WORK/idx1.html" 'height: 80px' "bare-number height treated as pixels"
 assert_contains "$WORK/idx1.html" 'alt="Logo Test"' "board title used as logo alt text"
 assert_not_contains "$WORK/idx1.html" ">Logo Test</a></h1>" "text title replaced by logo"
+
+# --- re-uploading a new image busts the cache (new token) ------------------
+TOKEN1=$(grep -oE 'board_logo\.png\?v=[0-9]+' "$WORK/idx1.html" | head -1 | grep -oE '[0-9]+')
+sleep 1
+save_options -F "form[logo_width]=250" -F "form[logo_height]=80" \
+  -F "logo_file=@$WORK/logo.png;type=image/png"
+curl -s "$BASE/index.php" -o "$WORK/idxre.html"
+TOKEN2=$(grep -oE 'board_logo\.png\?v=[0-9]+' "$WORK/idxre.html" | head -1 | grep -oE '[0-9]+')
+[ -n "$TOKEN1" ] && [ -n "$TOKEN2" ] && [ "$TOKEN1" != "$TOKEN2" ] \
+  && ok "re-upload changes the logo URL (cache busted)" \
+  || fail "re-upload changes the logo URL (was '$TOKEN1' now '$TOKEN2')"
 
 # --- position the logo centre (no re-upload) -------------------------------
 LOGO_ALIGN=center save_options -F "form[logo_width]=250" -F "form[logo_height]=80"
