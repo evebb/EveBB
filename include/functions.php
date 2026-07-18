@@ -2226,3 +2226,30 @@ function dump()
 	echo '</pre>';
 	exit;
 }
+
+
+//
+// The generic forum rules shipped with eveBB, shown on the registration
+// rules-agreement page and used as the default rules message. Kept here so
+// the installer and the update backfill stay in sync.
+//
+function evebb_default_forum_rules()
+{
+	return '<p>By registering and posting here you agree to abide by these rules:</p><ol><li>Treat everyone with respect. No personal attacks, harassment, hate speech, or discrimination of any kind.</li><li>Keep it legal. Do not post content that is unlawful, infringing, or that you do not have the right to share.</li><li>No spam, advertising, or self-promotion without permission from the staff.</li><li>Stay on topic and post in the most appropriate forum. Avoid duplicate threads.</li><li>No pornographic, obscene, or gratuitously violent material.</li><li>Respect the privacy of others. Do not share personal information about anyone without their consent.</li><li>One account per member unless the staff have approved otherwise.</li><li>Follow staff and moderator guidance. Use the report feature instead of arguing in public.</li></ol><p>Breaking these rules may lead to content being removed and your account being warned, suspended, or banned. The staff may update these rules at any time.</p>';
+}
+
+
+//
+// Has a board never set its own forum rules? True when the rules message is
+// empty or still one of the shipped placeholder defaults. Used to decide
+// whether to backfill the generic rules on update without clobbering an
+// admin's own rules.
+//
+function evebb_rules_are_unset($message)
+{
+	$stripped = trim(strip_tags((string) $message));
+	if ($stripped === '')
+		return true;
+
+	return rtrim(utf8_strtolower($stripped), '.') === 'enter your rules here';
+}

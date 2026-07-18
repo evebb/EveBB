@@ -131,6 +131,22 @@ assert_contains "$WORK/prof.html" 'name="form[realname]" value="Daphne Blake"' "
 assert_contains "$WORK/prof.html" 'name="form[birthday]" value="1990-05-15"' "date of birth populated in profile"
 assert_contains "$WORK/prof.html" '<option value="United Kingdom" selected="selected">' "country populated in profile"
 
+# --- generic rules backfilled on upgrade for boards that never set any -----
+# unset-rules board (rules off + placeholder message) + a version bump -> the
+# silent update path fills in the generic rules and enables them
+php -r '$p=new PDO("sqlite:'"$DB"'");$p->exec("UPDATE config SET conf_value=\"0\" WHERE conf_name=\"o_rules\"");$p->exec("UPDATE config SET conf_value=\"Enter your rules here\" WHERE conf_name=\"o_rules_message\"");$p->exec("UPDATE config SET conf_value=\"0.9.0\" WHERE conf_name=\"o_cur_version\"");'
+rm -f cache/cache_config.php
+curl -s -o /dev/null "$BASE/index.php"
+[ "$(cfg o_rules)" = "1" ] && ok "generic rules enabled on upgrade when unset" || fail "generic rules enabled on upgrade when unset"
+cfg o_rules_message | grep -qF "Treat everyone with respect" && ok "generic rules message backfilled when unset" || fail "generic rules message backfilled when unset"
+
+# a board with custom rules must NOT be clobbered by the backfill
+php -r '$p=new PDO("sqlite:'"$DB"'");$p->exec("UPDATE config SET conf_value=\"0\" WHERE conf_name=\"o_rules\"");$p->exec("UPDATE config SET conf_value=\"<p>MY CUSTOM RULES</p>\" WHERE conf_name=\"o_rules_message\"");$p->exec("UPDATE config SET conf_value=\"0.9.0\" WHERE conf_name=\"o_cur_version\"");'
+rm -f cache/cache_config.php
+curl -s -o /dev/null "$BASE/index.php"
+cfg o_rules_message | grep -qF "MY CUSTOM RULES" && ok "custom rules not clobbered by backfill" || fail "custom rules not clobbered by backfill"
+[ "$(cfg o_rules)" = "0" ] && ok "custom board's rules toggle left as-is" || fail "custom board's rules toggle left as-is"
+
 if [ -s "$ERRLOG" ]; then fail "php error log empty"; sed 's/^/    | /' "$ERRLOG" | head -15; else ok "php error log empty"; fi
 
 rm -f config.php cache/cache_*.php

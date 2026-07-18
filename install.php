@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.10.0-alpha');
+define('FORUM_VERSION', '1.10.1-alpha');
 
 define('FORUM_DB_REVISION', 25);
 define('FORUM_SI_REVISION', 2);
@@ -1590,7 +1590,7 @@ else
 		'o_announcement'			=> 0,
 		'o_announcement_message'	=> $lang_install['Announcement'],
 		'o_rules'					=> 1,
-		'o_rules_message'			=> '<p>By registering and posting here you agree to abide by these rules:</p><ol><li>Treat everyone with respect. No personal attacks, harassment, hate speech, or discrimination of any kind.</li><li>Keep it legal. Do not post content that is unlawful, infringing, or that you do not have the right to share.</li><li>No spam, advertising, or self-promotion without permission from the staff.</li><li>Stay on topic and post in the most appropriate forum. Avoid duplicate threads.</li><li>No pornographic, obscene, or gratuitously violent material.</li><li>Respect the privacy of others. Do not share personal information about anyone without their consent.</li><li>One account per member unless the staff have approved otherwise.</li><li>Follow staff and moderator guidance. Use the report feature instead of arguing in public.</li></ol><p>Breaking these rules may lead to content being removed and your account being warned, suspended, or banned. The staff may update these rules at any time.</p>',
+		'o_rules_message'			=> evebb_default_forum_rules(),
 		'o_maintenance'				=> 0,
 		'o_maintenance_message'		=> $lang_install['Maintenance message'],
 		'o_default_dst'				=> 0,
