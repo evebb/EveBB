@@ -28,7 +28,7 @@ assert_not_contains() {
 
 cleanup() {
   [ -n "${SERVER_PID:-}" ] && kill "$SERVER_PID" 2>/dev/null
-  rm -rf "$WORK" "$ROOT"/img/board_logo.*
+  rm -rf "$WORK" "$ROOT"/img/board_logo.* "$ROOT"/img/default_avatar_custom.* "$ROOT"/img/avatars/2.png
 }
 trap cleanup EXIT
 
@@ -249,6 +249,17 @@ rm -f "$ROOT"/cache/cache_config.php
 COPYRIGHT="(c) 2026 Logo Test Copyright" save_options -F "form[logo_width]=" -F "form[logo_height]="
 curl -s "$BASE/index.php" -o "$WORK/idxc.html"
 assert_contains "$WORK/idxc.html" '(c) 2026 Logo Test Copyright' "footer copyright saved when the config row was missing"
+
+# --- admin can replace the default avatar; member uploads are untouched ----
+python3 -c "from PIL import Image; Image.new('RGB',(120,120),(200,60,60)).save('$WORK/defav.png')" 2>/dev/null || php -r 'file_put_contents($argv[1], base64_decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="));' "$WORK/defav.png"
+# a member's own upload that must survive the admin's default change
+php -r 'file_put_contents($argv[1], base64_decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="));' "$ROOT/img/avatars/2.png"
+save_options -F "form[logo_width]=" -F "form[logo_height]=" -F "default_avatar_file=@$WORK/defav.png;type=image/png"
+[ -n "$(ls "$ROOT"/img/default_avatar_custom.* 2>/dev/null)" ] && ok "admin custom default avatar stored" || fail "admin custom default avatar stored"
+DA=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo $p->query("SELECT conf_value FROM config WHERE conf_name=\"o_default_avatar\"")->fetchColumn();')
+case "$DA" in img/default_avatar_custom.*) ok "default avatar points at the custom upload" ;; *) fail "default avatar points at the custom upload (got $DA)" ;; esac
+[ -f "$ROOT/img/avatars/2.png" ] && ok "member's own avatar untouched by default change" || fail "member's own avatar untouched by default change"
+rm -f "$ROOT/img/avatars/2.png" "$ROOT"/img/default_avatar_custom.*
 
 if [ -s "$ERRLOG" ]; then
   fail "php error log empty"; sed 's/^/    | /' "$ERRLOG" | head -20

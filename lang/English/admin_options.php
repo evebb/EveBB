@@ -188,7 +188,12 @@ $lang_admin_options = array(
 'Max height label'					=>	'Max height',
 'Max height help'					=>	'The maximum allowed height of avatars in pixels (60 is recommended).',
 'Max size label'					=>	'Max size',
-'Max size help'						=>	'The maximum allowed size of avatars in bytes (10240 is recommended).',
+'Max size help'						=>	'The maximum allowed size of avatars in bytes (256000 = 250 KB is recommended).',
+'Default avatar label'				=>	'Default avatar',
+'Default avatar help'				=>	'The generic avatar shown for members who have not uploaded their own. Upload a PNG, JPEG, GIF or WebP image (a square works best) to replace it. Members\' own avatars are never affected.',
+'Default avatar reset'				=>	'Reset to the standard eveBB avatar',
+'Default avatar bad image message'	=>	'The uploaded default avatar is not a supported image. Please upload a PNG, JPEG, GIF or WebP file.',
+'Default avatar move failed message'	=>	'The uploaded default avatar could not be saved. Please check that the img directory is writable by PHP.',
 
 // E-mail section
 'E-mail subhead'					=>	'Email',

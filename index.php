@@ -144,7 +144,7 @@ while ($cur_forum = $db->fetch_assoc($result))
 		$last_post_avatar = '';
 		if ($pun_config['o_avatars'] == '1' && $pun_user['show_avatars'] != '0' && !empty($cur_forum['last_poster_id']))
 		{
-			$av = generate_avatar_markup($cur_forum['last_poster_id']);
+			$av = generate_avatar_display($cur_forum['last_poster_id']);
 			if ($av != '')
 				$last_post_avatar = '<span class="lastpostavatar">'.$av.'</span>';
 		}

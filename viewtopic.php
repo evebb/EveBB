@@ -259,7 +259,7 @@ while ($cur_post = $db->fetch_assoc($result))
 			if (isset($user_avatar_cache[$cur_post['poster_id']]))
 				$user_avatar = $user_avatar_cache[$cur_post['poster_id']];
 			else
-				$user_avatar = $user_avatar_cache[$cur_post['poster_id']] = generate_avatar_markup($cur_post['poster_id']);
+				$user_avatar = $user_avatar_cache[$cur_post['poster_id']] = generate_avatar_display($cur_post['poster_id']);
 		}
 
 		// We only show location, register date, post count and the contact links if "Show user info" is enabled

@@ -1162,7 +1162,7 @@ if ($pun_user['id'] != $id &&																	// If we aren't the user (i.e. edi
 
 	if ($pun_config['o_avatars'] == '1')
 	{
-		$avatar_field = generate_avatar_markup($id);
+		$avatar_field = generate_avatar_display($id);
 		if ($avatar_field != '')
 		{
 			$user_personality[] = '<dt>'.$lang_profile['Avatar'].'</dt>';

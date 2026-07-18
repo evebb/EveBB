@@ -175,8 +175,15 @@ $pdo=new PDO($dsn,$type==="sqlite"?null:$user,$type==="sqlite"?null:$pass);
 echo $pdo->query("SELECT conf_value FROM config WHERE conf_name=".$pdo->quote("o_avatars_width"))->fetchColumn();
 ' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" 2>/dev/null)
 [ "$AV_W" = "90" ] && ok "avatar default size is 90" || fail "avatar default size is 90 (got $AV_W)"
-# admin (user id 2) is the last poster; give them an avatar and check the index
+# a fresh install ships the generic default avatar, shown for members with
+# no upload of their own (admin here has none)
+curl -s -b "$JAR" "$BASE/viewtopic.php?id=2" -o "$TMP/postav.html"
+assert_contains "$TMP/postav.html" 'default_avatar.png' "default avatar shown for a member without an upload"
+# a member's own upload overrides the default
 printf '\x89PNG\r\n\x1a\n' > "$TMP/av.png"; php -r 'file_put_contents($argv[1], base64_decode("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg=="));' "$ROOT/img/avatars/2.png"
+curl -s -b "$JAR" "$BASE/viewtopic.php?id=2" -o "$TMP/postav2.html"
+assert_contains "$TMP/postav2.html" 'avatars/2.png' "member's own avatar overrides the default"
+# ... and the last-poster avatar appears on the index
 curl -s -b "$JAR" "$BASE/index.php" -o "$TMP/idxav.html"
 assert_contains "$TMP/idxav.html" 'lastpostavatar' "last-poster avatar shown on the index"
 rm -f "$ROOT/img/avatars/2.png"

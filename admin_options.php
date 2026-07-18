@@ -271,10 +271,42 @@ if (isset($_POST['form_sent']))
 	if (!in_array($logo_align, array('left', 'center', 'right', 'full', 'cover'), true))
 		$logo_align = 'left';
 
+	// --- Default avatar (shown for members without their own upload) ----
+	// A custom upload is stored separately from the shipped file, so a
+	// software update never overwrites the admin's choice, and member
+	// uploads (img/avatars/<id>.*) are never touched.
+	$default_avatar = isset($pun_config['o_default_avatar']) ? $pun_config['o_default_avatar'] : 'img/default_avatar.png';
+
+	if (isset($_POST['reset_default_avatar']))
+	{
+		foreach (glob(PUN_ROOT.'img/default_avatar_custom.*') ?: array() as $old)
+			@unlink($old);
+		$default_avatar = 'img/default_avatar.png';
+	}
+
+	if (isset($_FILES['default_avatar_file']) && is_array($_FILES['default_avatar_file']) && isset($_FILES['default_avatar_file']['error']) && $_FILES['default_avatar_file']['error'] == UPLOAD_ERR_OK && is_uploaded_file($_FILES['default_avatar_file']['tmp_name']))
+	{
+		$allowed_av = array('image/png' => 'png', 'image/jpeg' => 'jpg', 'image/gif' => 'gif', 'image/webp' => 'webp');
+		$av_info = @getimagesize($_FILES['default_avatar_file']['tmp_name']);
+		if ($av_info === false || !isset($av_info['mime']) || !isset($allowed_av[$av_info['mime']]))
+			message($lang_admin_options['Default avatar bad image message']);
+
+		$av_ext = $allowed_av[$av_info['mime']];
+		foreach (glob(PUN_ROOT.'img/default_avatar_custom.*') ?: array() as $old)
+			@unlink($old);
+
+		$av_dest = PUN_ROOT.'img/default_avatar_custom.'.$av_ext;
+		if (!@move_uploaded_file($_FILES['default_avatar_file']['tmp_name'], $av_dest))
+			message($lang_admin_options['Default avatar move failed message']);
+		@chmod($av_dest, 0644);
+
+		$default_avatar = 'img/default_avatar_custom.'.$av_ext;
+	}
+
 	// These keys may be absent on boards upgraded before the feature landed
 	// (the main loop above only updates keys that already exist), so
 	// insert-or-update them.
-	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align, 'o_copyright_message' => $form['copyright_message']) as $conf_name => $conf_value)
+	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align, 'o_copyright_message' => $form['copyright_message'], 'o_default_avatar' => $default_avatar) as $conf_name => $conf_value)
 	{
 		$value = ($conf_value != '') ? '\''.$db->escape($conf_value).'\'' : 'NULL';
 		if (array_key_exists($conf_name, $pun_config))
@@ -805,6 +837,17 @@ generate_admin_menu('options');
 									<td>
 										<input type="text" name="form[avatars_size]" size="6" maxlength="6" value="<?php echo $pun_config['o_avatars_size'] ?>" />
 										<span><?php echo $lang_admin_options['Max size help'] ?></span>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php echo $lang_admin_options['Default avatar label'] ?></th>
+									<td>
+<?php $pun_def_av = isset($pun_config['o_default_avatar']) ? $pun_config['o_default_avatar'] : 'img/default_avatar.png'; if ($pun_def_av != '' && file_exists(PUN_ROOT.$pun_def_av)): ?>
+										<p style="margin-bottom: .5em;"><img src="<?php echo pun_htmlspecialchars($pun_def_av.'?m='.filemtime(PUN_ROOT.$pun_def_av)) ?>" alt="" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px; border: 1px solid #ccc; vertical-align: middle;" /></p>
+<?php if (strpos($pun_def_av, 'default_avatar_custom') !== false): ?>										<label><input type="checkbox" name="reset_default_avatar" value="1" /> <?php echo $lang_admin_options['Default avatar reset'] ?></label><br />
+<?php endif; endif; ?>
+										<input type="file" name="default_avatar_file" accept="image/png,image/jpeg,image/gif,image/webp" />
+										<span><?php echo $lang_admin_options['Default avatar help'] ?></span>
 									</td>
 								</tr>
 							</table>

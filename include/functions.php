@@ -554,6 +554,33 @@ function generate_avatar_markup($user_id)
 
 
 //
+// Avatar markup for DISPLAY: the member's own uploaded avatar, or the
+// generic default avatar (o_default_avatar) when they have not uploaded one.
+// Use this wherever an avatar is shown (posts, forum index, profile view).
+// Do NOT use it to decide whether a member HAS their own avatar - use
+// generate_avatar_markup() for that, so an admin change to the default
+// avatar never affects members' own uploads.
+//
+function generate_avatar_display($user_id)
+{
+	global $pun_config;
+
+	$markup = generate_avatar_markup($user_id);
+	if ($markup !== '')
+		return $markup;
+
+	if (!empty($pun_config['o_default_avatar']))
+	{
+		$default = $pun_config['o_default_avatar'];
+		if (file_exists(PUN_ROOT.$default) && $img_size = getimagesize(PUN_ROOT.$default))
+			return '<img src="'.pun_htmlspecialchars(get_base_url(true).'/'.$default.'?m='.filemtime(PUN_ROOT.$default)).'" '.$img_size[3].' alt="" />';
+	}
+
+	return '';
+}
+
+
+//
 // Generate browser's title
 //
 function generate_page_title($page_title, $p = null)

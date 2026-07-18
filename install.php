@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.11.0-alpha');
+define('FORUM_VERSION', '1.12.0-alpha');
 
 define('FORUM_DB_REVISION', 25);
 define('FORUM_SI_REVISION', 2);
@@ -1570,6 +1570,9 @@ else
 		'o_mailing_list'			=> $email,
 		'o_avatars'					=> $avatars,
 		'o_avatars_dir'				=> 'img/avatars',
+		// Generic avatar shown for members who have not uploaded their own
+		// (admin-replaceable in Admin -> Options -> Avatars)
+		'o_default_avatar'			=> 'img/default_avatar.png',
 		'o_avatars_width'			=> 90,
 		'o_avatars_height'			=> 90,
 		'o_avatars_size'			=> 256000,
