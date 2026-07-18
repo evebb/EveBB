@@ -58,6 +58,7 @@ if (isset($_POST['form_sent']))
 		'gzip'					=> $_POST['form']['gzip'] != '1' ? '0' : '1',
 		'search_all_forums'		=> $_POST['form']['search_all_forums'] != '1' ? '0' : '1',
 		'additional_navlinks'	=> pun_trim($_POST['form']['additional_navlinks']),
+		'copyright_message'		=> pun_trim($_POST['form']['copyright_message'] ?? ''),
 		'feed_type'				=> intval($_POST['form']['feed_type']),
 		'feed_ttl'				=> intval($_POST['form']['feed_ttl']),
 		'report_method'			=> intval($_POST['form']['report_method']),
@@ -689,6 +690,13 @@ generate_admin_menu('options');
 									<td>
 										<textarea name="form[additional_navlinks]" rows="3" cols="55"><?php echo pun_htmlspecialchars($pun_config['o_additional_navlinks']) ?></textarea>
 										<span><?php echo $lang_admin_options['Menu items help'] ?></span>
+									</td>
+								</tr>
+								<tr>
+									<th scope="row"><?php echo $lang_admin_options['Copyright label'] ?></th>
+									<td>
+										<textarea name="form[copyright_message]" rows="3" cols="55"><?php echo pun_htmlspecialchars(isset($pun_config['o_copyright_message']) ? $pun_config['o_copyright_message'] : '') ?></textarea>
+										<span><?php echo $lang_admin_options['Copyright help'] ?></span>
 									</td>
 								</tr>
 							</table>

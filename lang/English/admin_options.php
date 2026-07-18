@@ -152,6 +152,8 @@ $lang_admin_options = array(
 'Search all help'					=>	'When disabled, searches will only be allowed in one forum at a time. Disable if server load is high due to excessive searching.',
 'Menu items label'					=>	'Additional menu items',
 'Menu items help'					=>	'By entering HTML hyperlinks into this textbox, any number of items can be added to the navigation menu at the top of all pages. The format for adding new links is X = &lt;a href="URL"&gt;LINK&lt;/a&gt; where X is the position at which the link should be inserted (e.g. 0 to insert at the beginning and 2 to insert after "User list"). Separate entries with a linebreak.',
+'Copyright label'					=>	'Footer copyright',
+'Copyright help'					=>	'Optional. Your own copyright or credit line, shown in the footer of every page beneath the "Powered by" line. May contain HTML. Leave blank to show nothing.',
 
 // Feeds section
 'Feed subhead'						=>	'Syndication',

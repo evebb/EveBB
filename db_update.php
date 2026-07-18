@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script updates to
-define('UPDATE_TO', '1.8.3-alpha');
+define('UPDATE_TO', '1.9.0-alpha');
 
 define('UPDATE_TO_DB_REVISION', 25);
 define('UPDATE_TO_SI_REVISION', 2);
@@ -770,6 +770,10 @@ switch ($stage)
 		// default it on.
 		if (!array_key_exists('o_regs_require_profile', $pun_config))
 			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_regs_require_profile\', \'0\')') or error('Unable to insert config value \'o_regs_require_profile\'', __FILE__, __LINE__, $db->error());
+
+		// eveBB: optional admin-supplied footer copyright line (empty default)
+		if (!array_key_exists('o_copyright_message', $pun_config))
+			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_copyright_message\', \'\')') or error('Unable to insert config value \'o_copyright_message\'', __FILE__, __LINE__, $db->error());
 
 		// Make sure we have o_additional_navlinks (was added in 1.2.1)
 		if (!array_key_exists('o_additional_navlinks', $pun_config))

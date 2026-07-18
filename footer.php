@@ -116,7 +116,9 @@ else if ($footer_style == 'viewtopic')
 }
 
 ?>
-				<p id="poweredby"><?php printf($lang_common['Powered by'], '<a href="https://github.com/evebb/evebb">eveBB</a>'.(($pun_config['o_show_version'] == '1') ? ' '.$pun_config['o_cur_version'] : '').', based on <a href="https://fluxbb.org/">FluxBB</a>') ?></p>
+				<p id="poweredby"><?php printf($lang_common['Powered by'], '<a href="https://github.com/evebb/evebb">eveBB</a>'.(($pun_config['o_show_version'] == '1') ? ' '.$pun_config['o_cur_version'] : '')) ?></p>
+<?php if (isset($pun_config['o_copyright_message']) && $pun_config['o_copyright_message'] != ''): ?>				<p id="copyright"><?php echo $pun_config['o_copyright_message'] ?></p>
+<?php endif; ?>
 			</div>
 			<div class="clearer"></div>
 		</div>

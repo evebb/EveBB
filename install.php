@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.8.3-alpha');
+define('FORUM_VERSION', '1.9.0-alpha');
 
 define('FORUM_DB_REVISION', 25);
 define('FORUM_SI_REVISION', 2);
@@ -1562,6 +1562,8 @@ else
 		'o_quickjump'				=> 1,
 		'o_gzip'					=> 0,
 		'o_additional_navlinks'		=> '',
+		// Optional admin-supplied copyright line shown in the footer
+		'o_copyright_message'		=> '',
 		'o_report_method'			=> 0,
 		'o_regs_report'				=> 1,
 		'o_default_email_setting'	=> 1,

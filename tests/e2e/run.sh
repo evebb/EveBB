@@ -97,6 +97,8 @@ code=$(curl -s -o "$TMP/index.html" -w "%{http_code}" "$BASE/index.php")
 assert_code 200 "$code" "guest index"
 assert_contains "$TMP/index.html" "<title>Test Forum" "index title"
 assert_contains "$TMP/index.html" "Powered by" "index footer"
+assert_contains "$TMP/index.html" "eveBB</a>" "footer credits eveBB"
+grep -qF "based on" "$TMP/index.html" && fail "footer no longer says 'based on FluxBB'" || ok "footer no longer says 'based on FluxBB'"
 
 # --- admin login (with real CSRF token) ------------------------------------
 TOKEN=$(curl -s -c "$JAR" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
@@ -153,6 +155,17 @@ curl -s -b "$TMP/reg.txt" -c "$TMP/reg.txt" -e "$BASE/register.php" -o /dev/null
   --data-urlencode "register=Register"
 curl -s -b "$TMP/reg.txt" "$BASE/index.php" -o "$TMP/reg.html"
 assert_contains "$TMP/reg.html" "Logged in as <strong>e2euser" "registration + auto-login"
+
+# --- footer copyright line (admin-supplied) --------------------------------
+php -r '
+$type = $argv[1]; $host = $argv[2]; $name = $argv[3]; $user = $argv[4]; $pass = $argv[5];
+$dsn = $type === "sqlite" ? "sqlite:$name" : ((strpos($type, "pgsql") === 0 ? "pgsql" : "mysql").":host=$host;dbname=$name");
+$pdo = new PDO($dsn, $type === "sqlite" ? null : $user, $type === "sqlite" ? null : $pass);
+$pdo->exec("UPDATE config SET conf_value = ".$pdo->quote("(c) 2026 E2E Copyright")." WHERE conf_name = ".$pdo->quote("o_copyright_message"));
+' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" 2>/dev/null || true
+rm -f cache/cache_config.php
+curl -s "$BASE/index.php" -o "$TMP/footer.html"
+assert_contains "$TMP/footer.html" '(c) 2026 E2E Copyright' "admin copyright line shows in the footer"
 
 # --- admin + misc pages ----------------------------------------------------
 for p in userlist.php help.php "extern.php?action=feed&type=atom" admin_index.php admin_options.php admin_users.php admin_maintenance.php; do
