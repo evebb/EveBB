@@ -90,29 +90,25 @@ function generate_admin_menu($page = '')
 					<li<?php if ($page == 'censoring') echo ' class="isactive"'; ?>><a href="admin_censoring.php"><?php echo $lang_admin_common['Censoring'] ?></a></li>
 					<li<?php if ($page == 'maintenance') echo ' class="isactive"'; ?>><a href="admin_maintenance.php"><?php echo $lang_admin_common['Maintenance'] ?></a></li>
 					<li<?php if ($page == 'plugins') echo ' class="isactive"'; ?>><a href="admin_plugins.php"><?php echo $lang_admin_common['Plugins'] ?></a></li>
-				</ul>
-			</div>
-		</div>
 <?php
 
-	}
+		// A direct settings link for each active plugin that provides one
+		if (!function_exists('evebb_active_plugins') && file_exists(PUN_ROOT.'include/plugins.php'))
+			require PUN_ROOT.'include/plugins.php';
 
-	// See if there are any plugins
-	$plugins = forum_list_plugins($is_admin);
+		if (function_exists('evebb_active_plugins'))
+		{
+			foreach (evebb_active_plugins() as $cur_slug)
+			{
+				$manifest = evebb_read_manifest($cur_slug);
+				if ($manifest === null || empty($manifest['admin']))
+					continue;
 
-	// Did we find any plugins?
-	if (!empty($plugins))
-	{
-
-?>
-		<h2 class="block2"><span><?php echo $lang_admin_common['Plugins menu'] ?></span></h2>
-		<div class="box">
-			<div class="inbox">
-				<ul>
-<?php
-
-		foreach ($plugins as $plugin_name => $plugin)
-			echo "\t\t\t\t\t".'<li'.(($page == $plugin_name) ? ' class="isactive"' : '').'><a href="admin_loader.php?plugin='.$plugin_name.'">'.str_replace('_', ' ', $plugin).'</a></li>'."\n";
+				$item_page = 'plugin_'.$cur_slug;
+				$label = sprintf($lang_admin_common['Plugin settings link'], pun_htmlspecialchars($manifest['name']));
+				echo "\t\t\t\t\t".'<li'.(($page == $item_page) ? ' class="isactive"' : '').'><a href="admin_plugins.php?action=settings&amp;plugin='.urlencode($cur_slug).'">'.$label.'</a></li>'."\n";
+			}
+		}
 
 ?>
 				</ul>

@@ -19,6 +19,7 @@ $lang_admin_common = array(
 'Prune'					=>	'Prune',
 'Maintenance'			=>	'Maintenance',
 'Plugins'				=>	'Plugins',
+'Plugin settings link'	=>	'%s Settings',
 'Reports'				=>	'Reports',
 'Server statistics'				=>	'Server statistics',
 

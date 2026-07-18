@@ -69,6 +69,11 @@ assert_contains "$WORK/mgr.html" "BBCode Toolbar" "toolbar listed in the plugin 
 # no separate legacy plugins menu any more
 assert_not_contains "$WORK/mgr.html" "admin_loader.php?plugin=AP_Toolbar" "no legacy toolbar admin link"
 
+# the admin sidebar has a direct "<plugin> Settings" item, not a legacy menu
+curl -s -b "$JAR" "$BASE/admin_index.php" -o "$WORK/adminidx.html"
+assert_contains "$WORK/adminidx.html" "BBCode Toolbar Settings" "toolbar settings item in admin menu"
+assert_not_contains "$WORK/adminidx.html" "Plugins menu" "no legacy plugins menu heading"
+
 # injected on the post form, not on ordinary pages
 curl -s -b "$JAR" "$BASE/post.php?fid=1" -o "$WORK/post.html"
 assert_contains "$WORK/post.html" "plugins/toolbar/toolbar.js" "toolbar script on post form"

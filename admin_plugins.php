@@ -99,7 +99,8 @@ if ($action == 'settings')
 	define('PUN_ACTIVE_PAGE', 'admin');
 	require PUN_ROOT.'header.php';
 
-	generate_admin_menu('plugins');
+	// Highlight this plugin's own settings item in the admin menu
+	generate_admin_menu('plugin_'.$slug);
 
 ?>
 	<div class="blockform">
