@@ -219,6 +219,34 @@ else
 fi
 rm -f "$ROOT"/img/avatars/2.*
 
+# --- post email link honours the poster's privacy setting ------------------
+set_email_setting() { # value
+  php -r '
+$type=$argv[1];$host=$argv[2];$name=$argv[3];$user=$argv[4];$pass=$argv[5];$val=(int)$argv[6];
+$dsn=$type==="sqlite"?"sqlite:$name":((strpos($type,"pgsql")===0?"pgsql":"mysql").":host=$host;dbname=$name");
+$pdo=new PDO($dsn,$type==="sqlite"?null:$user,$type==="sqlite"?null:$pass);
+$pdo->exec("UPDATE users SET email_setting=$val WHERE id=2");
+' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$1" 2>/dev/null
+}
+
+# 1 = hidden but form email allowed: the board form, never a mailto
+set_email_setting 1
+curl -s -b "$JAR" "$BASE/viewtopic.php?id=2" -o "$TMP/em1.html"
+assert_contains "$TMP/em1.html" 'misc.php?email=2' "hidden email uses the board form link"
+if grep -qF 'mailto:admin@example.com' "$TMP/em1.html"; then fail "hidden email not exposed via mailto (admin view)"; else ok "hidden email not exposed via mailto (admin view)"; fi
+
+# 0 = display address: mailto is expected (the user opted in)
+set_email_setting 0
+curl -s -b "$JAR" "$BASE/viewtopic.php?id=2" -o "$TMP/em0.html"
+assert_contains "$TMP/em0.html" 'mailto:admin@example.com' "public email still uses mailto when opted in"
+
+# 2 = fully hidden: admin/mod may still reach them through the form, no mailto
+set_email_setting 2
+curl -s -b "$JAR" "$BASE/viewtopic.php?id=2" -o "$TMP/em2.html"
+assert_contains "$TMP/em2.html" 'misc.php?email=2' "admin can still form-email a fully hidden user"
+if grep -qF 'mailto:admin@example.com' "$TMP/em2.html"; then fail "fully hidden email not exposed via mailto to admin"; else ok "fully hidden email not exposed via mailto to admin"; fi
+set_email_setting 1
+
 # --- admin + misc pages ----------------------------------------------------
 for p in userlist.php help.php "extern.php?action=feed&type=atom" admin_index.php admin_options.php admin_users.php admin_maintenance.php; do
   code=$(curl -s -b "$JAR" -e "$BASE/index.php" -o "$TMP/page.html" -w "%{http_code}" "$BASE/$p")

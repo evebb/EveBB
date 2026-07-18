@@ -278,11 +278,18 @@ while ($cur_post = $db->fetch_assoc($result))
 			if ($pun_config['o_show_post_count'] == '1' || $pun_user['is_admmod'])
 				$user_info[] = '<dd><span>'.$lang_topic['Posts'].' '.forum_number_format($cur_post['num_posts']).'</span></dd>';
 
-			// Now let's deal with the contact links (Email and URL)
-			if ((($cur_post['email_setting'] == '0' && !$pun_user['is_guest']) || $pun_user['is_admmod']) && $pun_user['g_send_email'] == '1')
-				$user_contacts[] = '<span class="email"><a href="mailto:'.pun_htmlspecialchars($cur_post['email']).'">'.$lang_common['Email'].'</a></span>';
-			else if ($cur_post['email_setting'] == '1' && !$pun_user['is_guest'] && $pun_user['g_send_email'] == '1')
-				$user_contacts[] = '<span class="email"><a href="misc.php?email='.$cur_post['poster_id'].'">'.$lang_common['Email'].'</a></span>';
+			// Now let's deal with the contact links (Email and URL). Honour the
+			// poster's email privacy setting: 0 = address is public (mailto),
+			// 1 = hidden but reachable via the board's form email, 2 = no
+			// contact. Admins/mods can still reach a hidden address through the
+			// form email - never via a mailto that would expose the address.
+			if (!$pun_user['is_guest'] && $pun_user['g_send_email'] == '1')
+			{
+				if ($cur_post['email_setting'] == '0')
+					$user_contacts[] = '<span class="email"><a href="mailto:'.pun_htmlspecialchars($cur_post['email']).'">'.$lang_common['Email'].'</a></span>';
+				else if ($cur_post['email_setting'] == '1' || $pun_user['is_admmod'])
+					$user_contacts[] = '<span class="email"><a href="misc.php?email='.$cur_post['poster_id'].'">'.$lang_common['Email'].'</a></span>';
+			}
 
 			if ($cur_post['url'] != '')
 			{
