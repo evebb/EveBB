@@ -40,7 +40,7 @@ if ($cur_forum['redirect_url'] != '')
 }
 
 // Sort out who the moderators are and if we are currently a moderator (or an admin)
-$mods_array = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators']) : array();
+$mods_array = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators'], array('allowed_classes' => false)) : array();
 $is_admmod = ($pun_user['g_id'] == PUN_ADMIN || ($pun_user['g_moderator'] == '1' && array_key_exists($pun_user['username'], $mods_array))) ? true : false;
 
 switch ($cur_forum['sort_by'])

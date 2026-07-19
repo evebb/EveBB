@@ -48,7 +48,7 @@ if ($fid < 1)
 $result = $db->query('SELECT moderators FROM '.$db->prefix.'forums WHERE id='.$fid) or error('Unable to fetch forum info', __FILE__, __LINE__, $db->error());
 
 $moderators = $db->result($result);
-$mods_array = ($moderators != '') ? unserialize($moderators) : array();
+$mods_array = ($moderators != '') ? unserialize($moderators, array('allowed_classes' => false)) : array();
 
 if ($pun_user['g_id'] != PUN_ADMIN && ($pun_user['g_moderator'] == '0' || !array_key_exists($pun_user['username'], $mods_array)))
 	message($lang_common['No permission'], false, '403 Forbidden');

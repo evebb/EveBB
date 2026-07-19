@@ -98,9 +98,9 @@ if (isset($_GET['action']) || isset($_GET['search_id']))
 		$result = $db->query('SELECT search_data FROM '.$db->prefix.'search_cache WHERE id='.$search_id.' AND ident=\''.$db->escape($ident).'\'') or error('Unable to fetch search results', __FILE__, __LINE__, $db->error());
 		if ($row = $db->fetch_assoc($result))
 		{
-			$temp = unserialize($row['search_data']);
+			$temp = unserialize($row['search_data'], array('allowed_classes' => false));
 
-			$search_ids = unserialize($temp['search_ids']);
+			$search_ids = unserialize($temp['search_ids'], array('allowed_classes' => false));
 			$num_hits = $temp['num_hits'];
 			$sort_by = $temp['sort_by'];
 			$sort_dir = $temp['sort_dir'];

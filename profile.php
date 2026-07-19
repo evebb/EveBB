@@ -51,7 +51,7 @@ if ($action == 'change_pass')
 		$result = $db->query('SELECT * FROM '.$db->prefix.'users WHERE id='.$id) or error('Unable to fetch new password', __FILE__, __LINE__, $db->error());
 		$cur_user = $db->fetch_assoc($result);
 
-		if ($key == '' || $key != $cur_user['activate_key'])
+		if ($key === '' || !hash_equals((string) $cur_user['activate_key'], (string) $key))
 			message($lang_profile['Pass key bad'].' <a href="mailto:'.pun_htmlspecialchars($pun_config['o_admin_email']).'">'.pun_htmlspecialchars($pun_config['o_admin_email']).'</a>.');
 		else
 		{
@@ -182,7 +182,7 @@ else if ($action == 'change_email')
 		$result = $db->query('SELECT activate_string, activate_key FROM '.$db->prefix.'users WHERE id='.$id) or error('Unable to fetch activation data', __FILE__, __LINE__, $db->error());
 		list($new_email, $new_email_key) = $db->fetch_row($result);
 
-		if ($key == '' || $key != $new_email_key)
+		if ($key === '' || !hash_equals((string) $new_email_key, (string) $key))
 			message($lang_profile['Email key bad'].' <a href="mailto:'.pun_htmlspecialchars($pun_config['o_admin_email']).'">'.pun_htmlspecialchars($pun_config['o_admin_email']).'</a>.');
 		else
 		{
@@ -416,21 +416,17 @@ else if ($action == 'upload_avatar' || $action == 'upload_avatar2')
 			// Delete any old avatars and put the new one in place
 			delete_avatar($id);
 
-			if ($width > $pun_config['o_avatars_width'] || $height > $pun_config['o_avatars_height'])
+			// Always decode and re-encode through GD (resize_avatar never
+			// upscales, so within-size images keep their dimensions). This
+			// downsizes oversized avatars AND strips anything appended after
+			// the image data - a re-encoded file cannot be an image/PHP
+			// polyglot, so a stored avatar can never be executable content.
+			if (!resize_avatar($tmp_path, $final_path, $type, $pun_config['o_avatars_width'], $pun_config['o_avatars_height']))
 			{
-				// Larger than the display size: resize down to fit, preserving aspect ratio
-				if (!resize_avatar($tmp_path, $final_path, $type, $pun_config['o_avatars_width'], $pun_config['o_avatars_height']))
-				{
-					@unlink($tmp_path);
-					message($lang_profile['Resize failed']);
-				}
 				@unlink($tmp_path);
+				message($lang_profile['Resize failed']);
 			}
-			else
-			{
-				// Already within the display size: store as-is
-				@rename($tmp_path, $final_path);
-			}
+			@unlink($tmp_path);
 			@chmod($final_path, 0644);
 		}
 		else
@@ -519,7 +515,7 @@ else if (isset($_POST['update_group_membership']))
 
 		while ($cur_forum = $db->fetch_assoc($result))
 		{
-			$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators']) : array();
+			$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators'], array('allowed_classes' => false)) : array();
 
 			if (in_array($id, $cur_moderators))
 			{
@@ -554,7 +550,7 @@ else if (isset($_POST['update_forums']))
 
 	while ($cur_forum = $db->fetch_assoc($result))
 	{
-		$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators']) : array();
+		$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators'], array('allowed_classes' => false)) : array();
 		// If the user should have moderator access (and he/she doesn't already have it)
 		if (in_array($cur_forum['id'], $moderator_in) && !in_array($id, $cur_moderators))
 		{
@@ -648,7 +644,7 @@ else if (isset($_POST['delete_user']) || isset($_POST['delete_user_comply']))
 
 			while ($cur_forum = $db->fetch_assoc($result))
 			{
-				$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators']) : array();
+				$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators'], array('allowed_classes' => false)) : array();
 
 				if (in_array($id, $cur_moderators))
 				{
@@ -1056,7 +1052,7 @@ else if (isset($_POST['form_sent']))
 
 			while ($cur_forum = $db->fetch_assoc($result))
 			{
-				$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators']) : array();
+				$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators'], array('allowed_classes' => false)) : array();
 
 				if (in_array($id, $cur_moderators))
 				{
@@ -1899,7 +1895,7 @@ else
 						$cur_category = $cur_forum['cid'];
 					}
 
-					$moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators']) : array();
+					$moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators'], array('allowed_classes' => false)) : array();
 
 					echo "\n\t\t\t\t\t\t\t\t\t".'<label><input type="checkbox" name="moderator_in['.$cur_forum['fid'].']" value="1"'.((in_array($id, $moderators)) ? ' checked="checked"' : '').' />'.pun_htmlspecialchars($cur_forum['forum_name']).'<br /></label>'."\n";
 				}

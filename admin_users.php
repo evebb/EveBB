@@ -324,7 +324,7 @@ else if (isset($_POST['move_users']) || isset($_POST['move_users_comply']))
 			$result = $db->query('SELECT id, moderators FROM '.$db->prefix.'forums') or error('Unable to fetch forum list', __FILE__, __LINE__, $db->error());
 			while ($cur_forum = $db->fetch_assoc($result))
 			{
-				$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators']) : array();
+				$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators'], array('allowed_classes' => false)) : array();
 
 				foreach ($user_groups as $group_users)
 					$cur_moderators = array_diff($cur_moderators, $group_users);
@@ -436,7 +436,7 @@ else if (isset($_POST['delete_users']) || isset($_POST['delete_users_comply']))
 		$result = $db->query('SELECT id, moderators FROM '.$db->prefix.'forums') or error('Unable to fetch forum list', __FILE__, __LINE__, $db->error());
 		while ($cur_forum = $db->fetch_assoc($result))
 		{
-			$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators']) : array();
+			$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators'], array('allowed_classes' => false)) : array();
 
 			foreach ($user_groups as $group_users)
 				$cur_moderators = array_diff($cur_moderators, $group_users);

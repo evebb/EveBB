@@ -26,7 +26,7 @@ if (!$db->has_rows($result))
 $cur_post = $db->fetch_assoc($result);
 
 // Sort out who the moderators are and if we are currently a moderator (or an admin)
-$mods_array = ($cur_post['moderators'] != '') ? unserialize($cur_post['moderators']) : array();
+$mods_array = ($cur_post['moderators'] != '') ? unserialize($cur_post['moderators'], array('allowed_classes' => false)) : array();
 $is_admmod = ($pun_user['g_id'] == PUN_ADMIN || ($pun_user['g_moderator'] == '1' && array_key_exists($pun_user['username'], $mods_array))) ? true : false;
 
 $can_edit_subject = $id == $cur_post['first_post_id'];

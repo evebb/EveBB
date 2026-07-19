@@ -1,0 +1,33 @@
+# eveBB - baseline hardening for Apache.
+#
+# This file only takes effect where AllowOverride permits it; on servers that
+# ignore .htaccess (or on nginx/IIS) apply the equivalent rules in the server
+# config instead. It is safe to edit - the one-click updater preserves your
+# copy and never overwrites it.
+
+# Don't serve directory listings
+Options -Indexes
+
+# config.php holds the database credentials and cookie secret. PHP includes it
+# internally, so it never needs to be fetched over HTTP - deny direct access so
+# it can't be read as source if PHP ever stops executing.
+<Files "config.php">
+	<IfModule mod_authz_core.c>
+		Require all denied
+	</IfModule>
+	<IfModule !mod_authz_core.c>
+		Order allow,deny
+		Deny from all
+	</IfModule>
+</Files>
+
+# Never hand out raw SQLite database files placed anywhere in the tree.
+<FilesMatch "\.(sqlite|sqlite3|db)$">
+	<IfModule mod_authz_core.c>
+		Require all denied
+	</IfModule>
+	<IfModule !mod_authz_core.c>
+		Order allow,deny
+		Deny from all
+	</IfModule>
+</FilesMatch>

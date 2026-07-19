@@ -36,7 +36,7 @@ if ($cur_posting['redirect_url'] != '')
 	message($lang_common['Bad request'], false, '404 Not Found');
 
 // Sort out who the moderators are and if we are currently a moderator (or an admin)
-$mods_array = ($cur_posting['moderators'] != '') ? unserialize($cur_posting['moderators']) : array();
+$mods_array = ($cur_posting['moderators'] != '') ? unserialize($cur_posting['moderators'], array('allowed_classes' => false)) : array();
 $is_admmod = ($pun_user['g_id'] == PUN_ADMIN || ($pun_user['g_moderator'] == '1' && array_key_exists($pun_user['username'], $mods_array))) ? true : false;
 
 if ($tid && $pun_config['o_censoring'] == '1')

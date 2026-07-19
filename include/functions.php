@@ -154,8 +154,12 @@ function authenticate_user($user, $password, $password_is_hash = false)
 	$result = $db->query('SELECT u.*, g.*, o.logged, o.idle FROM '.$db->prefix.'users AS u INNER JOIN '.$db->prefix.'groups AS g ON g.g_id=u.group_id LEFT JOIN '.$db->prefix.'online AS o ON o.user_id=u.id WHERE '.(is_int($user) ? 'u.id='.intval($user) : 'u.username=\''.$db->escape($user).'\'')) or error('Unable to fetch user info', __FILE__, __LINE__, $db->error());
 	$pun_user = $db->fetch_assoc($result);
 
-	$is_password_authorized = hash_equals($password, $pun_user['password']);
-	$is_hash_authorized = flux_password_verify($password, $pun_user['password']);
+	// No matching user - fetch_assoc() returned false, so there is no stored
+	// hash to compare against. Guard the string comparisons (they would raise
+	// a TypeError on null under PHP 8) and fall through to the guest user.
+	$stored_hash = isset($pun_user['password']) ? $pun_user['password'] : '';
+	$is_password_authorized = hash_equals($stored_hash, (string) $password);
+	$is_hash_authorized = $stored_hash !== '' && flux_password_verify($password, $stored_hash);
 
 	if (!isset($pun_user['id']) ||
 		($password_is_hash && !$is_password_authorized ||
@@ -338,7 +342,17 @@ function forum_setcookie($name, $value, $expire)
 	// Enable sending of a P3P header
 	header('P3P: CP="CUR ADM"');
 
-	setcookie($name, $value, $expire, $cookie_path, $cookie_domain, $cookie_secure, true);
+	// SameSite=Lax keeps the auth cookie off cross-site POSTs, so a forged
+	// request from another origin arrives unauthenticated - a strong,
+	// browser-enforced layer on top of the referrer check.
+	setcookie($name, $value, array(
+		'expires'	=> $expire,
+		'path'		=> $cookie_path,
+		'domain'	=> $cookie_domain,
+		'secure'	=> (bool) $cookie_secure,
+		'httponly'	=> true,
+		'samesite'	=> 'Lax',
+	));
 }
 
 

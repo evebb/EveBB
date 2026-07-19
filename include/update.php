@@ -34,6 +34,15 @@ function evebb_update_api_url()
 //
 function evebb_http_get($url, $timeout = 30)
 {
+	// The updater downloads code and then runs it, so it must only fetch over
+	// HTTPS. The one exception is a loopback address (a local mirror on the
+	// same host), which cannot be man-in-the-middled. Everything remote must
+	// be HTTPS - plain HTTP (and any other scheme) to a remote host is refused.
+	$host = parse_url($url, PHP_URL_HOST);
+	$is_loopback = in_array($host, array('127.0.0.1', '::1', 'localhost'), true);
+	if (!$is_loopback && stripos($url, 'https://') !== 0)
+		return false;
+
 	if (function_exists('curl_init'))
 	{
 		$ch = curl_init($url);
@@ -45,6 +54,16 @@ function evebb_http_get($url, $timeout = 30)
 			CURLOPT_CONNECTTIMEOUT	=> 10,
 			CURLOPT_USERAGENT		=> 'eveBB-updater/'.FORUM_VERSION,
 			CURLOPT_HTTPHEADER		=> array('Accept: application/vnd.github+json, application/octet-stream, */*'),
+			// Always verify the peer certificate and hostname on HTTPS, and
+			// never let a redirect downgrade to plain HTTP - the updater fetches
+			// and then runs code, so an unverified/downgraded transport must be
+			// refused even on a host whose php.ini would otherwise relax it.
+			// (The initial-URL guard above already blocks remote plain HTTP;
+			// allowing CURLPROTO_HTTP here only covers a loopback mirror.)
+			CURLOPT_SSL_VERIFYPEER	=> true,
+			CURLOPT_SSL_VERIFYHOST	=> 2,
+			CURLOPT_PROTOCOLS		=> CURLPROTO_HTTPS | CURLPROTO_HTTP,
+			CURLOPT_REDIR_PROTOCOLS	=> CURLPROTO_HTTPS,
 		));
 		$body = curl_exec($ch);
 		$status = curl_getinfo($ch, CURLINFO_RESPONSE_CODE);
@@ -55,11 +74,21 @@ function evebb_http_get($url, $timeout = 30)
 
 	if (ini_get('allow_url_fopen'))
 	{
-		$context = stream_context_create(array('http' => array(
-			'timeout'			=> $timeout,
-			'follow_location'	=> 1,
-			'header'			=> "User-Agent: eveBB-updater/".FORUM_VERSION."\r\nAccept: application/vnd.github+json, application/octet-stream, */*\r\n",
-		)));
+		$context = stream_context_create(array(
+			'http' => array(
+				'timeout'			=> $timeout,
+				'follow_location'	=> 1,
+				'max_redirects'		=> 5,
+				'protocol_version'	=> 1.1,
+				'header'			=> "User-Agent: eveBB-updater/".FORUM_VERSION."\r\nAccept: application/vnd.github+json, application/octet-stream, */*\r\n",
+			),
+			// Verify the certificate and hostname on the fallback path too
+			'ssl' => array(
+				'verify_peer'		=> true,
+				'verify_peer_name'	=> true,
+				'allow_self_signed'	=> false,
+			),
+		));
 		$body = @file_get_contents($url, false, $context);
 
 		return ($body !== false) ? $body : false;
@@ -168,6 +197,7 @@ function evebb_update_preserved_paths()
 {
 	return array(
 		'config.php',
+		'.htaccess',	// admins customise this; never overwrite it on update
 		'img/avatars',
 		'cache',
 		'.git',

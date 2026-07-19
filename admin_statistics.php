@@ -26,11 +26,6 @@ $action = isset($_GET['action']) ? $_GET['action'] : null;
 // Get the server load averages (if possible)
 if (@file_exists('/proc/loadavg') && is_readable('/proc/loadavg'))
 {
-	// We use @ just in case
-	$fh = @fopen('/proc/loadavg', 'r');
-	$load_averages = @fread($fh, 64);
-	@fclose($fh);
-
 	if (($fh = @fopen('/proc/loadavg', 'r')))
 	{
 		$load_averages = fread($fh, 64);
@@ -42,8 +37,6 @@ if (@file_exists('/proc/loadavg') && is_readable('/proc/loadavg'))
 	$load_averages = @explode(' ', $load_averages);
 	$server_load = isset($load_averages[2]) ? $load_averages[0].' '.$load_averages[1].' '.$load_averages[2] : $lang_admin_index['Not available'];
 }
-else if (!in_array(PHP_OS, array('WINNT', 'WIN32')) && preg_match('%averages?: ([0-9\.]+),?\s+([0-9\.]+),?\s+([0-9\.]+)%i', @exec('uptime'), $load_averages))
-	$server_load = $load_averages[1].' '.$load_averages[2].' '.$load_averages[3];
 else
 	$server_load = $lang_admin_index['Not available'];
 
@@ -90,18 +83,6 @@ if ($opcache_enabled)
 	$php_accelerator = '<a href="http://'.$lang_admin_index['Zend OPcache link'].'">'.$lang_admin_index['Zend OPcache'].'</a>';
 else if (extension_loaded('apcu') && ini_get('apc.enabled'))
 	$php_accelerator = '<a href="http://'.$lang_admin_index['APCu link'].'">'.$lang_admin_index['APCu'].'</a>';
-else if (function_exists('mmcache'))
-	$php_accelerator = '<a href="http://'.$lang_admin_index['Turck MMCache link'].'">'.$lang_admin_index['Turck MMCache'].'</a>';
-else if (isset($_PHPA))
-	$php_accelerator = '<a href="http://'.$lang_admin_index['ionCube PHP Accelerator link'].'">'.$lang_admin_index['ionCube PHP Accelerator'].'</a>';
-else if (ini_get('apc.enabled'))
-	$php_accelerator ='<a href="http://'.$lang_admin_index['Alternative PHP Cache (APC) link'].'">'.$lang_admin_index['Alternative PHP Cache (APC)'].'</a>';
-else if (ini_get('zend_optimizer.optimization_level'))
-	$php_accelerator = '<a href="http://'.$lang_admin_index['Zend Optimizer link'].'">'.$lang_admin_index['Zend Optimizer'].'</a>';
-else if (ini_get('eaccelerator.enable'))
-	$php_accelerator = '<a href="http://'.$lang_admin_index['eAccelerator link'].'">'.$lang_admin_index['eAccelerator'].'</a>';
-else if (ini_get('xcache.cacher'))
-	$php_accelerator = '<a href="http://'.$lang_admin_index['XCache link'].'">'.$lang_admin_index['XCache'].'</a>';
 
 
 $page_title = array(pun_htmlspecialchars($pun_config['o_board_title']), $lang_admin_common['Admin'], $lang_admin_common['Server statistics']);

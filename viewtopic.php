@@ -91,7 +91,7 @@ if (!$db->has_rows($result))
 $cur_topic = $db->fetch_assoc($result);
 
 // Sort out who the moderators are and if we are currently a moderator (or an admin)
-$mods_array = ($cur_topic['moderators'] != '') ? unserialize($cur_topic['moderators']) : array();
+$mods_array = ($cur_topic['moderators'] != '') ? unserialize($cur_topic['moderators'], array('allowed_classes' => false)) : array();
 $is_admmod = ($pun_user['g_id'] == PUN_ADMIN || ($pun_user['g_moderator'] == '1' && array_key_exists($pun_user['username'], $mods_array))) ? true : false;
 if ($is_admmod)
 	$admin_ids = get_admin_ids();

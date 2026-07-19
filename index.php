@@ -158,7 +158,7 @@ while ($cur_forum = $db->fetch_assoc($result))
 
 	if ($cur_forum['moderators'] != '')
 	{
-		$mods_array = unserialize($cur_forum['moderators']);
+		$mods_array = unserialize($cur_forum['moderators'], array('allowed_classes' => false));
 		$moderators = array();
 
 		foreach ($mods_array as $mod_username => $mod_id)

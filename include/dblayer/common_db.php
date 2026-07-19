@@ -14,7 +14,6 @@ if (!defined('PUN'))
 // Load and create the appropriate DB adapter (and open/connect to/select db)
 switch ($db_type)
 {
-	case 'mysql':
 	case 'mysqli':
 		require_once PUN_ROOT.'include/dblayer/mysqli.php';
 		$db = new MysqlDBLayer($db_host, $db_username, $db_password, $db_name, $db_prefix, $p_connect);

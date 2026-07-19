@@ -10,7 +10,7 @@ if (!defined('PUN_ROOT'))
 	exit('The constant PUN_ROOT must be defined and point to a valid eveBB installation root directory.');
 
 // Define the version and database revision that this code was written for
-define('FORUM_VERSION', '1.19.0-alpha');
+define('FORUM_VERSION', '1.20.0-alpha');
 
 define('FORUM_DB_REVISION', 25);
 define('FORUM_SI_REVISION', 2);
@@ -60,8 +60,6 @@ forum_remove_bad_characters();
 // The addon manager is responsible for storing the hook listeners and communicating with the addons
 $flux_addons = new flux_addon_manager();
 
-// Seed the random number generator for systems where this does not happen automatically
-mt_srand();
 // Make sure PHP reports all errors except E_NOTICE. eveBB supports E_ALL, but a lot of scripts it may interact with, do not
 error_reporting(E_ALL ^ E_NOTICE);
 

@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script updates to
-define('UPDATE_TO', '1.19.0-alpha');
+define('UPDATE_TO', '1.20.0-alpha');
 
 define('UPDATE_TO_DB_REVISION', 25);
 define('UPDATE_TO_SI_REVISION', 2);
@@ -631,26 +631,26 @@ $lock_error = false;
 // Generate or fetch the UID - this confirms we have a valid admin
 if (isset($_POST['req_db_pass']))
 {
-	$req_db_pass = strtolower(pun_trim($_POST['req_db_pass']));
+	$req_db_pass = pun_trim($_POST['req_db_pass']);
 
 	switch ($db_type)
 	{
 		// For SQLite we compare against the database file name, since the password is left blank
 		case 'sqlite':
-			if ($req_db_pass != strtolower($db_name))
+			if (!hash_equals((string) $db_name, (string) $req_db_pass))
 				error(sprintf($lang_update['Invalid file error'], 'config.php'));
 
 			break;
-		// For everything else, check the password matches
+		// For everything else, check the password matches (exact, constant time)
 		default:
-			if ($req_db_pass != strtolower($db_password))
+			if (!hash_equals((string) $db_password, (string) $req_db_pass))
 				error(sprintf($lang_update['Invalid password error'], 'config.php'));
 
 			break;
 	}
 
 	// Generate a unique id to identify this session, only if this is a valid session
-	$uid = pun_hash($req_db_pass.'|'.uniqid(rand(), true));
+	$uid = pun_hash($req_db_pass.'|'.random_key(40, false, true));
 	if ($lock) // We already have a lock file
 		$lock_error = true;
 	else // Create the lock file
@@ -1316,7 +1316,7 @@ switch ($stage)
 
 		function _conv_forums($cur_item, $old_charset)
 		{
-			$moderators = ($cur_item['moderators'] != '') ? unserialize($cur_item['moderators']) : array();
+			$moderators = ($cur_item['moderators'] != '') ? unserialize($cur_item['moderators'], array('allowed_classes' => false)) : array();
 			$moderators_utf8 = array();
 			foreach ($moderators as $mod_username => $mod_user_id)
 			{
@@ -1624,7 +1624,7 @@ switch ($stage)
 
 						while ($cur_forum = $db->fetch_assoc($result))
 						{
-							$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators']) : array();
+							$cur_moderators = ($cur_forum['moderators'] != '') ? unserialize($cur_forum['moderators'], array('allowed_classes' => false)) : array();
 
 							if (in_array($id, $cur_moderators))
 							{

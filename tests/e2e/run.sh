@@ -329,6 +329,40 @@ assert_contains "$ROOT/js/sceditor/themes/content/evebb.css" 'img[data-sceditor-
 curl -s -b "$JAR" "$BASE/post.php?tid=2" -o "$TMP/wyzcss.html"
 assert_contains "$TMP/wyzcss.html" 'themes/content/evebb.css' "editor loads the eveBB content stylesheet"
 
+# --- security hardening ----------------------------------------------------
+# the auth cookie is issued with SameSite=Lax (browser-enforced CSRF layer)
+TOKC=$(curl -s -c "$TMP/sc.jar" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+curl -s -c "$TMP/sc.jar" -b "$TMP/sc.jar" -e "$BASE/login.php" -D "$TMP/sc.hdr" -o /dev/null -L "$BASE/login.php?action=in" \
+  --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKC" \
+  --data-urlencode "req_username=admin" --data-urlencode "req_password=adminpass123" \
+  --data-urlencode "save_pass=1" --data-urlencode "login=Login" --data-urlencode "redirect_url=$BASE/index.php"
+if grep -iqE 'set-cookie:.*samesite=lax' "$TMP/sc.hdr"; then ok "auth cookie sets SameSite=Lax"; else fail "auth cookie sets SameSite=Lax"; fi
+
+# uploaded avatars are re-encoded through GD, so an image/PHP polyglot cannot
+# survive on disk as executable content
+rm -f "$ROOT"/img/avatars/2.*
+php -r '$im=imagecreatetruecolor(80,80);imagefill($im,0,0,imagecolorallocate($im,10,120,60));imagepng($im,$argv[1]); file_put_contents($argv[1], "\n<?php echo \"POLYGLOT_MARKER\"; ?>\n", FILE_APPEND);' "$TMP/poly.png"
+grep -qF 'POLYGLOT_MARKER' "$TMP/poly.png" && ok "polyglot test image really contains PHP" || fail "polyglot test image really contains PHP"
+curl -s -b "$JAR" -e "$BASE/profile.php?action=upload_avatar&id=2" \
+  -F "form_sent=1" -F "req_file=@$TMP/poly.png;type=image/png" \
+  "$BASE/profile.php?action=upload_avatar2&id=2" -o /dev/null
+STORED=$(ls "$ROOT"/img/avatars/2.* 2>/dev/null | head -1)
+if [ -n "$STORED" ] && ! grep -qF 'POLYGLOT_MARKER' "$STORED" && ! grep -qF '<?php' "$STORED"; then
+  ok "avatar re-encode strips appended PHP (no polyglot on disk)"
+else
+  fail "avatar re-encode strips appended PHP (no polyglot on disk)"
+fi
+rm -f "$ROOT"/img/avatars/2.*
+
+# baseline .htaccess ships and denies direct access to config.php
+[ -f "$ROOT/.htaccess" ] && ok ".htaccess shipped" || fail ".htaccess shipped"
+assert_contains "$ROOT/.htaccess" 'config.php' ".htaccess protects config.php"
+
+# the PDO-MySQL driver is reachable (single 'mysql' case, mapped to the PDO layer)
+MYSQLCASES=$(grep -c "case 'mysql':" "$ROOT/include/dblayer/common_db.php")
+[ "$MYSQLCASES" = "1" ] && ok "single 'mysql' driver case (PDO reachable)" || fail "single 'mysql' driver case (got $MYSQLCASES)"
+assert_contains "$ROOT/include/dblayer/common_db.php" 'MysqlPdoDBLayer' "'mysql' maps to the PDO driver"
+
 # --- admin + misc pages ----------------------------------------------------
 for p in userlist.php help.php "extern.php?action=feed&type=atom" admin_index.php admin_options.php admin_users.php admin_maintenance.php; do
   code=$(curl -s -b "$JAR" -e "$BASE/index.php" -o "$TMP/page.html" -w "%{http_code}" "$BASE/$p")
