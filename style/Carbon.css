@@ -545,6 +545,11 @@ html, body, .pun table, .pun div, .pun form, .pun p, .pun h1, .pun h2, .pun h3, 
 	position: relative;
 }
 
+/* Breathing room between category sections on the board index */
+#punindex #brdmain .blocktable {
+	margin-bottom: 18px;
+}
+
 #punindex #brdmain .blocktable h2, #punsearch #vf h2 {
 	font: 1em/1.462em Arial, Helvetica, sans-serif;
 	font-weight: bold;
