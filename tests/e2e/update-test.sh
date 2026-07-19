@@ -46,7 +46,7 @@ echo "== self-updater e2e =="
 mkdir -p "$OLD"
 # exclude any config.php / caches a previous test run left in the tree —
 # with a config.php present the installer would silently skip
-tar -C "$ROOT" --exclude=.git --exclude=tests --exclude=.github \
+tar -C "$ROOT" --exclude=.git --exclude=tests --exclude=.github --exclude=website \
     --exclude=config.php --exclude='cache/cache_*.php' -cf - . | tar -C "$OLD" -xf -
 rm -f "$OLD/config.php" "$OLD"/cache/cache_*.php
 # Lower the version in BOTH files so the installed database records the
@@ -58,7 +58,7 @@ grep -q "0.9.0" "$OLD/include/common.php" && ok "old install prepared (0.9.0)" |
 # --- build the release package + feed --------------------------------------
 PKG="$WORK/feed/evebb-$CURRENT_VERSION.zip"
 mkdir -p "$WORK/feed"
-(cd "$ROOT" && zip -rq "$PKG" . -x '.git/*' -x 'tests/*' -x '.github/*' -x 'config.php' -x 'cache/cache_*.php')
+(cd "$ROOT" && zip -rq "$PKG" . -x '.git/*' -x 'tests/*' -x '.github/*' -x 'website/*' -x 'config.php' -x 'cache/cache_*.php')
 # publish a SHA-256 checksum alongside the package, exactly as release.yml does
 (cd "$WORK/feed" && sha256sum "evebb-$CURRENT_VERSION.zip" > "evebb-$CURRENT_VERSION.zip.sha256")
 GOOD_SHA=$(cut -d' ' -f1 "$WORK/feed/evebb-$CURRENT_VERSION.zip.sha256")

@@ -23,7 +23,7 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           PKG="evebb-$VERSION.zip"
           zip -rq "$PKG" . \
-            -x '.git/*' -x 'tests/*' -x '.github/*' -x 'evebb-*.zip'
+            -x '.git/*' -x 'tests/*' -x '.github/*' -x 'website/*' -x 'evebb-*.zip'
           echo "Built $PKG ($(du -h "$PKG" | cut -f1))"
 
       - name: Generate SHA-256 checksum
