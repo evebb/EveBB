@@ -7,9 +7,9 @@
  */
 
 // The eveBB version this script updates to
-define('UPDATE_TO', '1.21.0-alpha');
+define('UPDATE_TO', '1.23.0-alpha');
 
-define('UPDATE_TO_DB_REVISION', 27);
+define('UPDATE_TO_DB_REVISION', 28);
 define('UPDATE_TO_SI_REVISION', 2);
 define('UPDATE_TO_PARSER_REVISION', 2);
 
@@ -753,6 +753,21 @@ switch ($stage)
 
 		// Drop g_edit_subjects_interval column from groups table
 		$db->drop_field('groups', 'g_edit_subjects_interval');
+
+		// eveBB (DB revision 28): replace the legacy messaging contacts
+		// (Jabber, ICQ, MSN, Yahoo) with modern messaging/social services.
+		// The old columns and any data in them are dropped. All of these
+		// helpers are existence-checked, so re-running is safe.
+		$db->add_field('users', 'discord', 'VARCHAR(40)', true, null, 'url') or error('Unable to add discord field', __FILE__, __LINE__, $db->error());
+		$db->add_field('users', 'telegram', 'VARCHAR(40)', true, null, 'discord') or error('Unable to add telegram field', __FILE__, __LINE__, $db->error());
+		$db->add_field('users', 'signal_id', 'VARCHAR(40)', true, null, 'telegram') or error('Unable to add signal_id field', __FILE__, __LINE__, $db->error());
+		$db->add_field('users', 'twitter', 'VARCHAR(20)', true, null, 'signal_id') or error('Unable to add twitter field', __FILE__, __LINE__, $db->error());
+		$db->add_field('users', 'mastodon', 'VARCHAR(120)', true, null, 'twitter') or error('Unable to add mastodon field', __FILE__, __LINE__, $db->error());
+		$db->add_field('users', 'bluesky', 'VARCHAR(120)', true, null, 'mastodon') or error('Unable to add bluesky field', __FILE__, __LINE__, $db->error());
+		$db->drop_field('users', 'jabber') or error('Unable to drop jabber field', __FILE__, __LINE__, $db->error());
+		$db->drop_field('users', 'icq') or error('Unable to drop icq field', __FILE__, __LINE__, $db->error());
+		$db->drop_field('users', 'msn') or error('Unable to drop msn field', __FILE__, __LINE__, $db->error());
+		$db->drop_field('users', 'yahoo') or error('Unable to drop yahoo field', __FILE__, __LINE__, $db->error());
 
 		// Add database revision number
 		if (!array_key_exists('o_database_revision', $pun_config))

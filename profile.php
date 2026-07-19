@@ -892,15 +892,13 @@ else if (isset($_POST['form_sent']))
 		case 'messaging':
 		{
 			$form = array(
-				'jabber'		=> pun_trim($_POST['form']['jabber']),
-				'icq'			=> pun_trim($_POST['form']['icq']),
-				'msn'			=> pun_trim($_POST['form']['msn']),
-				'yahoo'			=> pun_trim($_POST['form']['yahoo']),
+				'discord'		=> pun_trim($_POST['form']['discord']),
+				'telegram'		=> pun_trim($_POST['form']['telegram']),
+				'signal_id'		=> pun_trim($_POST['form']['signal_id']),
+				'twitter'		=> pun_trim($_POST['form']['twitter']),
+				'mastodon'		=> pun_trim($_POST['form']['mastodon']),
+				'bluesky'		=> pun_trim($_POST['form']['bluesky']),
 			);
-
-			// If the ICQ UIN contains anything other than digits it's invalid
-			if (preg_match('%[^0-9]%', $form['icq']))
-				message($lang_prof_reg['Bad ICQ']);
 
 			break;
 		}
@@ -1082,7 +1080,7 @@ else if (isset($_POST['form_sent']))
 flux_hook('profile_after_form_handling');
 
 
-$result = $db->query('SELECT u.username, u.email, u.title, u.realname, u.url, u.jabber, u.icq, u.msn, u.yahoo, u.location, u.country, u.birthday, u.signature, u.disp_topics, u.disp_posts, u.email_setting, u.notify_with_post, u.auto_notify, u.show_smilies, u.show_img, u.show_img_sig, u.show_avatars, u.show_sig, u.timezone, u.dst, u.language, u.style, u.num_posts, u.last_post, u.registered, u.registration_ip, u.admin_note, u.date_format, u.time_format, u.last_visit, g.g_id, g.g_user_title, g.g_moderator FROM '.$db->prefix.'users AS u LEFT JOIN '.$db->prefix.'groups AS g ON g.g_id=u.group_id WHERE u.id='.$id) or error('Unable to fetch user info', __FILE__, __LINE__, $db->error());
+$result = $db->query('SELECT u.username, u.email, u.title, u.realname, u.url, u.discord, u.telegram, u.signal_id, u.twitter, u.mastodon, u.bluesky, u.location, u.country, u.birthday, u.signature, u.disp_topics, u.disp_posts, u.email_setting, u.notify_with_post, u.auto_notify, u.show_smilies, u.show_img, u.show_img_sig, u.show_avatars, u.show_sig, u.timezone, u.dst, u.language, u.style, u.num_posts, u.last_post, u.registered, u.registration_ip, u.admin_note, u.date_format, u.time_format, u.last_visit, g.g_id, g.g_user_title, g.g_moderator FROM '.$db->prefix.'users AS u LEFT JOIN '.$db->prefix.'groups AS g ON g.g_id=u.group_id WHERE u.id='.$id) or error('Unable to fetch user info', __FILE__, __LINE__, $db->error());
 if (!$db->has_rows($result))
 	message($lang_common['Bad request'], false, '404 Not Found');
 
@@ -1159,28 +1157,13 @@ if ($pun_user['id'] != $id &&																	// If we aren't the user (i.e. edi
 
 	$user_messaging = array();
 
-	if ($user['jabber'] != '')
+	foreach (array('discord' => 'Discord', 'telegram' => 'Telegram', 'signal_id' => 'Signal', 'twitter' => 'Twitter', 'mastodon' => 'Mastodon', 'bluesky' => 'Bluesky') as $messaging_field => $messaging_lang_key)
 	{
-		$user_messaging[] = '<dt>'.$lang_profile['Jabber'].'</dt>';
-		$user_messaging[] = '<dd>'.pun_htmlspecialchars(($pun_config['o_censoring'] == '1') ? censor_words($user['jabber']) : $user['jabber']).'</dd>';
-	}
-
-	if ($user['icq'] != '')
-	{
-		$user_messaging[] = '<dt>'.$lang_profile['ICQ'].'</dt>';
-		$user_messaging[] = '<dd>'.$user['icq'].'</dd>';
-	}
-
-	if ($user['msn'] != '')
-	{
-		$user_messaging[] = '<dt>'.$lang_profile['MSN'].'</dt>';
-		$user_messaging[] = '<dd>'.pun_htmlspecialchars(($pun_config['o_censoring'] == '1') ? censor_words($user['msn']) : $user['msn']).'</dd>';
-	}
-
-	if ($user['yahoo'] != '')
-	{
-		$user_messaging[] = '<dt>'.$lang_profile['Yahoo'].'</dt>';
-		$user_messaging[] = '<dd>'.pun_htmlspecialchars(($pun_config['o_censoring'] == '1') ? censor_words($user['yahoo']) : $user['yahoo']).'</dd>';
+		if ($user[$messaging_field] != '')
+		{
+			$user_messaging[] = '<dt>'.$lang_profile[$messaging_lang_key].'</dt>';
+			$user_messaging[] = '<dd>'.pun_htmlspecialchars(($pun_config['o_censoring'] == '1') ? censor_words($user[$messaging_field]) : $user[$messaging_field]).'</dd>';
+		}
 	}
 
 	$user_personality = array();
@@ -1572,10 +1555,12 @@ else
 						<legend><?php echo $lang_profile['Contact details legend'] ?></legend>
 						<div class="infldset">
 							<input type="hidden" name="form_sent" value="1" />
-							<label><?php echo $lang_profile['Jabber'] ?><br /><input id="jabber" type="text" name="form[jabber]" value="<?php echo pun_htmlspecialchars($user['jabber']) ?>" size="40" maxlength="75" /><br /></label>
-							<label><?php echo $lang_profile['ICQ'] ?><br /><input id="icq" type="text" name="form[icq]" value="<?php echo $user['icq'] ?>" size="12" maxlength="12" /><br /></label>
-							<label><?php echo $lang_profile['MSN'] ?><br /><input id="msn" type="text" name="form[msn]" value="<?php echo pun_htmlspecialchars($user['msn']) ?>" size="40" maxlength="50" /><br /></label>
-							<label><?php echo $lang_profile['Yahoo'] ?><br /><input id="yahoo" type="text" name="form[yahoo]" value="<?php echo pun_htmlspecialchars($user['yahoo']) ?>" size="20" maxlength="30" /><br /></label>
+							<label><?php echo $lang_profile['Discord'] ?><br /><input id="discord" type="text" name="form[discord]" value="<?php echo pun_htmlspecialchars($user['discord']) ?>" size="40" maxlength="40" /><br /></label>
+							<label><?php echo $lang_profile['Telegram'] ?><br /><input id="telegram" type="text" name="form[telegram]" value="<?php echo pun_htmlspecialchars($user['telegram']) ?>" size="40" maxlength="40" /><br /></label>
+							<label><?php echo $lang_profile['Signal'] ?><br /><input id="signal_id" type="text" name="form[signal_id]" value="<?php echo pun_htmlspecialchars($user['signal_id']) ?>" size="40" maxlength="40" /><br /></label>
+							<label><?php echo $lang_profile['Twitter'] ?><br /><input id="twitter" type="text" name="form[twitter]" value="<?php echo pun_htmlspecialchars($user['twitter']) ?>" size="20" maxlength="20" /><br /></label>
+							<label><?php echo $lang_profile['Mastodon'] ?><br /><input id="mastodon" type="text" name="form[mastodon]" value="<?php echo pun_htmlspecialchars($user['mastodon']) ?>" size="40" maxlength="120" /><br /></label>
+							<label><?php echo $lang_profile['Bluesky'] ?><br /><input id="bluesky" type="text" name="form[bluesky]" value="<?php echo pun_htmlspecialchars($user['bluesky']) ?>" size="40" maxlength="120" /><br /></label>
 						</div>
 					</fieldset>
 				</div>

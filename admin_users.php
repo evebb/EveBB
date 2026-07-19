@@ -769,7 +769,7 @@ else if (isset($_GET['find_user']))
 	$like_command = ($db_type == 'pgsql') ? 'ILIKE' : 'LIKE';
 	foreach ($form as $key => $input)
 	{
-		if ($input != '' && in_array($key, array('username', 'email', 'title', 'realname', 'url', 'jabber', 'icq', 'msn', 'yahoo', 'location', 'signature', 'admin_note')))
+		if ($input != '' && in_array($key, array('username', 'email', 'title', 'realname', 'url', 'discord', 'telegram', 'signal_id', 'twitter', 'mastodon', 'bluesky', 'location', 'signature', 'admin_note')))
 		{
 			$conditions[] = 'u.'.$db->escape($key).' '.$like_command.' \''.$db->escape(str_replace(array('*', '_'), array('%', '\\_'), $input)).'\'';
 			$query_str[] = 'form%5B'.$key.'%5D='.urlencode($input);
@@ -950,82 +950,90 @@ else
 									<td><input type="text" name="form[url]" size="35" maxlength="100" tabindex="6" /></td>
 								</tr>
 								<tr>
-									<th scope="row"><?php echo $lang_admin_users['Jabber label'] ?></th>
-									<td><input type="text" name="form[jabber]" size="30" maxlength="75" tabindex="7" /></td>
+									<th scope="row"><?php echo $lang_admin_users['Discord label'] ?></th>
+									<td><input type="text" name="form[discord]" size="30" maxlength="40" tabindex="7" /></td>
 								</tr>
 								<tr>
-									<th scope="row"><?php echo $lang_admin_users['ICQ label'] ?></th>
-									<td><input type="text" name="form[icq]" size="12" maxlength="12" tabindex="8" /></td>
+									<th scope="row"><?php echo $lang_admin_users['Telegram label'] ?></th>
+									<td><input type="text" name="form[telegram]" size="30" maxlength="40" tabindex="8" /></td>
 								</tr>
 								<tr>
-									<th scope="row"><?php echo $lang_admin_users['MSN label'] ?></th>
-									<td><input type="text" name="form[msn]" size="30" maxlength="50" tabindex="9" /></td>
+									<th scope="row"><?php echo $lang_admin_users['Signal label'] ?></th>
+									<td><input type="text" name="form[signal_id]" size="30" maxlength="40" tabindex="9" /></td>
 								</tr>
 								<tr>
-									<th scope="row"><?php echo $lang_admin_users['Yahoo label'] ?></th>
-									<td><input type="text" name="form[yahoo]" size="20" maxlength="20" tabindex="11" /></td>
+									<th scope="row"><?php echo $lang_admin_users['Twitter label'] ?></th>
+									<td><input type="text" name="form[twitter]" size="20" maxlength="20" tabindex="10" /></td>
+								</tr>
+								<tr>
+									<th scope="row"><?php echo $lang_admin_users['Mastodon label'] ?></th>
+									<td><input type="text" name="form[mastodon]" size="30" maxlength="120" tabindex="11" /></td>
+								</tr>
+								<tr>
+									<th scope="row"><?php echo $lang_admin_users['Bluesky label'] ?></th>
+									<td><input type="text" name="form[bluesky]" size="30" maxlength="120" tabindex="12" /></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Location label'] ?></th>
-									<td><input type="text" name="form[location]" size="30" maxlength="30" tabindex="12" /></td>
+									<td><input type="text" name="form[location]" size="30" maxlength="30" tabindex="14" /></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Signature label'] ?></th>
-									<td><input type="text" name="form[signature]" size="35" maxlength="512" tabindex="13" /></td>
+									<td><input type="text" name="form[signature]" size="35" maxlength="512" tabindex="15" /></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Admin note label'] ?></th>
-									<td><input type="text" name="form[admin_note]" size="30" maxlength="30" tabindex="14" /></td>
+									<td><input type="text" name="form[admin_note]" size="30" maxlength="30" tabindex="16" /></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Posts more than label'] ?></th>
-									<td><input type="text" name="posts_greater" size="5" maxlength="8" tabindex="15" /></td>
+									<td><input type="text" name="posts_greater" size="5" maxlength="8" tabindex="17" /></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Posts less than label'] ?></th>
-									<td><input type="text" name="posts_less" size="5" maxlength="8" tabindex="16" /></td>
+									<td><input type="text" name="posts_less" size="5" maxlength="8" tabindex="18" /></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Last post after label'] ?></th>
-									<td><input type="text" name="last_post_after" size="24" maxlength="19" tabindex="17" />
+									<td><input type="text" name="last_post_after" size="24" maxlength="19" tabindex="19" />
 									<span><?php echo $lang_admin_users['Date help'] ?></span></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Last post before label'] ?></th>
-									<td><input type="text" name="last_post_before" size="24" maxlength="19" tabindex="18" />
+									<td><input type="text" name="last_post_before" size="24" maxlength="19" tabindex="20" />
 									<span><?php echo $lang_admin_users['Date help'] ?></span></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Last visit after label'] ?></th>
-									<td><input type="text" name="last_visit_after" size="24" maxlength="19" tabindex="17" />
+									<td><input type="text" name="last_visit_after" size="24" maxlength="19" tabindex="19" />
 									<span><?php echo $lang_admin_users['Date help'] ?></span></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Last visit before label'] ?></th>
-									<td><input type="text" name="last_visit_before" size="24" maxlength="19" tabindex="18" />
+									<td><input type="text" name="last_visit_before" size="24" maxlength="19" tabindex="20" />
 									<span><?php echo $lang_admin_users['Date help'] ?></span></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Registered after label'] ?></th>
-									<td><input type="text" name="registered_after" size="24" maxlength="19" tabindex="19" />
+									<td><input type="text" name="registered_after" size="24" maxlength="19" tabindex="21" />
 									<span><?php echo $lang_admin_users['Date help'] ?></span></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Registered before label'] ?></th>
-									<td><input type="text" name="registered_before" size="24" maxlength="19" tabindex="20" />
+									<td><input type="text" name="registered_before" size="24" maxlength="19" tabindex="22" />
 									<span><?php echo $lang_admin_users['Date help'] ?></span></td>
 								</tr>
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['Order by label'] ?></th>
 									<td>
-										<select name="order_by" tabindex="21">
+										<select name="order_by" tabindex="23">
 											<option value="username" selected="selected"><?php echo $lang_admin_users['Order by username'] ?></option>
 											<option value="email"><?php echo $lang_admin_users['Order by e-mail'] ?></option>
 											<option value="num_posts"><?php echo $lang_admin_users['Order by posts'] ?></option>
 											<option value="last_post"><?php echo $lang_admin_users['Order by last post'] ?></option>
 											<option value="last_visit"><?php echo $lang_admin_users['Order by last visit'] ?></option>
 											<option value="registered"><?php echo $lang_admin_users['Order by registered'] ?></option>
-										</select>&#160;&#160;&#160;<select name="direction" tabindex="22">
+										</select>&#160;&#160;&#160;<select name="direction" tabindex="24">
 											<option value="ASC" selected="selected"><?php echo $lang_admin_users['Ascending'] ?></option>
 											<option value="DESC"><?php echo $lang_admin_users['Descending'] ?></option>
 										</select>
@@ -1034,7 +1042,7 @@ else
 								<tr>
 									<th scope="row"><?php echo $lang_admin_users['User group label'] ?></th>
 									<td>
-										<select name="user_group" tabindex="23">
+										<select name="user_group" tabindex="25">
 											<option value="-1" selected="selected"><?php echo $lang_admin_users['All groups'] ?></option>
 											<option value="0"><?php echo $lang_admin_users['Unverified users'] ?></option>
 <?php
@@ -1052,7 +1060,7 @@ else
 						</div>
 					</fieldset>
 				</div>
-				<p class="submitend"><input type="submit" name="find_user" value="<?php echo $lang_admin_users['Submit search'] ?>" tabindex="25" /></p>
+				<p class="submitend"><input type="submit" name="find_user" value="<?php echo $lang_admin_users['Submit search'] ?>" tabindex="27" /></p>
 			</form>
 		</div>
 
@@ -1065,8 +1073,8 @@ else
 						<div class="infldset">
 							<table class="aligntop">
 								<tr>
-									<th scope="row"><?php echo $lang_admin_users['IP address label'] ?><div><input type="submit" value="<?php echo $lang_admin_users['Find IP address'] ?>" tabindex="26" /></div></th>
-									<td><input type="text" name="show_users" size="18" maxlength="15" tabindex="24" />
+									<th scope="row"><?php echo $lang_admin_users['IP address label'] ?><div><input type="submit" value="<?php echo $lang_admin_users['Find IP address'] ?>" tabindex="28" /></div></th>
+									<td><input type="text" name="show_users" size="18" maxlength="15" tabindex="26" />
 									<span><?php echo $lang_admin_users['IP address help'] ?></span></td>
 								</tr>
 							</table>

@@ -48,7 +48,6 @@ $lang_prof_reg = array(
 'Dupe email'				=>	'Someone else is already registered with that email address. Please choose another email address.',
 'Sig too long'				=>	'Signatures cannot be longer than %1$s characters. Please reduce your signature by %2$s characters.',
 'Sig too many lines'		=>	'Signatures cannot have more than %s lines.',
-'Bad ICQ'					=>	'You entered an invalid ICQ UIN. Please go back and correct.',
 
 'UTC-12:00'					=>	'(UTC-12:00) International Date Line West',
 'UTC-11:00'					=>	'(UTC-11:00) Niue, Samoa',

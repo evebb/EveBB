@@ -7,9 +7,9 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.22.0-alpha');
+define('FORUM_VERSION', '1.23.0-alpha');
 
-define('FORUM_DB_REVISION', 27);
+define('FORUM_DB_REVISION', 28);
 define('FORUM_SI_REVISION', 2);
 define('FORUM_PARSER_REVISION', 2);
 
@@ -1360,20 +1360,28 @@ else
 				'datatype'		=> 'VARCHAR(100)',
 				'allow_null'	=> true
 			),
-			'jabber'			=> array(
-				'datatype'		=> 'VARCHAR(80)',
+			'discord'			=> array(
+				'datatype'		=> 'VARCHAR(40)',
 				'allow_null'	=> true
 			),
-			'icq'				=> array(
-				'datatype'		=> 'VARCHAR(12)',
+			'telegram'			=> array(
+				'datatype'		=> 'VARCHAR(40)',
 				'allow_null'	=> true
 			),
-			'msn'				=> array(
-				'datatype'		=> 'VARCHAR(80)',
+			'signal_id'			=> array(
+				'datatype'		=> 'VARCHAR(40)',
 				'allow_null'	=> true
 			),
-			'yahoo'				=> array(
-				'datatype'		=> 'VARCHAR(30)',
+			'twitter'			=> array(
+				'datatype'		=> 'VARCHAR(20)',
+				'allow_null'	=> true
+			),
+			'mastodon'			=> array(
+				'datatype'		=> 'VARCHAR(120)',
+				'allow_null'	=> true
+			),
+			'bluesky'			=> array(
+				'datatype'		=> 'VARCHAR(120)',
 				'allow_null'	=> true
 			),
 			'location'			=> array(
