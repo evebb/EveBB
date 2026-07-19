@@ -1,0 +1,23 @@
+# evebb.net — steer crawlers at the content, away from the machinery.
+# The forum's real content lives in index.php, viewforum.php and
+# viewtopic.php; everything below is either actions, duplicates of
+# content available elsewhere, or pages useless in a search result.
+
+User-agent: *
+Disallow: /search.php
+Disallow: /misc.php
+Disallow: /post.php
+Disallow: /edit.php
+Disallow: /delete.php
+Disallow: /moderate.php
+Disallow: /login.php
+Disallow: /register.php
+Disallow: /profile.php
+Disallow: /userlist.php
+Disallow: /help.php
+Disallow: /captcha.php
+Disallow: /extern.php
+Disallow: /db_update.php
+Disallow: /admin_
+
+Sitemap: https://evebb.net/sitemap.php
