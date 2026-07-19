@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.23.1-alpha');
+define('FORUM_VERSION', '1.23.2-alpha');
 
 define('FORUM_DB_REVISION', 28);
 define('FORUM_SI_REVISION', 2);

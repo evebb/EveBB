@@ -35,6 +35,16 @@ jobs:
           sha256sum "$PKG" > "$PKG.sha256"
           echo "SHA-256: $(cut -d' ' -f1 "$PKG.sha256")"
 
+      - name: Stable-name copy for the permanent download link
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          # A byte-identical copy under a fixed name, so
+          #   https://github.com/evebb/EveBB/releases/latest/download/evebb-latest.zip
+          # is a permanent direct-download URL for the newest release
+          # (used by the evebb.net landing page).
+          cp "evebb-$VERSION.zip" evebb-latest.zip
+          sha256sum evebb-latest.zip > evebb-latest.zip.sha256
+
       - name: Sign the checksum (optional)
         if: ${{ env.GPG_PRIVATE_KEY != '' }}
         run: |
@@ -57,7 +67,11 @@ jobs:
             evebb-*.zip
             evebb-*.zip.sha256
             evebb-*.zip.sha256.asc
-          prerelease: ${{ contains(github.ref_name, '-') }}
+          # Published as a full release (not prerelease): GitHub's
+          # /releases/latest and its /latest/download/* permanent URLs only
+          # resolve to non-prerelease releases, and the newest tag IS the
+          # project's official current release.
+          prerelease: false
           generate_release_notes: true
           fail_on_unmatched_files: false
           append_body: true

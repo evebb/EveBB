@@ -262,7 +262,7 @@ footer a:hover { color: var(--orange); }
 			<a href="#start">Get started</a>
 			<a href="index.php">Community &amp; support</a>
 			<a href="https://github.com/evebb/EveBB">GitHub</a>
-			<a class="cta" href="https://github.com/evebb/EveBB/releases/latest">Download</a>
+			<a class="cta" href="https://github.com/evebb/EveBB/releases/latest/download/evebb-latest.zip">Download</a>
 		</nav>
 	</div>
 </header>
@@ -272,7 +272,7 @@ footer a:hover { color: var(--orange); }
 		<h1>Forum software that's <em>fast</em>, <em>light</em> and yours to keep</h1>
 		<p class="lead">eveBB is free, open-source forum software for your website — the modern continuation of FluxBB, rebuilt for today's PHP. Fewer features, faster pages, and code you can actually read.</p>
 		<div class="btnrow">
-			<a class="btn primary" id="dl-btn" href="https://github.com/evebb/EveBB/releases/latest">Download eveBB</a>
+			<a class="btn primary" id="dl-btn" href="https://github.com/evebb/EveBB/releases/latest/download/evebb-latest.zip">Download eveBB</a>
 			<a class="btn ghost" href="index.php">Visit the community</a>
 		</div>
 		<p class="sub" id="dl-sub">Free &amp; open source (GPL) &middot; PHP 8.1+ &middot; MySQL, PostgreSQL or a single SQLite file</p>
@@ -309,7 +309,7 @@ footer a:hover { color: var(--orange); }
 		<h2>Online in five minutes</h2>
 		<p class="sectionlead">No build steps, no framework stack, no command line required — it's the classic upload-and-go install.</p>
 		<div class="steps">
-			<div class="step"><span class="n"></span><div><h3>Download the latest release</h3><p>Grab <span id="pkg-name">the release package</span> from the <a href="https://github.com/evebb/EveBB/releases/latest">downloads page</a>. Verify it if you like: <code>sha256sum -c evebb-*.zip.sha256</code>.</p></div></div>
+			<div class="step"><span class="n"></span><div><h3>Download the latest release</h3><p><a href="https://github.com/evebb/EveBB/releases/latest/download/evebb-latest.zip">Download <span id="pkg-name">the latest release package</span></a> &mdash; one click, no account needed (<a href="https://github.com/evebb/EveBB/releases">all releases</a>). Verify it if you like: <code>sha256sum -c evebb-*.zip.sha256</code>.</p></div></div>
 			<div class="step"><span class="n"></span><div><h3>Upload the files</h3><p>Unzip and upload to your web server — any ordinary PHP 8.1+ host works, no special modules needed.</p></div></div>
 			<div class="step"><span class="n"></span><div><h3>Run the installer</h3><p>Open <code>install.php</code> in your browser, pick a database (or choose SQLite and skip the database server entirely) and follow the steps.</p></div></div>
 			<div class="step"><span class="n"></span><div><h3>That's it</h3><p>Delete <code>install.php</code>, pick a style, open registration. Future updates are one click in Admin &rarr; Maintenance.</p></div></div>
@@ -334,7 +334,7 @@ footer a:hover { color: var(--orange); }
 		<h2>Free. Open source. No strings.</h2>
 		<p>eveBB is licensed under the GNU GPL v2 or later — free to use, modify and share, for any site, forever. It carries two decades of PunBB and FluxBB heritage forward.</p>
 		<div class="btnrow">
-			<a class="btn primary" href="https://github.com/evebb/EveBB/releases/latest">Download eveBB</a>
+			<a class="btn primary" href="https://github.com/evebb/EveBB/releases/latest/download/evebb-latest.zip">Download eveBB</a>
 			<a class="btn ghost" href="https://github.com/evebb/EveBB">Source on GitHub</a>
 		</div>
 	</div>
@@ -371,12 +371,12 @@ footer a:hover { color: var(--orange); }
 			(rel.assets || []).forEach(function (a) {
 				if (/^evebb-.*\.zip$/i.test(a.name)) zip = a;
 			});
-			var btn = document.getElementById('dl-btn');
-			btn.textContent = 'Download eveBB ' + version;
+			// The buttons already point at the permanent direct-download URL;
+			// this just labels them with the version and size.
+			document.getElementById('dl-btn').textContent = 'Download eveBB ' + version;
 			if (zip) {
-				btn.href = zip.browser_download_url;
 				var mb = (zip.size / 1048576).toFixed(1);
-				document.getElementById('pkg-name').textContent = zip.name + ' (' + mb + ' MB)';
+				document.getElementById('pkg-name').textContent = 'eveBB ' + version + ' (' + mb + ' MB)';
 			}
 		})
 		.catch(function () { /* releases page fallback stays in place */ });
