@@ -7,7 +7,7 @@
  */
 
 // The eveBB version this script updates to
-define('UPDATE_TO', '1.23.0-alpha');
+define('UPDATE_TO', '1.23.1-alpha');
 
 define('UPDATE_TO_DB_REVISION', 28);
 define('UPDATE_TO_SI_REVISION', 2);
