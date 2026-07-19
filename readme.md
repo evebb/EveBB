@@ -52,3 +52,13 @@ The bundled `tests/lite` runner is PHPUnit-API-compatible; the same test files r
 eveBB is free software released under the [GNU GPL, version 2 or later](https://www.gnu.org/licenses/gpl.html).
 
 It is based on FluxBB, copyright (C) 2008–2012 the FluxBB team, which was in turn based on PunBB, copyright (C) 2002–2008 Rickard Andersson. All original copyright notices are retained in the source files. Thanks to both projects for two decades of lean forum software.
+
+### Third-party components and credits
+
+* **SCEditor** (`js/sceditor/`) — the visual editor, copyright (C) 2011–2017 Sam Clarke, [MIT License](js/sceditor/LICENSE.md).
+* **Silk icons** (`js/sceditor/themes/famfamfam.png`) — editor toolbar icons by [Mark James](http://www.famfamfam.com/lab/icons/silk/), [Creative Commons Attribution 3.0](https://creativecommons.org/licenses/by/3.0/).
+* **Nomicons emoticons** (`js/sceditor/emoticons/`) — "The Full Monty Emoticons" by Oscar Gruno and Andy Fedosjeenko, distributed with SCEditor.
+* **Smilies** (`img/smilies/`) — from Google's [Noto Emoji](https://github.com/googlefonts/noto-emoji) project, [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+* **UTF-8 library** (`include/utf8/`) — the phputf8 library by Harry Fuecks and contributors, portions ported from Mozilla code by Henri Sivonen; inherited from FluxBB with all notices retained.
+
+See [`js/sceditor/CREDITS.md`](js/sceditor/CREDITS.md) and [`docs/copyright-audit.md`](docs/copyright-audit.md) for the full provenance audit.
