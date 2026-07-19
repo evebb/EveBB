@@ -50,6 +50,9 @@ if (isset($_POST['form_sent']))
 		'quote_depth'			=> (intval($_POST['form']['quote_depth']) > 0) ? intval($_POST['form']['quote_depth']) : 1,
 		'quickpost'				=> $_POST['form']['quickpost'] != '1' ? '0' : '1',
 		'wysiwyg'				=> isset($_POST['form']['wysiwyg']) ? ($_POST['form']['wysiwyg'] != '1' ? '0' : '1') : (isset($pun_config['o_wysiwyg']) ? $pun_config['o_wysiwyg'] : '1'),
+		'login_throttle'		=> isset($_POST['form']['login_throttle']) ? ($_POST['form']['login_throttle'] != '1' ? '0' : '1') : (isset($pun_config['o_login_throttle']) ? $pun_config['o_login_throttle'] : '1'),
+		'login_attempts'		=> isset($_POST['form']['login_attempts']) ? max(1, intval($_POST['form']['login_attempts'])) : (isset($pun_config['o_login_attempts']) ? intval($pun_config['o_login_attempts']) : 5),
+		'login_lockout'			=> isset($_POST['form']['login_lockout']) ? max(1, intval($_POST['form']['login_lockout'])) * 60 : (isset($pun_config['o_login_lockout']) ? intval($pun_config['o_login_lockout']) : 900),
 		'users_online'			=> $_POST['form']['users_online'] != '1' ? '0' : '1',
 		'censoring'				=> $_POST['form']['censoring'] != '1' ? '0' : '1',
 		'signatures'			=> $_POST['form']['signatures'] != '1' ? '0' : '1',
@@ -307,7 +310,7 @@ if (isset($_POST['form_sent']))
 	// These keys may be absent on boards upgraded before the feature landed
 	// (the main loop above only updates keys that already exist), so
 	// insert-or-update them.
-	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align, 'o_copyright_message' => $form['copyright_message'], 'o_default_avatar' => $default_avatar, 'o_wysiwyg' => $form['wysiwyg']) as $conf_name => $conf_value)
+	foreach (array('o_logo_url' => $logo_url, 'o_logo_width' => $logo_width, 'o_logo_height' => $logo_height, 'o_logo_align' => $logo_align, 'o_copyright_message' => $form['copyright_message'], 'o_default_avatar' => $default_avatar, 'o_wysiwyg' => $form['wysiwyg'], 'o_login_throttle' => $form['login_throttle'], 'o_login_attempts' => $form['login_attempts'], 'o_login_lockout' => $form['login_lockout']) as $conf_name => $conf_value)
 	{
 		$value = ($conf_value != '') ? '\''.$db->escape($conf_value).'\'' : 'NULL';
 		if (array_key_exists($conf_name, $pun_config))
@@ -664,6 +667,21 @@ generate_admin_menu('options');
 										<label class="conl"><input type="radio" name="form[wysiwyg]" value="1"<?php if ($o_wysiwyg == '1') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['Yes'] ?></strong></label>
 										<label class="conl"><input type="radio" name="form[wysiwyg]" value="0"<?php if ($o_wysiwyg == '0') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['No'] ?></strong></label>
 										<span class="clearb"><?php echo $lang_admin_options['WYSIWYG help'] ?></span>
+									</td>
+								</tr>
+								<tr>
+<?php
+	$o_login_throttle = isset($pun_config['o_login_throttle']) ? $pun_config['o_login_throttle'] : '1';
+	$o_login_attempts = isset($pun_config['o_login_attempts']) ? intval($pun_config['o_login_attempts']) : 5;
+	$o_login_lockout_min = isset($pun_config['o_login_lockout']) ? max(1, round(intval($pun_config['o_login_lockout']) / 60)) : 15;
+?>
+									<th scope="row"><?php echo $lang_admin_options['Login throttle label'] ?></th>
+									<td>
+										<label class="conl"><input type="radio" name="form[login_throttle]" value="1"<?php if ($o_login_throttle == '1') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['Yes'] ?></strong></label>
+										<label class="conl"><input type="radio" name="form[login_throttle]" value="0"<?php if ($o_login_throttle == '0') echo ' checked="checked"' ?> />&#160;<strong><?php echo $lang_admin_common['No'] ?></strong></label>
+										<label class="conl"><?php echo $lang_admin_options['Login attempts label'] ?><br /><input type="text" name="form[login_attempts]" size="4" maxlength="4" value="<?php echo $o_login_attempts ?>" /></label>
+										<label class="conl"><?php echo $lang_admin_options['Login lockout label'] ?><br /><input type="text" name="form[login_lockout]" size="4" maxlength="5" value="<?php echo $o_login_lockout_min ?>" /></label>
+										<span class="clearb"><?php echo $lang_admin_options['Login throttle help'] ?></span>
 									</td>
 								</tr>
 								<tr>

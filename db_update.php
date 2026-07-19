@@ -7,9 +7,9 @@
  */
 
 // The eveBB version this script updates to
-define('UPDATE_TO', '1.20.0-alpha');
+define('UPDATE_TO', '1.21.0-alpha');
 
-define('UPDATE_TO_DB_REVISION', 25);
+define('UPDATE_TO_DB_REVISION', 26);
 define('UPDATE_TO_SI_REVISION', 2);
 define('UPDATE_TO_PARSER_REVISION', 2);
 
@@ -787,6 +787,31 @@ switch ($stage)
 		// The visual (WYSIWYG) editor replaced the toolbar plugin; on by default
 		if (!array_key_exists('o_wysiwyg', $pun_config))
 			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_wysiwyg\', \'1\')') or error('Unable to insert config value \'o_wysiwyg\'', __FILE__, __LINE__, $db->error());
+
+		// Login brute-force throttle: config options + the counters table
+		if (!array_key_exists('o_login_throttle', $pun_config))
+			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_login_throttle\', \'1\')') or error('Unable to insert config value \'o_login_throttle\'', __FILE__, __LINE__, $db->error());
+		if (!array_key_exists('o_login_attempts', $pun_config))
+			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_login_attempts\', \'5\')') or error('Unable to insert config value \'o_login_attempts\'', __FILE__, __LINE__, $db->error());
+		if (!array_key_exists('o_login_lockout', $pun_config))
+			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_login_lockout\', \'900\')') or error('Unable to insert config value \'o_login_lockout\'', __FILE__, __LINE__, $db->error());
+
+		if (!$db->table_exists('login_attempts'))
+		{
+			$schema = array(
+				'FIELDS'		=> array(
+					'ip'			=> array('datatype' => 'VARCHAR(39)',        'allow_null' => false, 'default' => '\'\''),
+					'attempts'		=> array('datatype' => 'INT(10) UNSIGNED',   'allow_null' => false, 'default' => '0'),
+					'last_attempt'	=> array('datatype' => 'INT(10) UNSIGNED',   'allow_null' => false, 'default' => '0'),
+				),
+				'PRIMARY KEY'	=> array('ip'),
+				'INDEXES'		=> array('last_attempt_idx' => array('last_attempt')),
+			);
+			if ($db_type == 'mysqli_innodb')
+				$schema['ENGINE'] = 'InnoDB';
+
+			$db->create_table('login_attempts', $schema) or error('Unable to create login_attempts table', __FILE__, __LINE__, $db->error());
+		}
 
 		// Make sure we have o_additional_navlinks (was added in 1.2.1)
 		if (!array_key_exists('o_additional_navlinks', $pun_config))

@@ -220,6 +220,10 @@ for i in $(seq 1 30); do
 done
 assert_contains "$WORK/dbup2.html" "successfully updated" "database update completes"
 
+# the login rate-limit table is present after upgrading
+LAT=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (int)$p->query("SELECT COUNT(*) FROM sqlite_master WHERE type=\"table\" AND name=\"login_attempts\"")->fetchColumn();')
+[ "$LAT" = "1" ] && ok "login_attempts table present after upgrade" || fail "login_attempts table present after upgrade"
+
 # the guided database update (db_update.php 'start') also tidies the leftover
 TB2=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (int)$p->query("SELECT COUNT(*) FROM config WHERE conf_name=\"o_toolbar_style\"")->fetchColumn();')
 [ "$TB2" = "0" ] && ok "legacy toolbar config removed by the guided update too" || fail "legacy toolbar config removed by the guided update too (found $TB2)"

@@ -29,40 +29,59 @@ if (isset($_POST['form_sent']) && $action == 'in')
 	$form_password = pun_trim($_POST['req_password']);
 	$save_pass = isset($_POST['save_pass']);
 
-	$username_sql = ($db_type == 'mysql' || $db_type == 'mysqli' || $db_type == 'mysql_innodb' || $db_type == 'mysqli_innodb') ? 'username=\''.$db->escape($form_username).'\'' : 'LOWER(username)=LOWER(\''.$db->escape($form_username).'\')';
-
-	$result = $db->query('SELECT * FROM '.$db->prefix.'users WHERE '.$username_sql) or error('Unable to fetch user info', __FILE__, __LINE__, $db->error());
-	$cur_user = $db->fetch_assoc($result);
-
 	$authorized = false;
 
-	if (!empty($cur_user['password']))
+	// Brute-force throttle: if this IP has failed too many times recently,
+	// refuse the attempt outright (without even revealing wrong user/pass)
+	$login_ip = get_remote_address();
+	$throttle_on = !isset($pun_config['o_login_throttle']) || $pun_config['o_login_throttle'] == '1';
+	$throttle_wait = $throttle_on ? login_throttle_check($login_ip) : 0;
+
+	if ($throttle_wait > 0)
+		$errors[] = sprintf($lang_login['Login flood'], ceil($throttle_wait / 60));
+	else
 	{
-		// Represents the hash of the user's password
-		// If it's transparently changed in this function,
-		// this allows the cookie token to reflect the new hash
-		$user_password = $cur_user['password'];
+		$username_sql = ($db_type == 'mysql' || $db_type == 'mysqli' || $db_type == 'mysql_innodb' || $db_type == 'mysqli_innodb') ? 'username=\''.$db->escape($form_username).'\'' : 'LOWER(username)=LOWER(\''.$db->escape($form_username).'\')';
 
-		if (flux_password_verify($form_password, $user_password))
+		$result = $db->query('SELECT * FROM '.$db->prefix.'users WHERE '.$username_sql) or error('Unable to fetch user info', __FILE__, __LINE__, $db->error());
+		$cur_user = $db->fetch_assoc($result);
+
+		if (!empty($cur_user['password']))
 		{
-			$authorized = true;
+			// Represents the hash of the user's password
+			// If it's transparently changed in this function,
+			// this allows the cookie token to reflect the new hash
+			$user_password = $cur_user['password'];
 
-			if (flux_password_needs_rehash($user_password))
+			if (flux_password_verify($form_password, $user_password))
 			{
-				$user_password = flux_password_hash($form_password);
-				$db->query('UPDATE '.$db->prefix.'users SET password=\''.$db->escape($user_password).'\' WHERE id='.$cur_user['id']) or error('Unable to update user password', __FILE__, __LINE__, $db->error());
+				$authorized = true;
+
+				if (flux_password_needs_rehash($user_password))
+				{
+					$user_password = flux_password_hash($form_password);
+					$db->query('UPDATE '.$db->prefix.'users SET password=\''.$db->escape($user_password).'\' WHERE id='.$cur_user['id']) or error('Unable to update user password', __FILE__, __LINE__, $db->error());
+				}
 			}
 		}
-	}
 
-	if (!$authorized)
-		$errors[] = $lang_login['Wrong user/pass'];
+		if (!$authorized)
+		{
+			$errors[] = $lang_login['Wrong user/pass'];
+			if ($throttle_on)
+				login_throttle_record($login_ip);
+		}
+	}
 
 	flux_hook('login_after_validation');
 
 	// Did everything go according to plan?
 	if (empty($errors))
 	{
+		// Successful login - clear this IP's failure count
+		if ($throttle_on)
+			login_throttle_clear($login_ip);
+
 		// Update the status if this is the first time the user logged in
 		if ($cur_user['group_id'] == PUN_UNVERIFIED)
 		{

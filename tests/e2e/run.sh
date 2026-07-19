@@ -363,6 +363,48 @@ MYSQLCASES=$(grep -c "case 'mysql':" "$ROOT/include/dblayer/common_db.php")
 [ "$MYSQLCASES" = "1" ] && ok "single 'mysql' driver case (PDO reachable)" || fail "single 'mysql' driver case (got $MYSQLCASES)"
 assert_contains "$ROOT/include/dblayer/common_db.php" 'MysqlPdoDBLayer' "'mysql' maps to the PDO driver"
 
+# --- login rate-limiting ---------------------------------------------------
+set_conf() { # name value
+  php -r '
+$type=$argv[1];$host=$argv[2];$name=$argv[3];$user=$argv[4];$pass=$argv[5];$k=$argv[6];$v=$argv[7];
+$dsn=$type==="sqlite"?"sqlite:$name":((strpos($type,"pgsql")===0?"pgsql":"mysql").":host=$host;dbname=$name");
+$pdo=new PDO($dsn,$type==="sqlite"?null:$user,$type==="sqlite"?null:$pass);
+$pdo->exec("UPDATE config SET conf_value=".$pdo->quote($v)." WHERE conf_name=".$pdo->quote($k));
+$pdo->exec("DELETE FROM login_attempts");
+' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" "$1" "$2" 2>/dev/null
+  rm -f "$ROOT"/cache/cache_config.php
+}
+# a fresh login attempt (own cookie jar); prints BLOCKED / WRONG / IN / OUT
+attempt() { # password
+  local j; j="$TMP/lj.$$.$RANDOM"
+  local tk; tk=$(curl -s -c "$j" "$BASE/login.php" | grep -oE 'csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+  local out; out=$(curl -s -b "$j" -c "$j" "$BASE/login.php?action=in" \
+    --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$tk" \
+    --data-urlencode "req_username=admin" --data-urlencode "req_password=$1" \
+    --data-urlencode "login=Login" --data-urlencode "redirect_url=$BASE/index.php")
+  if echo "$out" | grep -qi "Too many failed login"; then echo BLOCKED
+  elif echo "$out" | grep -qi "Wrong user"; then echo WRONG
+  elif curl -s -b "$j" "$BASE/index.php" | grep -qi "Logged in as <strong>admin"; then echo IN
+  else echo OUT; fi
+  rm -f "$j"
+}
+# the throttle table shipped
+assert_contains "$ROOT/install.php" "create_table('login_attempts'" "login_attempts table is part of a fresh install"
+# lock after 3 failures, then even the correct password is refused
+set_conf o_login_attempts 3
+A1=$(attempt bad); A2=$(attempt bad); A3=$(attempt bad); A4=$(attempt adminpass123)
+[ "$A1 $A2 $A3" = "WRONG WRONG WRONG" ] && ok "failed logins are rejected and counted" || fail "failed logins rejected/counted (got $A1 $A2 $A3)"
+[ "$A4" = "BLOCKED" ] && ok "correct password is refused once the IP is locked out" || fail "IP lockout blocks even a correct password (got $A4)"
+# clearing the window lets a correct login through, which clears the counter
+set_conf o_login_attempts 3   # (also clears login_attempts)
+[ "$(attempt adminpass123)" = "IN" ] && ok "a correct login succeeds once the lockout clears" || fail "correct login succeeds after lockout clears"
+# with throttling off, repeated failures never lock the account
+set_conf o_login_throttle 0
+attempt bad >/dev/null; attempt bad >/dev/null; attempt bad >/dev/null; attempt bad >/dev/null
+[ "$(attempt adminpass123)" = "IN" ] && ok "throttle off: repeated failures never lock out" || fail "throttle off never locks out"
+# restore defaults so later steps are unaffected
+set_conf o_login_throttle 1; set_conf o_login_attempts 5
+
 # --- admin + misc pages ----------------------------------------------------
 for p in userlist.php help.php "extern.php?action=feed&type=atom" admin_index.php admin_options.php admin_users.php admin_maintenance.php; do
   code=$(curl -s -b "$JAR" -e "$BASE/index.php" -o "$TMP/page.html" -w "%{http_code}" "$BASE/$p")

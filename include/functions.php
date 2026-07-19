@@ -665,6 +665,77 @@ function resize_avatar($src_path, $dest_path, $type, $max_w, $max_h)
 
 
 //
+// Login brute-force throttle, keyed on the real connection IP (REMOTE_ADDR
+// unless the board is explicitly behind a trusted reverse proxy), so it can't
+// be sidestepped by spoofing a forwarded-for header. State lives in the
+// login_attempts table. The block is per-IP, not per-account, so an attacker
+// cannot lock a victim out of their own account by failing logins as them.
+//
+//   login_throttle_check()  - seconds the caller must still wait (0 = allowed)
+//   login_throttle_record() - record one failed attempt for this IP
+//   login_throttle_clear()  - forget this IP (called on a successful login)
+//
+function login_throttle_check($ip)
+{
+	global $db, $pun_config;
+
+	$max    = isset($pun_config['o_login_attempts']) ? intval($pun_config['o_login_attempts']) : 5;
+	$window = isset($pun_config['o_login_lockout'])  ? intval($pun_config['o_login_lockout'])  : 900;
+	if ($max < 1)    $max = 1;
+	if ($window < 1) $window = 1;
+
+	$result = $db->query('SELECT attempts, last_attempt FROM '.$db->prefix.'login_attempts WHERE ip=\''.$db->escape($ip).'\'') or error('Unable to fetch login attempts', __FILE__, __LINE__, $db->error());
+	if (!$db->has_rows($result))
+		return 0;
+
+	list($count, $last) = $db->fetch_row($result);
+	$elapsed = time() - intval($last);
+
+	// The window has passed since the last failure - treat as a clean slate
+	if ($elapsed >= $window)
+		return 0;
+
+	// Locked: report how long is left before the window elapses
+	if (intval($count) >= $max)
+		return $window - $elapsed;
+
+	return 0;
+}
+
+function login_throttle_record($ip)
+{
+	global $db, $pun_config;
+
+	$window = isset($pun_config['o_login_lockout']) ? intval($pun_config['o_login_lockout']) : 900;
+	if ($window < 1) $window = 1;
+	$now = time();
+
+	// Housekeeping: drop any rows whose window has already elapsed
+	$db->query('DELETE FROM '.$db->prefix.'login_attempts WHERE last_attempt < '.($now - $window)) or error('Unable to prune login attempts', __FILE__, __LINE__, $db->error());
+
+	$ip_esc = $db->escape($ip);
+	$result = $db->query('SELECT attempts, last_attempt FROM '.$db->prefix.'login_attempts WHERE ip=\''.$ip_esc.'\'') or error('Unable to fetch login attempts', __FILE__, __LINE__, $db->error());
+
+	if ($db->has_rows($result))
+	{
+		list($count, $last) = $db->fetch_row($result);
+		// Continue the current window, or start a fresh one if it has lapsed
+		$count = (($now - intval($last)) < $window) ? intval($count) + 1 : 1;
+		$db->query('UPDATE '.$db->prefix.'login_attempts SET attempts='.$count.', last_attempt='.$now.' WHERE ip=\''.$ip_esc.'\'') or error('Unable to update login attempts', __FILE__, __LINE__, $db->error());
+	}
+	else
+		$db->query('INSERT INTO '.$db->prefix.'login_attempts (ip, attempts, last_attempt) VALUES (\''.$ip_esc.'\', 1, '.$now.')') or error('Unable to insert login attempts', __FILE__, __LINE__, $db->error());
+}
+
+function login_throttle_clear($ip)
+{
+	global $db;
+
+	$db->query('DELETE FROM '.$db->prefix.'login_attempts WHERE ip=\''.$db->escape($ip).'\'') or error('Unable to clear login attempts', __FILE__, __LINE__, $db->error());
+}
+
+
+//
 // Is the visual (WYSIWYG) editor enabled on this board? Boards upgraded
 // before the option existed count as enabled (it ships on by default).
 //

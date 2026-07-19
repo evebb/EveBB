@@ -106,12 +106,14 @@ request.
 These are real improvements but larger than a hardening pass, so they're
 called out rather than silently deferred:
 
-- **Login rate-limiting / lockout.** There is currently no throttle on failed
-  logins, so weak passwords are open to online brute force. bcrypt protects a
-  stolen database but not this online path. A per-account + per-IP progressive
-  delay or temporary lockout is the highest-value remaining item; it needs a
-  small amount of state (a column or cache entry), which is why it wasn't
-  bundled into this pass.
+- **Login rate-limiting / lockout.** ✅ **Implemented in 1.21.0-alpha.** Failed
+  logins are now throttled per client IP (real `REMOTE_ADDR`, so it can't be
+  bypassed by spoofing a forwarded-for header): after a configurable number of
+  failures an IP is locked out for a configurable window, and a successful
+  login clears the counter. The lock is per-IP, not per-account, so it can't be
+  used to lock a member out of their own account. State lives in a new
+  `login_attempts` table; the threshold, window and an on/off switch are in
+  Admin → Options → Features.
 - **Per-form CSRF tokens.** SameSite=Lax plus the referrer check is a strong
   defense, but adding an explicit CSRF token to the classic POST forms
   (inherited from FluxBB, currently referrer-protected) would be defense in

@@ -7,9 +7,9 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.20.0-alpha');
+define('FORUM_VERSION', '1.21.0-alpha');
 
-define('FORUM_DB_REVISION', 25);
+define('FORUM_DB_REVISION', 26);
 define('FORUM_SI_REVISION', 2);
 define('FORUM_PARSER_REVISION', 2);
 
@@ -972,6 +972,37 @@ else
 	$db->create_table('online', $schema) or error('Unable to create online table', __FILE__, __LINE__, $db->error());
 
 
+	// login_attempts: brute-force throttle counters, one row per client IP
+	$schema = array(
+		'FIELDS'		=> array(
+			'ip'			=> array(
+				'datatype'		=> 'VARCHAR(39)',
+				'allow_null'	=> false,
+				'default'		=> '\'\''
+			),
+			'attempts'		=> array(
+				'datatype'		=> 'INT(10) UNSIGNED',
+				'allow_null'	=> false,
+				'default'		=> '0'
+			),
+			'last_attempt'	=> array(
+				'datatype'		=> 'INT(10) UNSIGNED',
+				'allow_null'	=> false,
+				'default'		=> '0'
+			),
+		),
+		'PRIMARY KEY'	=> array('ip'),
+		'INDEXES'		=> array(
+			'last_attempt_idx'	=> array('last_attempt')
+		)
+	);
+
+	if ($db_type == 'mysqli_innodb')
+		$schema['ENGINE'] = 'InnoDB';
+
+	$db->create_table('login_attempts', $schema) or error('Unable to create login_attempts table', __FILE__, __LINE__, $db->error());
+
+
 	$schema = array(
 		'FIELDS'		=> array(
 			'id'			=> array(
@@ -1556,6 +1587,9 @@ else
 		'o_quote_depth'				=> 3,
 		'o_quickpost'				=> 1,
 		'o_wysiwyg'					=> 1,
+		'o_login_throttle'			=> 1,
+		'o_login_attempts'			=> 5,
+		'o_login_lockout'			=> 900,
 		'o_users_online'			=> 1,
 		'o_censoring'				=> 0,
 		'o_show_dot'				=> 0,
