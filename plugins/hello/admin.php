@@ -38,7 +38,6 @@ $hello_message = isset($pun_config['o_hello_message']) ? $pun_config['o_hello_me
 
 ?>
 	<div class="inform">
-		<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
 		<fieldset>
 			<legend>Hello eveBB settings</legend>
 			<div class="infldset">

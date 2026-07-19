@@ -11,19 +11,69 @@ jobs:
   release:
     name: Build package and publish release
     runs-on: ubuntu-latest
+    # Exposed at job level so the optional signing step's `if:` can test it.
+    env:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
     steps:
       - uses: actions/checkout@v4
 
       - name: Build deployment package
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
-          zip -rq "evebb-$VERSION.zip" . \
+          PKG="evebb-$VERSION.zip"
+          zip -rq "$PKG" . \
             -x '.git/*' -x 'tests/*' -x '.github/*' -x 'evebb-*.zip'
-          echo "Built evebb-$VERSION.zip ($(du -h "evebb-$VERSION.zip" | cut -f1))"
+          echo "Built $PKG ($(du -h "$PKG" | cut -f1))"
+
+      - name: Generate SHA-256 checksum
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PKG="evebb-$VERSION.zip"
+          # sha256sum(1) format: "<hash>  <filename>" — both the in-app updater
+          # and `sha256sum -c` read this.
+          sha256sum "$PKG" > "$PKG.sha256"
+          echo "SHA-256: $(cut -d' ' -f1 "$PKG.sha256")"
+
+      - name: Sign the checksum (optional)
+        if: ${{ env.GPG_PRIVATE_KEY != '' }}
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          PKG="evebb-$VERSION.zip"
+          echo "$GPG_PRIVATE_KEY" | gpg --batch --import
+          # Detached, armoured signature over the checksum file. Verifiers run:
+          #   gpg --verify evebb-$VERSION.zip.sha256.asc evebb-$VERSION.zip.sha256
+          if [ -n "$GPG_PASSPHRASE" ]; then
+            echo "$GPG_PASSPHRASE" | gpg --batch --yes --pinentry-mode loopback \
+              --passphrase-fd 0 --armor --detach-sign "$PKG.sha256"
+          else
+            gpg --batch --yes --armor --detach-sign "$PKG.sha256"
+          fi
 
       - name: Publish GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          files: evebb-*.zip
+          files: |
+            evebb-*.zip
+            evebb-*.zip.sha256
+            evebb-*.zip.sha256.asc
           prerelease: ${{ contains(github.ref_name, '-') }}
           generate_release_notes: true
+          fail_on_unmatched_files: false
+          append_body: true
+          body: |
+
+            ---
+            **Package integrity**
+
+            Verify your download before installing:
+
+            ```
+            sha256sum -c evebb-${{ github.ref_name }}.zip.sha256
+            ```
+
+            The in-app updater (Admin → Maintenance) performs this SHA-256 check
+            automatically and refuses to install a package whose checksum does
+            not match. When a GPG signing key is configured for the repository
+            (secrets `GPG_PRIVATE_KEY` / `GPG_PASSPHRASE`), a detached signature
+            (`.sha256.asc`) is also attached.

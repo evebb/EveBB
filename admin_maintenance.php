@@ -54,8 +54,12 @@ else if ($action == 'do_update')
 	if (!evebb_update_is_newer($release['version']))
 		message($lang_admin_maintenance['Already latest message']);
 
+	// Fetch the published SHA-256 so the download can be integrity-checked
+	// before it is extracted and its code is trusted.
+	$expected_sha256 = isset($release['sha256_url']) ? evebb_fetch_expected_sha256($release['sha256_url']) : '';
+
 	$update_log = array();
-	if (evebb_apply_update($release['zip_url'], $update_log))
+	if (evebb_apply_update($release['zip_url'], $update_log, $expected_sha256))
 		message(sprintf($lang_admin_maintenance['Update success message'], pun_htmlspecialchars($release['version'])));
 	else
 		message($lang_admin_maintenance['Update failed message'].'<br /><br />'.implode('<br />', array_map('pun_htmlspecialchars', $update_log)));
@@ -324,7 +328,6 @@ if ($update_info !== null && $update_error === null && evebb_update_is_newer($up
 			<form method="post" action="admin_maintenance.php" onsubmit="return confirm('<?php echo $lang_admin_maintenance['Update confirm'] ?>')">
 				<div class="inform">
 					<input type="hidden" name="action" value="do_update" />
-					<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
 					<fieldset>
 						<legend><?php echo $lang_admin_maintenance['Install update subhead'] ?></legend>
 						<div class="infldset">
@@ -342,7 +345,6 @@ if ($update_info !== null && $update_error === null && evebb_update_is_newer($up
 			<form method="get" action="admin_maintenance.php">
 				<div class="inform">
 					<input type="hidden" name="action" value="rebuild" />
-					<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
 					<fieldset>
 						<legend><?php echo $lang_admin_maintenance['Rebuild index subhead'] ?></legend>
 						<div class="infldset">

@@ -23,6 +23,10 @@ require PUN_ROOT.'lang/'.$pun_user['language'].'/register.php';
 // Load the register.php/profile.php language file
 require PUN_ROOT.'lang/'.$pun_user['language'].'/prof_reg.php';
 
+// eveBB: registration CAPTCHA (stateless, sealed-token based)
+require PUN_ROOT.'include/captcha.php';
+$captcha_on = ($pun_config['o_regs_captcha'] == '1' && evebb_captcha_available());
+
 if ($pun_config['o_regs_allow'] == '0')
 	message($lang_register['No new regs']);
 
@@ -73,6 +77,15 @@ if (isset($_POST['form_sent']))
 	if ($db->has_rows($result))
 		message($lang_register['Registration flood']);
 
+
+	// eveBB: verify the CAPTCHA response before doing anything else
+	if ($captcha_on)
+	{
+		$captcha_token = isset($_POST['captcha_token']) ? $_POST['captcha_token'] : '';
+		$captcha_response = isset($_POST['req_captcha']) ? $_POST['req_captcha'] : '';
+		if (!evebb_captcha_check($captcha_token, $captcha_response))
+			$errors[] = $lang_register['Captcha wrong'];
+	}
 
 	$username = pun_trim($_POST['req_user']);
 	$email1 = strtolower(pun_trim($_POST['req_email1']));
@@ -314,6 +327,8 @@ if ($pun_config['o_regs_require_profile'] == '1')
 	$required_fields['req_birthday'] = $lang_prof_reg['Birthday'];
 	$required_fields['req_country'] = $lang_prof_reg['Country'];
 }
+if ($captcha_on)
+	$required_fields['req_captcha'] = $lang_register['Captcha'];
 $focus_element = array('register', 'req_user');
 
 flux_hook('register_before_header');
@@ -506,7 +521,18 @@ if (!empty($errors))
 					</div>
 				</fieldset>
 			</div>
-<?php flux_hook('register_before_submit'); ?>
+<?php if ($captcha_on): $captcha_token = evebb_captcha_new_token(); ?>			<div class="inform">
+				<fieldset>
+					<legend><?php echo $lang_register['Captcha legend'] ?></legend>
+					<div class="infldset">
+						<p><?php echo $lang_register['Captcha info'] ?></p>
+						<input type="hidden" name="captcha_token" value="<?php echo pun_htmlspecialchars($captcha_token) ?>" />
+						<p><img src="captcha.php?t=<?php echo urlencode($captcha_token) ?>" width="200" height="60" alt="<?php echo $lang_register['Captcha'] ?>" /></p>
+						<label class="required"><strong><?php echo $lang_register['Captcha'] ?> <span><?php echo $lang_common['Required'] ?></span></strong><br /><input type="text" name="req_captcha" value="" size="12" maxlength="8" autocomplete="off" /><br /></label>
+					</div>
+				</fieldset>
+			</div>
+<?php endif; ?><?php flux_hook('register_before_submit'); ?>
 			<p class="buttons"><input type="submit" name="register" value="<?php echo $lang_register['Register'] ?>" /></p>
 		</form>
 	</div>

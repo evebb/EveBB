@@ -101,7 +101,7 @@ assert_contains "$TMP/index.html" "eveBB</a>" "footer credits eveBB"
 grep -qF "based on" "$TMP/index.html" && fail "footer no longer says 'based on FluxBB'" || ok "footer no longer says 'based on FluxBB'"
 
 # --- admin login (with real CSRF token) ------------------------------------
-TOKEN=$(curl -s -c "$JAR" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+TOKEN=$(curl -s -c "$JAR" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -b "$JAR" -c "$JAR" -e "$BASE/login.php" -o /dev/null -L "$BASE/login.php?action=in" \
   --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKEN" \
   --data-urlencode "req_username=admin" --data-urlencode "req_password=adminpass123" \
@@ -109,8 +109,14 @@ curl -s -b "$JAR" -c "$JAR" -e "$BASE/login.php" -o /dev/null -L "$BASE/login.ph
 curl -s -b "$JAR" "$BASE/index.php" -o "$TMP/in.html"
 assert_contains "$TMP/in.html" "Logged in as <strong>admin" "admin login"
 
+# CSRF token for the logged-in admin (stable for the session; reused below)
+CSRF=$(curl -s -b "$JAR" "$BASE/post.php?fid=1" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
+# a state-changing POST without a valid token must be refused
+CODE=$(curl -s -b "$JAR" -e "$BASE/admin_options.php" -o "$TMP/nocsrf.html" -w "%{http_code}" "$BASE/admin_options.php" --data-urlencode "form_sent=1" --data-urlencode "form[board_title]=x")
+assert_contains "$TMP/nocsrf.html" "Bad CSRF hash" "POST without a CSRF token is rejected"
+
 # --- post a topic with BBCode + UTF-8 --------------------------------------
-TOKEN=$(curl -s -b "$JAR" -c "$JAR" "$BASE/post.php?fid=1" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+TOKEN=$(curl -s -b "$JAR" -c "$JAR" "$BASE/post.php?fid=1" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -b "$JAR" -c "$JAR" -e "$BASE/post.php?fid=1" -o /dev/null -L "$BASE/post.php?fid=1" \
   --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKEN" \
   --data-urlencode "req_subject=E2E topic" \
@@ -121,7 +127,7 @@ assert_contains "$TMP/topic.html" "<strong>bold</strong>" "BBCode rendered"
 assert_contains "$TMP/topic.html" "héllo wörld 日本語" "UTF-8 round-trip"
 
 # --- reply -----------------------------------------------------------------
-TOKEN=$(curl -s -b "$JAR" -c "$JAR" "$BASE/post.php?tid=2" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+TOKEN=$(curl -s -b "$JAR" -c "$JAR" "$BASE/post.php?tid=2" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -b "$JAR" -c "$JAR" -e "$BASE/post.php?tid=2" -o /dev/null -L "$BASE/post.php?tid=2" \
   --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKEN" \
   --data-urlencode "req_message=E2E reply body" --data-urlencode "submit=Submit"
@@ -140,12 +146,12 @@ $pdo = new PDO($dsn, $type === "sqlite" ? null : $user, $type === "sqlite" ? nul
 // Single-quoted literals: double quotes are identifiers in PostgreSQL
 $pdo->exec("UPDATE users SET registered = registered - 7200, registration_ip = ".$pdo->quote("10.9.9.9")." WHERE username = ".$pdo->quote("admin"));
 // This test exercises the basic register+auto-login path, so disable the
-// new defaults (email verification and required profile fields), which are
-// covered by register-test.sh
-$pdo->exec("UPDATE config SET conf_value = ".$pdo->quote("0")." WHERE conf_name IN (".$pdo->quote("o_regs_verify").", ".$pdo->quote("o_regs_require_profile").", ".$pdo->quote("o_rules").")");
+// new defaults (email verification, required profile fields and the image
+// CAPTCHA), which are covered by register-test.sh
+$pdo->exec("UPDATE config SET conf_value = ".$pdo->quote("0")." WHERE conf_name IN (".$pdo->quote("o_regs_verify").", ".$pdo->quote("o_regs_require_profile").", ".$pdo->quote("o_rules").", ".$pdo->quote("o_regs_captcha").")");
 ' "$DB_TYPE" "$DB_HOST" "$DB_NAME" "$DB_USER" "$DB_PASS" 2>/dev/null || true
 rm -f cache/cache_config.php
-TOKEN=$(curl -s -c "$TMP/reg.txt" "$BASE/register.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+TOKEN=$(curl -s -c "$TMP/reg.txt" "$BASE/register.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -b "$TMP/reg.txt" -c "$TMP/reg.txt" -e "$BASE/register.php" -o /dev/null -L "$BASE/register.php?action=register" \
   --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKEN" \
   --data-urlencode "req_user=e2euser" \
@@ -210,7 +216,7 @@ assert_contains "$ROOT/style/Carbon.css" '#punviewforum .icon' "topic-list indic
 rm -f "$ROOT"/img/avatars/2.*
 php -r '$im=imagecreatetruecolor(460,460);imagefill($im,0,0,imagecolorallocate($im,120,90,60));imagepng($im,$argv[1]);' "$TMP/big_avatar.png"
 curl -s -b "$JAR" -e "$BASE/profile.php?action=upload_avatar&id=2" \
-  -F "form_sent=1" -F "req_file=@$TMP/big_avatar.png;type=image/png" \
+  -F "form_sent=1" -F "csrf_token=$CSRF" -F "req_file=@$TMP/big_avatar.png;type=image/png" \
   "$BASE/profile.php?action=upload_avatar2&id=2" -o "$TMP/upl.html"
 STORED=$(ls "$ROOT"/img/avatars/2.* 2>/dev/null | head -1)
 if [ -n "$STORED" ]; then
@@ -228,7 +234,7 @@ fi
 rm -f "$ROOT"/img/avatars/2.*
 php -r '$im=imagecreatetruecolor(1200,1200);imagefill($im,0,0,imagecolorallocate($im,10,20,30));imagepng($im,$argv[1]);' "$TMP/huge_avatar.png"
 curl -s -b "$JAR" -e "$BASE/profile.php?action=upload_avatar&id=2" \
-  -F "form_sent=1" -F "req_file=@$TMP/huge_avatar.png;type=image/png" \
+  -F "form_sent=1" -F "csrf_token=$CSRF" -F "req_file=@$TMP/huge_avatar.png;type=image/png" \
   "$BASE/profile.php?action=upload_avatar2&id=2" -o "$TMP/upl2.html"
 if [ -z "$(ls "$ROOT"/img/avatars/2.* 2>/dev/null)" ]; then
   ok "avatar beyond the 1024px cap is rejected"
@@ -331,7 +337,7 @@ assert_contains "$TMP/wyzcss.html" 'themes/content/evebb.css' "editor loads the 
 
 # --- security hardening ----------------------------------------------------
 # the auth cookie is issued with SameSite=Lax (browser-enforced CSRF layer)
-TOKC=$(curl -s -c "$TMP/sc.jar" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+TOKC=$(curl -s -c "$TMP/sc.jar" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -c "$TMP/sc.jar" -b "$TMP/sc.jar" -e "$BASE/login.php" -D "$TMP/sc.hdr" -o /dev/null -L "$BASE/login.php?action=in" \
   --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKC" \
   --data-urlencode "req_username=admin" --data-urlencode "req_password=adminpass123" \
@@ -344,7 +350,7 @@ rm -f "$ROOT"/img/avatars/2.*
 php -r '$im=imagecreatetruecolor(80,80);imagefill($im,0,0,imagecolorallocate($im,10,120,60));imagepng($im,$argv[1]); file_put_contents($argv[1], "\n<?php echo \"POLYGLOT_MARKER\"; ?>\n", FILE_APPEND);' "$TMP/poly.png"
 grep -qF 'POLYGLOT_MARKER' "$TMP/poly.png" && ok "polyglot test image really contains PHP" || fail "polyglot test image really contains PHP"
 curl -s -b "$JAR" -e "$BASE/profile.php?action=upload_avatar&id=2" \
-  -F "form_sent=1" -F "req_file=@$TMP/poly.png;type=image/png" \
+  -F "form_sent=1" -F "csrf_token=$CSRF" -F "req_file=@$TMP/poly.png;type=image/png" \
   "$BASE/profile.php?action=upload_avatar2&id=2" -o /dev/null
 STORED=$(ls "$ROOT"/img/avatars/2.* 2>/dev/null | head -1)
 if [ -n "$STORED" ] && ! grep -qF 'POLYGLOT_MARKER' "$STORED" && ! grep -qF '<?php' "$STORED"; then
@@ -377,7 +383,7 @@ $pdo->exec("DELETE FROM login_attempts");
 # a fresh login attempt (own cookie jar); prints BLOCKED / WRONG / IN / OUT
 attempt() { # password
   local j; j="$TMP/lj.$$.$RANDOM"
-  local tk; tk=$(curl -s -c "$j" "$BASE/login.php" | grep -oE 'csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+  local tk; tk=$(curl -s -c "$j" "$BASE/login.php" | grep -oE 'csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
   local out; out=$(curl -s -b "$j" -c "$j" "$BASE/login.php?action=in" \
     --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$tk" \
     --data-urlencode "req_username=admin" --data-urlencode "req_password=$1" \

@@ -10,9 +10,9 @@ if (!defined('PUN_ROOT'))
 	exit('The constant PUN_ROOT must be defined and point to a valid eveBB installation root directory.');
 
 // Define the version and database revision that this code was written for
-define('FORUM_VERSION', '1.21.0-alpha');
+define('FORUM_VERSION', '1.22.0-alpha');
 
-define('FORUM_DB_REVISION', 26);
+define('FORUM_DB_REVISION', 27);
 define('FORUM_SI_REVISION', 2);
 define('FORUM_PARSER_REVISION', 2);
 
@@ -172,6 +172,15 @@ check_bans();
 
 // Update online list
 update_users_online();
+
+// Global CSRF guard: any state-changing POST must carry a valid token. Every
+// POST form embeds one (csrf_inject in footer.php), so legitimate requests
+// always have it, while a forged cross-site POST does not. This is enforced
+// centrally here so no individual handler can forget it; the referrer check
+// and SameSite cookie remain as additional layers. A script may opt out with
+// define('PUN_CSRF_EXEMPT', 1) before including this file (none do by default).
+if (($_SERVER['REQUEST_METHOD'] ?? '') === 'POST' && !defined('PUN_CSRF_EXEMPT'))
+	check_csrf(isset($_POST['csrf_token']) ? $_POST['csrf_token'] : null);
 
 // Check to see if we logged in without a cookie being set
 if ($pun_user['is_guest'] && isset($_GET['login']))

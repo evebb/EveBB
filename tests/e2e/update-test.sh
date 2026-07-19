@@ -59,6 +59,9 @@ grep -q "0.9.0" "$OLD/include/common.php" && ok "old install prepared (0.9.0)" |
 PKG="$WORK/feed/evebb-$CURRENT_VERSION.zip"
 mkdir -p "$WORK/feed"
 (cd "$ROOT" && zip -rq "$PKG" . -x '.git/*' -x 'tests/*' -x '.github/*' -x 'config.php' -x 'cache/cache_*.php')
+# publish a SHA-256 checksum alongside the package, exactly as release.yml does
+(cd "$WORK/feed" && sha256sum "evebb-$CURRENT_VERSION.zip" > "evebb-$CURRENT_VERSION.zip.sha256")
+GOOD_SHA=$(cut -d' ' -f1 "$WORK/feed/evebb-$CURRENT_VERSION.zip.sha256")
 cat > "$WORK/feed/releases.json" <<EOF
 [
   {
@@ -68,12 +71,13 @@ cat > "$WORK/feed/releases.json" <<EOF
     "html_url": "$FEED/notes",
     "zipball_url": "$FEED/evebb-$CURRENT_VERSION.zip",
     "assets": [
-      {"name": "evebb-$CURRENT_VERSION.zip", "browser_download_url": "$FEED/evebb-$CURRENT_VERSION.zip"}
+      {"name": "evebb-$CURRENT_VERSION.zip", "browser_download_url": "$FEED/evebb-$CURRENT_VERSION.zip"},
+      {"name": "evebb-$CURRENT_VERSION.zip.sha256", "browser_download_url": "$FEED/evebb-$CURRENT_VERSION.zip.sha256"}
     ]
   }
 ]
 EOF
-ok "release package + feed built"
+ok "release package + checksum + feed built"
 
 # --- start servers ---------------------------------------------------------
 (cd "$WORK/feed" && php -S 127.0.0.1:"$FEED_PORT" >/dev/null 2>&1) & FEED_PID=$!
@@ -152,12 +156,27 @@ curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_maintenance.php?action
 assert_not_contains "$WORK/checkidx.html" "Bad HTTP_REFERER" "check-update link from admin index is not blocked"
 assert_contains "$WORK/checkidx.html" "A new release is available: eveBB $CURRENT_VERSION" "check-update works from the admin index link"
 
+# --- checksum tamper: a package whose bytes do not match the published
+#     SHA-256 must be rejected BEFORE it is extracted and trusted -----------
+TOKEN=$(grep -oE 'name="csrf_token" value="[a-f0-9]+"' "$WORK/check.html" | grep -oE '[a-f0-9]{20,}' | head -1)
+# serve a wrong (but well-formed) checksum for the same package
+echo "0000000000000000000000000000000000000000000000000000000000000000  evebb-$CURRENT_VERSION.zip" > "$WORK/feed/evebb-$CURRENT_VERSION.zip.sha256"
+curl -s -b "$JAR" -e "$BASE/admin_maintenance.php" -o "$WORK/tamper.html" "$BASE/admin_maintenance.php" \
+  --data-urlencode "action=do_update" \
+  --data-urlencode "csrf_token=$TOKEN"
+assert_contains "$WORK/tamper.html" "Checksum verification FAILED" "tampered package rejected on checksum mismatch"
+grep -q "define('FORUM_VERSION', '0.9.0')" "$OLD/include/common.php" \
+  && ok "installation left untouched after a rejected update" || fail "installation left untouched after a rejected update"
+[ ! -f "$OLD/cache/evebb_update.zip" ] && ok "rejected download cleaned up" || fail "rejected download cleaned up"
+# restore the correct checksum for the genuine update below
+echo "$GOOD_SHA  evebb-$CURRENT_VERSION.zip" > "$WORK/feed/evebb-$CURRENT_VERSION.zip.sha256"
+
 # --- run the one-click update ----------------------------------------------
 TOKEN=$(grep -oE 'name="csrf_token" value="[a-f0-9]+"' "$WORK/check.html" | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -b "$JAR" -e "$BASE/admin_maintenance.php" -o "$WORK/update.html" "$BASE/admin_maintenance.php" \
   --data-urlencode "action=do_update" \
   --data-urlencode "csrf_token=$TOKEN"
-assert_contains "$WORK/update.html" "The forum was updated to eveBB $CURRENT_VERSION" "update reports success"
+assert_contains "$WORK/update.html" "The forum was updated to eveBB $CURRENT_VERSION" "update reports success (checksum verified)"
 
 # --- verify the results on disk and over HTTP ------------------------------
 grep -q "define('FORUM_VERSION', '$CURRENT_VERSION')" "$OLD/include/common.php" \

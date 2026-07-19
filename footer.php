@@ -163,5 +163,5 @@ ob_end_clean();
 // Close the db connection (and free up any result data)
 $db->close();
 
-// Spit out the page
-exit($tpl_main);
+// Spit out the page (embedding a CSRF token into every POST form on the way)
+exit(csrf_inject($tpl_main));

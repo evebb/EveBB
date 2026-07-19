@@ -54,8 +54,13 @@ php -r '$p=new PDO("sqlite:'"$DB"'");$p->exec("UPDATE users SET registered = reg
 
 sqlq() { php -r '$p=new PDO("sqlite:'"$DB"'");$s=$p->query($argv[1]);var_export($s?$s->fetchAll(PDO::FETCH_ASSOC):null);' "$1"; }
 cfg() { php -r '$p=new PDO("sqlite:'"$DB"'");$s=$p->query("SELECT conf_value FROM config WHERE conf_name=".$p->quote($argv[1]));$r=$s->fetch();echo $r?$r[0]:"(none)";' "$1"; }
+# solve a sealed captcha token using the site's own cookie_seed (the test is
+# the legitimate site operator, so this is not a bypass - it uses the real key)
+captcha_answer() { php -r 'define("PUN_ROOT","'"$ROOT"'/");require PUN_ROOT."config.php";if(!defined("PUN"))define("PUN",1);require PUN_ROOT."include/captcha.php";$a=evebb_captcha_decode($argv[1]);echo $a===false?"":$a;' "$1"; }
+tok_from() { grep -oE 'name="captcha_token" value="[^"]+"' "$1" | sed -E 's/.*value="([^"]+)".*/\1/' | head -1; }
 
 # --- install defaults ------------------------------------------------------
+[ "$(cfg o_regs_captcha)" = "1" ] && ok "registration CAPTCHA defaults ON" || fail "registration CAPTCHA defaults ON (got $(cfg o_regs_captcha))"
 [ "$(cfg o_regs_verify)" = "1" ] && ok "verify registrations defaults ON" || fail "verify registrations defaults ON (got $(cfg o_regs_verify))"
 [ "$(cfg o_regs_report)" = "1" ] && ok "report new registrations defaults ON" || fail "report defaults ON (got $(cfg o_regs_report))"
 [ "$(cfg o_rules)" = "1" ] && ok "forum rules default ON" || fail "forum rules default ON (got $(cfg o_rules))"
@@ -70,37 +75,68 @@ assert_not_contains "$WORK/reg0.html" 'name="req_country"' "form not shown until
 
 # --- after agreeing, the mandatory profile fields appear -------------------
 curl -s "$BASE/register.php?agree=1" -o "$WORK/reg1.html"
+REG_CSRF=$(grep -oE 'name="csrf_token" value="[a-f0-9]+"' "$WORK/reg1.html" | grep -oE '[a-f0-9]{20,}' | head -1)
 assert_contains "$WORK/reg1.html" 'name="req_realname"' "real name field present"
 assert_contains "$WORK/reg1.html" 'name="req_birthday"' "date of birth field present"
 assert_contains "$WORK/reg1.html" 'name="req_country"' "country dropdown present"
 assert_contains "$WORK/reg1.html" '>United Kingdom<' "country dropdown is populated"
 
+# --- CAPTCHA is shown, its image endpoint works, and it is enforced ---------
+assert_contains "$WORK/reg1.html" 'name="req_captcha"' "captcha input present on the form"
+assert_contains "$WORK/reg1.html" 'src="captcha.php?t=' "captcha image present on the form"
+assert_contains "$WORK/reg1.html" 'name="captcha_token"' "sealed captcha token present on the form"
+CAP_TOK=$(tok_from "$WORK/reg1.html")
+CAP_ANS=$(captcha_answer "$CAP_TOK")
+[ -n "$CAP_ANS" ] && ok "captcha token decodes with the site key (answer: $CAP_ANS)" || fail "captcha token decodes with the site key"
+# the image endpoint returns a real PNG for a valid token
+curl -s "$BASE/captcha.php?t=$CAP_TOK" -o "$WORK/captcha.png"
+head -c4 "$WORK/captcha.png" | grep -q "PNG" && ok "captcha.php returns a PNG image" || fail "captcha.php returns a PNG image"
+# a bad token is refused by the image endpoint
+CODE=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/captcha.php?t=not-a-real-token")
+[ "$CODE" = "400" ] && ok "captcha.php rejects a bad token (400)" || fail "captcha.php rejects a bad token (got $CODE)"
+
+# a registration with a WRONG captcha response is rejected and stores nothing
+curl -s -e "$BASE/register.php?agree=1" "$BASE/register.php?action=register" -o "$WORK/regcap.html" \
+  --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$REG_CSRF" --data-urlencode "req_user=eve" \
+  --data-urlencode "req_password1=supersecret1" --data-urlencode "req_password2=supersecret1" \
+  --data-urlencode "req_email1=eve@example.com" --data-urlencode "req_email2=eve@example.com" \
+  --data-urlencode "timezone=0" --data-urlencode "email_setting=1" \
+  --data-urlencode "req_realname=Eve Adams" --data-urlencode "req_country=United Kingdom" \
+  --data-urlencode "req_birthday=1990-05-15" \
+  --data-urlencode "captcha_token=$CAP_TOK" --data-urlencode "req_captcha=000wrong000"
+assert_contains "$WORK/regcap.html" "confirmation code" "wrong captcha is rejected"
+EVE=$(php -r '$p=new PDO("sqlite:'"$DB"'");echo (int)$p->query("SELECT COUNT(*) FROM users WHERE username=\"eve\"")->fetchColumn();')
+[ "$EVE" = "0" ] && ok "wrong-captcha registration stored nothing" || fail "wrong-captcha registration stored nothing (found $EVE)"
+
 # --- missing profile fields are rejected -----------------------------------
 curl -s -e "$BASE/register.php?agree=1" "$BASE/register.php?action=register" -o "$WORK/reg2.html" \
-  --data-urlencode "form_sent=1" --data-urlencode "req_user=alice" \
+  --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$REG_CSRF" --data-urlencode "req_user=alice" \
   --data-urlencode "req_email1=alice@example.com" --data-urlencode "req_email2=alice@example.com" \
   --data-urlencode "timezone=0" --data-urlencode "email_setting=1" \
-  --data-urlencode "req_realname=" --data-urlencode "req_country=" --data-urlencode "req_birthday="
+  --data-urlencode "req_realname=" --data-urlencode "req_country=" --data-urlencode "req_birthday=" \
+  --data-urlencode "captcha_token=$CAP_TOK" --data-urlencode "req_captcha=$CAP_ANS"
 assert_contains "$WORK/reg2.html" "You must enter your real name" "blank real name rejected"
 assert_contains "$WORK/reg2.html" "You must select your country" "blank country rejected"
 assert_contains "$WORK/reg2.html" "You must enter your date of birth" "blank date of birth rejected"
 
 # --- an under-13 date of birth is rejected ---------------------------------
 curl -s -e "$BASE/register.php?agree=1" "$BASE/register.php?action=register" -o "$WORK/reg3.html" \
-  --data-urlencode "form_sent=1" --data-urlencode "req_user=bob" \
+  --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$REG_CSRF" --data-urlencode "req_user=bob" \
   --data-urlencode "req_email1=bob@example.com" --data-urlencode "req_email2=bob@example.com" \
   --data-urlencode "timezone=0" --data-urlencode "email_setting=1" \
   --data-urlencode "req_realname=Bob Jones" --data-urlencode "req_country=United Kingdom" \
-  --data-urlencode "req_birthday=2020-01-01"
+  --data-urlencode "req_birthday=2020-01-01" \
+  --data-urlencode "captcha_token=$CAP_TOK" --data-urlencode "req_captcha=$CAP_ANS"
 assert_contains "$WORK/reg3.html" "at least 13 years old" "under-13 date of birth rejected"
 
 # an invalid country (not in the list) is rejected
 curl -s -e "$BASE/register.php?agree=1" "$BASE/register.php?action=register" -o "$WORK/reg3b.html" \
-  --data-urlencode "form_sent=1" --data-urlencode "req_user=carol" \
+  --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$REG_CSRF" --data-urlencode "req_user=carol" \
   --data-urlencode "req_email1=carol@example.com" --data-urlencode "req_email2=carol@example.com" \
   --data-urlencode "timezone=0" --data-urlencode "email_setting=1" \
   --data-urlencode "req_realname=Carol" --data-urlencode "req_country=Atlantis" \
-  --data-urlencode "req_birthday=1990-01-01"
+  --data-urlencode "req_birthday=1990-01-01" \
+  --data-urlencode "captcha_token=$CAP_TOK" --data-urlencode "req_captcha=$CAP_ANS"
 assert_contains "$WORK/reg3b.html" "You must select your country" "off-list country rejected"
 
 # --- a valid registration stores the details -------------------------------
@@ -108,12 +144,13 @@ assert_contains "$WORK/reg3b.html" "You must select your country" "off-list coun
 php -r '$p=new PDO("sqlite:'"$DB"'");$p->exec("UPDATE config SET conf_value=0 WHERE conf_name=\"o_regs_verify\"");$p->exec("UPDATE config SET conf_value=\"\" WHERE conf_name=\"o_mailing_list\"");'
 rm -f cache/cache_config.php
 curl -s -e "$BASE/register.php?agree=1" -L "$BASE/register.php?action=register" -o "$WORK/reg4.html" \
-  --data-urlencode "form_sent=1" --data-urlencode "req_user=daphne" \
+  --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$REG_CSRF" --data-urlencode "req_user=daphne" \
   --data-urlencode "req_password1=supersecret1" --data-urlencode "req_password2=supersecret1" \
   --data-urlencode "req_email1=daphne@example.com" --data-urlencode "req_email2=daphne@example.com" \
   --data-urlencode "timezone=0" --data-urlencode "email_setting=1" \
   --data-urlencode "req_realname=Daphne Blake" --data-urlencode "req_country=United Kingdom" \
-  --data-urlencode "req_birthday=1990-05-15"
+  --data-urlencode "req_birthday=1990-05-15" \
+  --data-urlencode "captcha_token=$CAP_TOK" --data-urlencode "req_captcha=$CAP_ANS"
 
 ROW=$(php -r '$p=new PDO("sqlite:'"$DB"'");$s=$p->query("SELECT realname,country,birthday FROM users WHERE username=\"daphne\"");$r=$s->fetch(PDO::FETCH_ASSOC);echo $r?($r["realname"]."|".$r["country"]."|".$r["birthday"]):"(no row)";')
 echo "    stored: $ROW"
@@ -121,7 +158,7 @@ echo "    stored: $ROW"
 
 # --- the registered details populate the profile Personal page -------------
 DAPHNE_ID=$(php -r '$p=new PDO("sqlite:'"$DB"'");echo $p->query("SELECT id FROM users WHERE username=\"daphne\"")->fetchColumn();')
-TOKEN=$(curl -s -c "$JAR" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+TOKEN=$(curl -s -c "$JAR" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -b "$JAR" -c "$JAR" -e "$BASE/login.php" -o /dev/null -L "$BASE/login.php?action=in" \
   --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKEN" \
   --data-urlencode "req_username=admin" --data-urlencode "req_password=adminpass123" \

@@ -98,7 +98,6 @@ generate_admin_menu('styles');
 		<div class="box">
 			<form method="post" enctype="multipart/form-data" action="admin_styles.php?action=upload">
 				<div class="inform">
-					<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
 					<fieldset>
 						<legend><?php echo $lang_admin_styles['Upload legend'] ?></legend>
 						<div class="infldset">

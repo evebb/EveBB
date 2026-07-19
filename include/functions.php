@@ -1463,6 +1463,25 @@ function check_csrf($token)
 
 
 //
+// Insert a hidden CSRF-token field into every POST <form> in the finished page
+// HTML. Called once from footer.php, so every form on every page - present and
+// future - carries the token with no per-form markup. User-supplied content is
+// HTML-escaped long before it reaches here, so only genuine markup form tags
+// match (an attacker's "<form>" in a post is rendered as escaped text).
+//
+function csrf_inject($html)
+{
+	$field = "\n".'<input type="hidden" name="csrf_token" value="'.pun_csrf_token().'" />';
+
+	return preg_replace_callback(
+		'#<form\b[^>]*\bmethod\s*=\s*(["\'])post\1[^>]*>#i',
+		function ($m) use ($field) { return $m[0].$field; },
+		$html
+	);
+}
+
+
+//
 // Try to determine the correct remote IP-address
 //
 function get_remote_address()

@@ -34,4 +34,10 @@ $lang_register = array(
 'Email info'				=>	'You must enter a valid email address as your randomly generated password will be sent to that address.',
 'Confirm email'				=>	'Confirm email address',
 
+// eveBB registration CAPTCHA
+'Captcha legend'			=>	'Please prove you are human',
+'Captcha info'				=>	'To help prevent automated registrations, please type the characters shown in the image below.',
+'Captcha'					=>	'Confirmation code',
+'Captcha wrong'				=>	'The confirmation code you entered did not match the image. Please try again.',
+
 );

@@ -114,17 +114,27 @@ called out rather than silently deferred:
   used to lock a member out of their own account. State lives in a new
   `login_attempts` table; the threshold, window and an on/off switch are in
   Admin → Options → Features.
-- **Per-form CSRF tokens.** SameSite=Lax plus the referrer check is a strong
-  defense, but adding an explicit CSRF token to the classic POST forms
-  (inherited from FluxBB, currently referrer-protected) would be defense in
-  depth. The token machinery already exists in the codebase.
-- **Registration CAPTCHA / proof-of-work.** Registration is throttled only by
-  one-per-IP-per-hour; a CAPTCHA toggle would blunt mass automated signups.
-- **Signed / checksummed releases.** The updater now enforces verified HTTPS,
-  but does not yet verify a publisher signature or checksum of the downloaded
-  package. Publishing a SHA-256 (or a minisign/GPG signature) in the release
-  feed and verifying it before extraction would protect against a compromised
-  or swapped release asset.
+- **Per-form CSRF tokens.** ✅ **Implemented in 1.22.0-alpha.** Every POST form
+  now carries an explicit CSRF token, injected at the output layer (`csrf_inject()`
+  in footer.php rewrites every `<form method="post">` on the way out) so no
+  handler can forget it, and a single global guard in `common.php` rejects any
+  POST without a valid token (`Bad CSRF hash`). This is defense in depth on top
+  of the SameSite=Lax cookie and the existing referrer check.
+- **Registration CAPTCHA / proof-of-work.** ✅ **Implemented in 1.22.0-alpha.** A
+  stateless image CAPTCHA (toggle in Admin → Options → Features, on by default)
+  guards the registration form. The challenge answer is sealed into an opaque
+  token with AES-256-CBC encrypt-then-HMAC-SHA256, keyed on the site's
+  `$cookie_seed`, so it needs no session or database storage and cannot be read
+  or forged by the client; it expires after 10 minutes. `captcha.php` renders the
+  matching distorted PNG using only GD's built-in font (no TrueType dependency).
+  Requires the GD and OpenSSL extensions; degrades to off where they are absent.
+- **Signed / checksummed releases.** ✅ **Implemented in 1.22.0-alpha.** The
+  release workflow now publishes a SHA-256 checksum (`evebb-<ver>.zip.sha256`)
+  alongside each package, and — when a `GPG_PRIVATE_KEY` secret is configured — a
+  detached GPG signature of that checksum. The in-app updater fetches the
+  published checksum and verifies the downloaded bytes against it *before*
+  extraction, refusing to install a package whose hash does not match. This
+  protects against a compromised or swapped release asset.
 - **Deployment hardening docs.** Document the nginx/IIS equivalents of the
   shipped `.htaccess`, and keep nudging admins to delete `install.php` after
   setup (the admin console and updater already do).

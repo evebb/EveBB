@@ -9,7 +9,7 @@
 // The eveBB version this script updates to
 define('UPDATE_TO', '1.21.0-alpha');
 
-define('UPDATE_TO_DB_REVISION', 26);
+define('UPDATE_TO_DB_REVISION', 27);
 define('UPDATE_TO_SI_REVISION', 2);
 define('UPDATE_TO_PARSER_REVISION', 2);
 
@@ -795,6 +795,10 @@ switch ($stage)
 			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_login_attempts\', \'5\')') or error('Unable to insert config value \'o_login_attempts\'', __FILE__, __LINE__, $db->error());
 		if (!array_key_exists('o_login_lockout', $pun_config))
 			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_login_lockout\', \'900\')') or error('Unable to insert config value \'o_login_lockout\'', __FILE__, __LINE__, $db->error());
+
+		// Registration CAPTCHA (eveBB)
+		if (!array_key_exists('o_regs_captcha', $pun_config))
+			$db->query('INSERT INTO '.$db->prefix.'config (conf_name, conf_value) VALUES (\'o_regs_captcha\', \'1\')') or error('Unable to insert config value \'o_regs_captcha\'', __FILE__, __LINE__, $db->error());
 
 		if (!$db->table_exists('login_attempts'))
 		{

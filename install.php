@@ -7,9 +7,9 @@
  */
 
 // The eveBB version this script installs
-define('FORUM_VERSION', '1.21.0-alpha');
+define('FORUM_VERSION', '1.22.0-alpha');
 
-define('FORUM_DB_REVISION', 26);
+define('FORUM_DB_REVISION', 27);
 define('FORUM_SI_REVISION', 2);
 define('FORUM_PARSER_REVISION', 2);
 
@@ -1625,6 +1625,8 @@ else
 		'o_regs_verify'				=> 1,
 		// Require real name, date of birth and country at registration
 		'o_regs_require_profile'	=> 1,
+		// Show an image CAPTCHA on the registration form
+		'o_regs_captcha'			=> 1,
 		'o_announcement'			=> 0,
 		'o_announcement_message'	=> $lang_install['Announcement'],
 		'o_rules'					=> 1,

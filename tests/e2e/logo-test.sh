@@ -64,11 +64,14 @@ curl -s -o /dev/null "$BASE/install.php" \
   --data-urlencode "start=Start install"
 [ -f config.php ] && ok "forum installed" || fail "forum installed"
 
-TOKEN=$(curl -s -c "$JAR" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')
+TOKEN=$(curl -s -c "$JAR" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
 curl -s -b "$JAR" -c "$JAR" -e "$BASE/login.php" -o /dev/null -L "$BASE/login.php?action=in" \
   --data-urlencode "form_sent=1" --data-urlencode "csrf_token=$TOKEN" \
   --data-urlencode "req_username=admin" --data-urlencode "req_password=adminpass123" \
   --data-urlencode "login=Login" --data-urlencode "redirect_url=$BASE/index.php"
+
+# CSRF token for the logged-in admin (stable for the session)
+CSRF=$(curl -s -b "$JAR" "$BASE/admin_options.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}' | head -1)
 
 # --- helper: submit the full Options form (multipart) ----------------------
 # The options save handler reads every form field directly, so we send a
@@ -77,6 +80,7 @@ curl -s -b "$JAR" -c "$JAR" -e "$BASE/login.php" -o /dev/null -L "$BASE/login.ph
 save_options() {
   curl -s -b "$JAR" -e "$BASE/admin_options.php" -o "$WORK/save.html" -L "$BASE/admin_options.php" \
     -F "form_sent=1" \
+    -F "csrf_token=$CSRF" \
     -F "form[board_title]=Logo Test" \
     -F "form[board_desc]=A test board" \
     -F "form[base_url]=$BASE" \
@@ -130,6 +134,7 @@ save_options() {
     -F "form[regs_verify]=0" \
     -F "form[regs_report]=0" \
     -F "form[regs_require_profile]=1" \
+    -F "form[regs_captcha]=1" \
     --form-string "form[copyright_message]=${COPYRIGHT:-}" \
     -F "form[rules]=0" \
     -F "form[rules_message]=" \

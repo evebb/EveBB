@@ -154,7 +154,6 @@ generate_admin_menu('plugins');
 		<div class="box">
 			<form method="post" enctype="multipart/form-data" action="admin_plugins.php?action=upload">
 				<div class="inform">
-					<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
 					<fieldset>
 						<legend><?php echo $lang_admin_plugins['Upload legend'] ?></legend>
 						<div class="infldset">

@@ -139,14 +139,23 @@ function evebb_check_latest_release($timeout = 30)
 	// Prefer a packaged asset (evebb-*.zip built by the release
 	// workflow) over the raw source zipball
 	$zip_url = isset($release['zipball_url']) ? $release['zipball_url'] : '';
+	$is_asset_zip = false;
+	$sha_url = '';
 	if (isset($release['assets']) && is_array($release['assets']))
 	{
 		foreach ($release['assets'] as $asset)
 		{
-			if (isset($asset['name'], $asset['browser_download_url']) && preg_match('%^evebb-.*\.zip$%i', $asset['name']))
+			if (!isset($asset['name'], $asset['browser_download_url']))
+				continue;
+
+			if (!$is_asset_zip && preg_match('%^evebb-.*\.zip$%i', $asset['name']))
 			{
 				$zip_url = $asset['browser_download_url'];
-				break;
+				$is_asset_zip = true;
+			}
+			else if ($sha_url === '' && preg_match('%^evebb-.*\.zip\.sha256$%i', $asset['name']))
+			{
+				$sha_url = $asset['browser_download_url'];
 			}
 		}
 	}
@@ -156,8 +165,32 @@ function evebb_check_latest_release($timeout = 30)
 		'tag'			=> (string) $release['tag_name'],
 		'prerelease'	=> !empty($release['prerelease']),
 		'zip_url'		=> $zip_url,
+		// SHA-256 checksum published alongside the package (may be empty for
+		// the raw source zipball or for releases built before checksums)
+		'sha256_url'	=> $sha_url,
 		'url'			=> isset($release['html_url']) ? $release['html_url'] : '',
 	);
+}
+
+
+//
+// Download a published .sha256 checksum file and return the lowercase hex
+// digest, or '' if it cannot be fetched or parsed. The file follows the
+// sha256sum(1) format: "<64 hex chars>  <filename>".
+//
+function evebb_fetch_expected_sha256($sha_url, $timeout = 30)
+{
+	if (!is_string($sha_url) || $sha_url === '')
+		return '';
+
+	$body = evebb_http_get($sha_url, $timeout);
+	if ($body === false)
+		return '';
+
+	if (preg_match('%\b([a-fA-F0-9]{64})\b%', $body, $m))
+		return strtolower($m[1]);
+
+	return '';
 }
 
 
@@ -285,7 +318,7 @@ function evebb_update_rmtree($dir)
 // Download and apply a release zip. Returns true on success; $log
 // collects human-readable progress/errors either way.
 //
-function evebb_apply_update($zip_url, &$log)
+function evebb_apply_update($zip_url, &$log, $expected_sha256 = null)
 {
 	$log = array();
 
@@ -317,6 +350,28 @@ function evebb_apply_update($zip_url, &$log)
 	{
 		$log[] = 'Download failed.';
 		return false;
+	}
+
+	// Integrity check: if the release published a SHA-256 checksum, the
+	// downloaded bytes MUST match it before we trust and extract them. This
+	// is the point a tampered or corrupted package is caught — a mismatch
+	// aborts the update. (Older releases with no checksum fall through with
+	// a logged warning so manual/legacy updates still work.)
+	if (is_string($expected_sha256) && $expected_sha256 !== '')
+	{
+		$actual_sha256 = hash('sha256', $zip_data);
+		if (!hash_equals(strtolower($expected_sha256), $actual_sha256))
+		{
+			$log[] = 'Checksum verification FAILED - the download does not match the published SHA-256 and was discarded.';
+			$log[] = 'Expected: '.strtolower($expected_sha256);
+			$log[] = 'Actual:   '.$actual_sha256;
+			return false;
+		}
+		$log[] = 'Checksum verified (SHA-256).';
+	}
+	else
+	{
+		$log[] = 'Warning: this release published no SHA-256 checksum, so package integrity could not be verified.';
 	}
 
 	$zip_file = FORUM_CACHE_DIR.'evebb_update.zip';
