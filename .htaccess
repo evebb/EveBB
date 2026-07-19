@@ -8,6 +8,12 @@
 # Don't serve directory listings
 Options -Indexes
 
+# Serve a static landing page (index.html) at the site root when one exists,
+# falling back to the forum (index.php). Ordinary installs have no root
+# index.html, so this changes nothing for them; it lets a project site place
+# a front page above the forum without touching the server config.
+DirectoryIndex index.html index.php
+
 # config.php holds the database credentials and cookie secret. PHP includes it
 # internally, so it never needs to be fetched over HTTP - deny direct access so
 # it can't be read as source if PHP ever stops executing.
