@@ -10,6 +10,8 @@ eveBB is a fast, light, user-friendly forum application for your website. It is 
 
 The current version is in the [`latest_version`](latest_version) file, with packaged builds on the [releases page](https://github.com/evebb/EveBB/releases). The database schema is fully compatible with FluxBB 1.5.x — existing FluxBB 1.5 boards can switch to eveBB in place, and older 1.4/1.2 boards upgrade through the bundled `db_update.php`. Boards update themselves through the built-in one-click updater (Admin → Maintenance).
 
+How versions are numbered, how releases are cut and verified, and what each release channel means is described in [RELEASES.md](RELEASES.md). Documentation lives in the [wiki](https://github.com/evebb/EveBB/wiki).
+
 ## What eveBB adds over FluxBB 1.5
 
 * Runs on modern PHP: fully compatible with PHP 8.1–8.4 (FluxBB required 5.6 and fatals on PHP 8).
