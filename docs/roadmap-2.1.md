@@ -56,3 +56,8 @@ ride on them.
   GPG signing of release artifacts (needs a signing secret in the repo).
 - Re-shoot the landing-page screenshots once the community board has
   real activity to show.
+- Migration importers (phpBB / SMF -> eveBB): bigger than a plugin and
+  more valuable than most for adoption - likely a standalone `import/`
+  tool in the spirit of `db_update.php`.
+- Scheduled backups: admin-triggered or scheduled database dump,
+  downloadable or emailed.
