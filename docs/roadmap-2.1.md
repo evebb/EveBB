@@ -85,6 +85,55 @@ as a standard feature:
 - Possible 2.1+ stretch: per-group "require 2FA" (e.g. for
   Administrators), WebAuthn/passkeys as a second method.
 
+## 8. Task scheduler in core (pseudo-cron)
+
+A shared way to "run this periodically" so features stop hand-rolling
+their own timers. The design deliberately follows WordPress's wp-cron
+model, because a hard system-crontab dependency would fight both eveBB's
+"fast, light, free, no dependencies" ethos and the shared-hosting
+adoption goal (many cheap hosts have no reliable cron; requiring it
+raises the install bar we want to lower).
+
+Two drivers, same task registry:
+
+- **Page-view driver (default, zero dependency).** Due tasks run in the
+  background of ordinary web requests, exactly as several plugins
+  already do by hand today. Works on any host with traffic; "runs
+  within a few minutes of due, when someone next visits" is fine for
+  almost everything a forum schedules.
+- **Optional real cron (opt-in, punctual).** A `cron.php` endpoint an
+  admin MAY hit from a system crontab (or an uptime pinger) for
+  traffic-independent, on-time execution — the case for backups at 03:00
+  or nightly digests. Guarded by a secret token so it can't be triggered
+  by strangers. Setting a `PUN_DISABLE_PSEUDO_CRON` constant turns the
+  page-view driver off when a real cron is wired up (mirrors WP's
+  `DISABLE_WP_CRON`), so the work never runs twice.
+
+Shape:
+
+- A small `scheduler`/tasks table (task name, interval or next-run,
+  last-run, payload) plus a register/claim API. Claiming a due task uses
+  a compare-and-set on last-run so concurrent requests never double-run
+  it — the same lock the badges sweep already uses, lifted into core.
+- Tasks are set-based/idempotent where possible and must be safe to run
+  late or twice.
+- Admin visibility: a list of registered tasks with last/next run and a
+  "run now" button, under Administration → Maintenance.
+- A hook so plugins can register their own scheduled tasks.
+
+Adoption (what migrates onto it once it lands): the badges hourly sweep,
+the sitemap rebuild, relpost's GitHub polling, the coming outbound-
+webhooks outbox drain, auto-lock-stale-topics, and scheduled backups
+(the item under "Also on the radar" — it needs this, and is the main
+reason a real-cron option matters). Each keeps working on its own
+page-view timer until it's moved over; the scheduler is a consolidation,
+not a hard cutover.
+
+NOT a prerequisite for outbound webhooks — webhooks ship first on the
+existing page-view outbox pattern and migrate here later. This item is
+the "stop reinventing the timer" cleanup, valuable precisely because so
+many features want it.
+
 ## Also on the radar
 
 - Flip release.yml back to marking `-alpha/-beta/-rc` tags as GitHub
@@ -96,4 +145,7 @@ as a standard feature:
   more valuable than most for adoption - likely a standalone `import/`
   tool in the spirit of `db_update.php`.
 - Scheduled backups: admin-triggered or scheduled database dump,
-  downloadable or emailed.
+  downloadable or emailed. The "scheduled" half wants the §8 task
+  scheduler (and is the strongest case for its optional-real-cron
+  driver — a backup should run at a set time, not "next time someone
+  visits").
