@@ -49,6 +49,14 @@ notification-dispatch, profile-settings hooks at minimum) so plugins can
 extend rather than fork — the hook additions land first, the features
 ride on them.
 
+## 6. Embedded video in core
+
+A `[video]` BBCode in the parser (YouTube first, click-to-load embeds
+via youtube-nocookie.com, consent-aware where the cookieconsent plugin
+is active) plus a matching button in the visual editor's toolbar. The
+feature ships as a plugin first during the 2.0 freeze; this item is the
+"bake it into core" half once 2.1 opens.
+
 ## Also on the radar
 
 - Flip release.yml back to marking `-alpha/-beta/-rc` tags as GitHub
