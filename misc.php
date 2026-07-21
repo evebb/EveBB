@@ -262,6 +262,11 @@ else if (isset($_GET['report']))
 
 		$db->query('UPDATE '.$db->prefix.'users SET last_report_sent='.time().' WHERE id='.$pun_user['id']) or error('Unable to update user', __FILE__, __LINE__, $db->error());
 
+		// A post has just been reported. $post_id, $topic_id, $forum_id,
+		// $subject and $reason are all in scope for plugins that want to act
+		// on reports (e.g. outbound webhooks / chat notifications).
+		flux_hook('report_after_insert');
+
 		redirect('viewforum.php?id='.$forum_id, $lang_misc['Report redirect']);
 	}
 
