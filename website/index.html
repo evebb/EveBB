@@ -313,7 +313,159 @@ footer a:hover { color: var(--orange); }
 .faq details { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 14px 18px; margin-bottom: 10px; }
 .faq summary { cursor: pointer; font-weight: bold; font-size: 15px; }
 .faq details p { margin-top: 10px; font-size: 14px; color: var(--muted); }
+
+/* Cookie consent banner (mirrors the forum's cookieconsent plugin) */
+#cc-banner {
+	position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000;
+	background: var(--charcoal); color: #cfd3d8;
+	border-top: 3px solid var(--orange-bright);
+	font-size: 14px; line-height: 1.5;
+}
+#cc-banner .wrap {
+	display: flex; align-items: center; justify-content: space-between;
+	gap: 16px; flex-wrap: wrap; padding-top: 14px; padding-bottom: 14px;
+}
+#cc-banner p { margin: 0; flex: 1 1 320px; }
+#cc-banner .cc-btns { display: flex; gap: 10px; flex-wrap: wrap; }
+#cc-banner button {
+	font: inherit; cursor: pointer; border-radius: 6px;
+	padding: 8px 16px; border: 1px solid transparent;
+}
+#cc-banner .cc-accept { background: var(--orange-bright); color: #fff; border-color: var(--orange-bright); font-weight: bold; }
+#cc-banner .cc-accept:hover { background: var(--orange); border-color: var(--orange); }
+#cc-banner .cc-essential { background: transparent; color: #cfd3d8; border-color: #5a5f66; }
+#cc-banner .cc-essential:hover { color: #fff; border-color: #9aa0a8; }
 </style>
+<script>
+// Google Analytics (GA4), gated behind the same consent cookie the forum's
+// cookieconsent plugin uses. One choice covers the landing page AND the board.
+//
+// KEEP IN SYNC with the forum admin settings:
+//   - CC_VER must equal the board's cookie policy version (Admin → Cookie
+//     Consent). Pressing "Bump policy version" there means bumping it here too,
+//     so homepage visitors are re-asked like forum visitors.
+//   - The banner wording below should match the forum banner's message.
+(function () {
+	var GA_ID = 'G-0ETK4SCL8J';
+	var CC_VER = '1';
+	var COOKIE = 'evebb_consent';
+	var gaLoaded = false, subs = [], banner = null;
+
+	function readChoice() {
+		var m = document.cookie.match(/(?:^|;\s*)evebb_consent=([^;]*)/);
+		if (!m) return null;
+		var v = decodeURIComponent(m[1]).split(':');
+		if (v.length !== 2 || v[0] !== CC_VER) return null;
+		return (v[1] === 'all' || v[1] === 'essential') ? v[1] : null;
+	}
+	function writeChoice(choice) {
+		document.cookie = COOKIE + '=' + CC_VER + ':' + choice +
+			'; max-age=31536000; path=/; SameSite=Lax';
+	}
+	function loadGA() {
+		if (gaLoaded) return;
+		gaLoaded = true;
+		window.dataLayer = window.dataLayer || [];
+		window.gtag = window.gtag || function () { dataLayer.push(arguments); };
+		gtag('js', new Date());
+		gtag('config', GA_ID);
+		var s = document.createElement('script');
+		s.async = true;
+		s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+		document.head.appendChild(s);
+	}
+	// Withdrawal: expire Google Analytics cookies best-effort, like the forum does.
+	function expireGaCookies() {
+		var host = location.hostname;
+		var parts = document.cookie.split(';');
+		for (var i = 0; i < parts.length; i++) {
+			var n = parts[i].split('=')[0].replace(/^\s+|\s+$/g, '');
+			if (n !== '_ga' && n.indexOf('_ga_') !== 0) continue;
+			var doms = ['', '; domain=' + host, '; domain=.' + host];
+			for (var j = 0; j < doms.length; j++)
+				document.cookie = n + '=; max-age=0; path=/' + doms[j];
+		}
+	}
+	function announce(status) {
+		for (var i = 0; i < subs.length; i++) {
+			try { subs[i](status); } catch (e) {}
+		}
+	}
+	function decide(choice) {
+		writeChoice(choice);
+		hideBanner();
+		if (choice === 'all') loadGA();
+		else expireGaCookies();
+		announce(choice);
+	}
+	function hideBanner() {
+		if (banner && banner.parentNode) banner.parentNode.removeChild(banner);
+		banner = null;
+	}
+	function showBanner() {
+		if (banner) return;
+		banner = document.createElement('div');
+		banner.id = 'cc-banner';
+		banner.setAttribute('role', 'region');
+		banner.setAttribute('aria-label', 'Cookie consent');
+		var wrap = document.createElement('div');
+		wrap.className = 'wrap';
+		var msg = document.createElement('p');
+		msg.textContent = 'We use a couple of essential cookies to make this ' +
+			'site work, and optional analytics cookies to understand how it is ' +
+			'used. Analytics cookies are only set if you accept them.';
+		var btns = document.createElement('div');
+		btns.className = 'cc-btns';
+		var accept = document.createElement('button');
+		accept.className = 'cc-accept';
+		accept.textContent = 'Accept all';
+		accept.onclick = function () { decide('all'); };
+		var essential = document.createElement('button');
+		essential.className = 'cc-essential';
+		essential.textContent = 'Essential only';
+		essential.onclick = function () { decide('essential'); };
+		btns.appendChild(accept);
+		btns.appendChild(essential);
+		wrap.appendChild(msg);
+		wrap.appendChild(btns);
+		banner.appendChild(wrap);
+		document.body.appendChild(banner);
+	}
+	// Same integration API the forum's consent script exposes.
+	window.evebbConsent = {
+		status: readChoice,
+		subscribe: function (fn) {
+			subs.push(fn);
+			var c = readChoice();
+			if (c) { try { fn(c); } catch (e) {} }
+		}
+	};
+	if (window.evebbConsentQ && window.evebbConsentQ.length) {
+		for (var i = 0; i < window.evebbConsentQ.length; i++)
+			window.evebbConsent.subscribe(window.evebbConsentQ[i]);
+	}
+	window.evebbConsentQ = { push: function (fn) { window.evebbConsent.subscribe(fn); } };
+
+	var choice = readChoice();
+	if (choice === 'all') loadGA();
+
+	document.addEventListener('DOMContentLoaded', function () {
+		if (!readChoice()) showBanner();
+		// Permanent "Cookie preferences" link in the footer, like the forum's.
+		var spans = document.querySelectorAll('footer .wrap span');
+		var target = spans.length ? spans[spans.length - 1] : null;
+		if (target) {
+			var sep = document.createTextNode(' · ');
+			var link = document.createElement('a');
+			link.href = '#';
+			link.textContent = 'Cookie preferences';
+			link.onclick = function (ev) { ev.preventDefault(); showBanner(); };
+			target.appendChild(sep);
+			target.appendChild(link);
+		}
+	});
+})();
+</script>
 </head>
 <body>
 
