@@ -57,6 +57,34 @@ is active) plus a matching button in the visual editor's toolbar. The
 feature ships as a plugin first during the 2.0 freeze; this item is the
 "bake it into core" half once 2.1 opens.
 
+## 7. Two-factor authentication in core
+
+Account security shouldn't require a plugin. The official
+evebb-plugin-tfa (shipped during the 2.0 freeze) proves out the whole
+design and serves boards until this lands; in 2.1 it moves into core
+as a standard feature:
+
+- TOTP (RFC 6238: SHA-1, 6 digits, 30 s, ±1 slot drift, replay-proof
+  via a consumed last-slot) with locally rendered QR pairing — the
+  plugin's lib.php crypto is validated against the RFC test vectors
+  and ports over as include/tfa.php essentially unchanged.
+- `tfa_users` + `tfa_backup` become core tables in install.php, with a
+  db_update.php revision that ABSORBS an existing plugin install's
+  tables and data in place (same names/shapes by design), so enabled
+  members never notice the migration.
+- Native UI instead of injections: a real "one-time code" field in
+  login.php, a real Security section in profile.php (setup/QR/backup
+  codes/disable), a staff reset in admin_users.php, proper lang
+  strings throughout.
+- Eight single-use backup codes (keyed hashes, atomic consumption),
+  wrong codes feeding the core login throttle, sealed-HMAC setup
+  tokens — all as proven in the plugin.
+- The plugin detects core 2FA (FORUM_VERSION or a capability constant)
+  and retires gracefully: its settings page says "now built in" and
+  its hooks go inert, mirroring the video-plugin retirement plan.
+- Possible 2.1+ stretch: per-group "require 2FA" (e.g. for
+  Administrators), WebAuthn/passkeys as a second method.
+
 ## Also on the radar
 
 - Flip release.yml back to marking `-alpha/-beta/-rc` tags as GitHub
