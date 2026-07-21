@@ -91,12 +91,18 @@ function generate_admin_menu($page = '')
 					<li<?php if ($page == 'maintenance') echo ' class="isactive"'; ?>><a href="admin_maintenance.php"><?php echo $lang_admin_common['Maintenance'] ?></a></li>
 					<li<?php if ($page == 'styles') echo ' class="isactive"'; ?>><a href="admin_styles.php"><?php echo $lang_admin_common['Styles'] ?></a></li>
 					<li<?php if ($page == 'plugins') echo ' class="isactive"'; ?>><a href="admin_plugins.php"><?php echo $lang_admin_common['Plugins'] ?></a></li>
+				</ul>
+			</div>
+		</div>
 <?php
 
-		// A direct settings link for each active plugin that provides one
+		// Direct settings links for active plugins that provide one, in
+		// their own menu block so the core items (and the Plugins manager
+		// page itself) stay easy to find among many installed plugins
 		if (!function_exists('evebb_active_plugins') && file_exists(PUN_ROOT.'include/plugins.php'))
 			require PUN_ROOT.'include/plugins.php';
 
+		$plugin_menu_items = array();
 		if (function_exists('evebb_active_plugins'))
 		{
 			foreach (evebb_active_plugins() as $cur_slug)
@@ -106,16 +112,24 @@ function generate_admin_menu($page = '')
 					continue;
 
 				$item_page = 'plugin_'.$cur_slug;
-				$label = sprintf($lang_admin_common['Plugin settings link'], pun_htmlspecialchars($manifest['name']));
-				echo "\t\t\t\t\t".'<li'.(($page == $item_page) ? ' class="isactive"' : '').'><a href="admin_plugins.php?action=settings&amp;plugin='.urlencode($cur_slug).'">'.$label.'</a></li>'."\n";
+				$plugin_menu_items[] = '<li'.(($page == $item_page) ? ' class="isactive"' : '').'><a href="admin_plugins.php?action=settings&amp;plugin='.urlencode($cur_slug).'">'.pun_htmlspecialchars($manifest['name']).'</a></li>';
 			}
 		}
 
-?>
-				</ul>
-			</div>
-		</div>
-<?php
+		if (!empty($plugin_menu_items))
+		{
+			$plugin_menu_title = isset($lang_admin_common['Plugin settings menu']) ? $lang_admin_common['Plugin settings menu'] : 'Plugin settings';
+
+			echo "\t\t".'<h2 class="block2"><span>'.$plugin_menu_title.'</span></h2>'."\n";
+			echo "\t\t".'<div class="box">'."\n";
+			echo "\t\t\t".'<div class="inbox">'."\n";
+			echo "\t\t\t\t".'<ul>'."\n";
+			foreach ($plugin_menu_items as $cur_item)
+				echo "\t\t\t\t\t".$cur_item."\n";
+			echo "\t\t\t\t".'</ul>'."\n";
+			echo "\t\t\t".'</div>'."\n";
+			echo "\t\t".'</div>'."\n";
+		}
 
 	}
 

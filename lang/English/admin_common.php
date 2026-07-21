@@ -21,6 +21,7 @@ $lang_admin_common = array(
 'Styles'				=>	'Styles',
 'Plugins'				=>	'Plugins',
 'Plugin settings link'	=>	'%s Settings',
+'Plugin settings menu'	=>	'Plugin settings',
 'Reports'				=>	'Reports',
 'Server statistics'				=>	'Server statistics',
 
