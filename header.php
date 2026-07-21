@@ -107,15 +107,15 @@ if (!defined('PUN_ALLOW_INDEX'))
 
 ?>
 <title><?php echo generate_page_title($page_title, $p) ?></title>
-<link rel="stylesheet" type="text/css" href="style/<?php echo $pun_user['style'].'.css' ?>" />
+<link rel="stylesheet" type="text/css" href="style/<?php echo $pun_user['style'].'.css?v='.urlencode(FORUM_VERSION) ?>" />
 <?php
 
 if (defined('PUN_ADMIN_CONSOLE'))
 {
 	if (file_exists(PUN_ROOT.'style/'.$pun_user['style'].'/base_admin.css'))
-		echo '<link rel="stylesheet" type="text/css" href="style/'.$pun_user['style'].'/base_admin.css" />'."\n";
+		echo '<link rel="stylesheet" type="text/css" href="style/'.$pun_user['style'].'/base_admin.css?v='.urlencode(FORUM_VERSION).'" />'."\n";
 	else
-		echo '<link rel="stylesheet" type="text/css" href="style/imports/base_admin.css" />'."\n";
+		echo '<link rel="stylesheet" type="text/css" href="style/imports/base_admin.css?v='.urlencode(FORUM_VERSION).'" />'."\n";
 }
 
 if (isset($required_fields))
@@ -203,7 +203,7 @@ if ($wysiwyg_enabled && ($wysiwyg_message || $wysiwyg_signature))
 		// 'style' and 'emoticonsRoot' are filled in below, in the browser
 	);
 
-	echo '<link rel="stylesheet" type="text/css" href="js/sceditor/themes/default.min.css" />'."\n";
+	echo '<link rel="stylesheet" type="text/css" href="js/sceditor/themes/default.min.css?v='.urlencode(FORUM_VERSION).'" />'."\n";
 	echo '<script type="text/javascript" src="js/sceditor/sceditor.min.js"></script>'."\n";
 	echo '<script type="text/javascript" src="js/sceditor/formats/bbcode.js"></script>'."\n";
 	echo '<script type="text/javascript" src="js/sceditor/plugins/alternative-lists.js"></script>'."\n";

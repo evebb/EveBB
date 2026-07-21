@@ -1663,7 +1663,7 @@ function maintenance_message()
 
 ?>
 <title><?php echo generate_page_title($page_title) ?></title>
-<link rel="stylesheet" type="text/css" href="style/<?php echo $pun_user['style'].'.css' ?>" />
+<link rel="stylesheet" type="text/css" href="style/<?php echo $pun_user['style'].'.css?v='.urlencode(FORUM_VERSION) ?>" />
 <?php
 
 	$tpl_temp = trim(ob_get_contents());
@@ -1789,7 +1789,7 @@ function redirect($destination_url, $message)
 ?>
 <meta http-equiv="refresh" content="<?php echo $pun_config['o_redirect_delay'] ?>;URL=<?php echo $destination_url ?>" />
 <title><?php echo generate_page_title($page_title) ?></title>
-<link rel="stylesheet" type="text/css" href="style/<?php echo $pun_user['style'].'.css' ?>" />
+<link rel="stylesheet" type="text/css" href="style/<?php echo $pun_user['style'].'.css?v='.urlencode(FORUM_VERSION) ?>" />
 <?php
 
 	$tpl_temp = trim(ob_get_contents());
