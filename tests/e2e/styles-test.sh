@@ -110,7 +110,7 @@ curl -s -b "$JAR" -e "$BASE/admin_styles.php" -o /dev/null -L "$BASE/admin_style
 curl -s "$BASE/style/Teststyle.css" -o "$WORK/served.css"
 assert_contains "$WORK/served.css" "evebb-teststyle-marker" "new default stylesheet is served"
 curl -s "$BASE/index.php" -o "$WORK/idx.html"
-assert_contains "$WORK/idx.html" 'href="style/Teststyle.css"' "pages link the new default style"
+assert_contains "$WORK/idx.html" 'href="style/Teststyle.css?v=' "pages link the new default style (with cache-bust)"
 
 # --- cannot delete the default ---------------------------------------------
 curl -s -b "$JAR" -e "$BASE/admin_index.php" "$BASE/admin_styles.php" -o "$WORK/mgr3.html"
