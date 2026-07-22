@@ -20,7 +20,6 @@ class resize_avatar_Test extends TestCase
 			case IMAGETYPE_PNG:  imagepng($im, $path); break;
 			case IMAGETYPE_GIF:  imagegif($im, $path); break;
 		}
-		imagedestroy($im);
 		return $path;
 	}
 

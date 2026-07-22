@@ -633,10 +633,7 @@ function resize_avatar($src_path, $dest_path, $type, $max_w, $max_h)
 
 	$dst = imagecreatetruecolor($new_w, $new_h);
 	if (!$dst)
-	{
-		imagedestroy($src);
 		return false;
-	}
 
 	// Preserve transparency for GIF and PNG.
 	if ($type == IMAGETYPE_GIF || $type == IMAGETYPE_PNG)
@@ -657,9 +654,8 @@ function resize_avatar($src_path, $dest_path, $type, $max_w, $max_h)
 		default: $ok = false;
 	}
 
-	imagedestroy($src);
-	imagedestroy($dst);
-
+	// GdImage objects free themselves when they go out of scope (PHP 8.0+);
+	// imagedestroy() is deprecated as of PHP 8.5.
 	return (bool) $ok;
 }
 

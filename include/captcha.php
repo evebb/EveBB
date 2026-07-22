@@ -226,9 +226,9 @@ function evebb_captcha_render($answer)
 		$dst_y = (int) (($height - imagesy($rot)) / 2) + random_int(-3, 3);
 		imagecopy($img, $rot, $dst_x, $dst_y, 0, 0, imagesx($rot), imagesy($rot));
 
-		imagedestroy($tile);
-		imagedestroy($big);
-		imagedestroy($rot);
+		// GdImage objects free themselves when they go out of scope (PHP 8.0+);
+		// imagedestroy() is deprecated as of PHP 8.5.
+		unset($tile, $big, $rot);
 	}
 
 	// A few wavy lines over the top for good measure.
@@ -244,5 +244,4 @@ function evebb_captcha_render($answer)
 	header('Expires: Thu, 01 Jan 1970 00:00:00 GMT');
 
 	imagepng($img);
-	imagedestroy($img);
 }
