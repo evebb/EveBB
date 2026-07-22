@@ -83,7 +83,10 @@ build {
       "rm -rf /opt/digitalocean",
       "bash /root/cleanup.sh",
       "bash /root/img_check.sh",
-      "rm -f /root/cleanup.sh /root/img_check.sh"
+      "rm -f /root/cleanup.sh /root/img_check.sh",
+      # Final sweep: the firewall logs internet background noise between
+      # cleanup and snapshot, which img_check flags as un-cleared logs.
+      "truncate -s 0 /var/log/kern.log /var/log/ufw.log /var/log/syslog /var/log/auth.log 2>/dev/null || true"
     ]
   }
 }
