@@ -77,6 +77,10 @@ build {
       "curl -fsSL -o /root/cleanup.sh https://raw.githubusercontent.com/digitalocean/marketplace-partners/master/scripts/90-cleanup.sh",
       "curl -fsSL -o /root/img_check.sh https://raw.githubusercontent.com/digitalocean/marketplace-partners/master/scripts/99-img-check.sh",
       "rm -rf /tmp/evebb-build",
+      # Marketplace images must NOT contain the droplet-agent: DO installs
+      # it per-droplet at boot. img_check fails the image otherwise.
+      "apt-get -o DPkg::Lock::Timeout=600 -qy purge droplet-agent droplet-agent-keyring || true",
+      "rm -rf /opt/digitalocean",
       "bash /root/cleanup.sh",
       "bash /root/img_check.sh",
       "rm -f /root/cleanup.sh /root/img_check.sh"
