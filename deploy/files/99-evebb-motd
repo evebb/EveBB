@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+# eveBB one-click image MOTD — shown on SSH login.
+#
+IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
+cat <<EOF
+
+  ______ _    _ ______ ______ ______
+ |  ____| |  | |  ____|  _  \\|  _  \\   eveBB forum software
+ | |__  | |  | | |__  | |_) )| |_) )   https://evebb.net
+ |  __| \\ \\/\\/ /  __| |  _ ( |  _ (
+ | |____ \\    /| |____| |_) )| |_) )   Docs: github.com/evebb/EveBB/wiki
+ |______| \\/\\/ |______|_____/|_____/
+
+EOF
+if [ -f /root/.evebb_credentials ]; then
+    cat <<EOF
+ Your forum is ready to set up:
+
+   1. Open   http://${IP:-<droplet-ip>}/   in a browser
+   2. Enter the database credentials from:  cat /root/.evebb_credentials
+   3. Choose your admin account and board name — done.
+
+ The board keeps itself updated afterwards (Admin -> Maintenance).
+
+EOF
+else
+    cat <<EOF
+ Forum web root: /var/www/evebb    (served by nginx on port 80)
+
+EOF
+fi
