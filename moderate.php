@@ -737,12 +737,15 @@ else if (isset($_POST['delete_topics']) || isset($_POST['delete_topics_comply'])
 
 
 // Open or close one or more topics
-else if (isset($_REQUEST['open']) || isset($_REQUEST['close']))
+else if (isset($_REQUEST['open']) || isset($_REQUEST['close']) || isset($_REQUEST['lock']))
 {
-	$action = (isset($_REQUEST['open'])) ? 0 : 1;
+	// closed: 0 = open, 1 = closed (finished/no longer relevant), 2 = locked
+	// (replies switched off but the topic is still current). Both nonzero
+	// states prevent replies; only the label differs.
+	$action = (isset($_REQUEST['open'])) ? 0 : ((isset($_REQUEST['lock'])) ? 2 : 1);
 
 	// There could be an array of topic IDs in $_POST
-	if (isset($_POST['open']) || isset($_POST['close']))
+	if (isset($_POST['open']) || isset($_POST['close']) || isset($_POST['lock']))
 	{
 		confirm_referrer('moderate.php');
 
@@ -752,7 +755,7 @@ else if (isset($_REQUEST['open']) || isset($_REQUEST['close']))
 
 		$db->query('UPDATE '.$db->prefix.'topics SET closed='.$action.' WHERE id IN('.implode(',', $topics).') AND forum_id='.$fid) or error('Unable to close topics', __FILE__, __LINE__, $db->error());
 
-		$redirect_msg = ($action) ? $lang_misc['Close topics redirect'] : $lang_misc['Open topics redirect'];
+		$redirect_msg = ($action == 2) ? $lang_misc['Lock topics redirect'] : (($action == 1) ? $lang_misc['Close topics redirect'] : $lang_misc['Open topics redirect']);
 		redirect('moderate.php?fid='.$fid, $redirect_msg);
 	}
 	// Or just one in $_GET
@@ -762,13 +765,13 @@ else if (isset($_REQUEST['open']) || isset($_REQUEST['close']))
 
 		check_csrf($_GET['csrf_token'] ?? null);
 
-		$topic_id = ($action) ? intval($_GET['close']) : intval($_GET['open']);
+		$topic_id = ($action == 2) ? intval($_GET['lock']) : (($action == 1) ? intval($_GET['close']) : intval($_GET['open']));
 		if ($topic_id < 1)
 			message($lang_common['Bad request'], false, '404 Not Found');
 
 		$db->query('UPDATE '.$db->prefix.'topics SET closed='.$action.' WHERE id='.$topic_id.' AND forum_id='.$fid) or error('Unable to close topic', __FILE__, __LINE__, $db->error());
 
-		$redirect_msg = ($action) ? $lang_misc['Close topic redirect'] : $lang_misc['Open topic redirect'];
+		$redirect_msg = ($action == 2) ? $lang_misc['Lock topic redirect'] : (($action == 1) ? $lang_misc['Close topic redirect'] : $lang_misc['Open topic redirect']);
 		redirect('viewtopic.php?id='.$topic_id, $redirect_msg);
 	}
 }
@@ -938,6 +941,12 @@ if ($db->has_rows($result))
 			$status_text[] = '<span class="movedtext">'.$lang_forum['Moved'].'</span>';
 			$item_status .= ' imoved';
 		}
+		else if ($cur_topic['closed'] == '2')
+		{
+			$subject = '<a href="viewtopic.php?id='.$cur_topic['id'].'">'.pun_htmlspecialchars($cur_topic['subject']).'</a> <span class="byuser">'.$lang_common['by'].' '.pun_htmlspecialchars($cur_topic['poster']).'</span>';
+			$status_text[] = '<span class="closedtext">'.$lang_forum['Locked'].'</span>';
+			$item_status .= ' iclosed';
+		}
 		else if ($cur_topic['closed'] == '0')
 			$subject = '<a href="viewtopic.php?id='.$cur_topic['id'].'">'.pun_htmlspecialchars($cur_topic['subject']).'</a> <span class="byuser">'.$lang_common['by'].' '.pun_htmlspecialchars($cur_topic['poster']).'</span>';
 		else
@@ -1011,7 +1020,7 @@ else
 	<div class="inbox crumbsplus">
 		<div class="pagepost">
 			<p class="pagelink conl"><?php echo $paging_links ?></p>
-			<p class="conr modbuttons"><input type="submit" name="move_topics" value="<?php echo $lang_misc['Move'] ?>"<?php echo $button_status ?> /> <input type="submit" name="delete_topics" value="<?php echo $lang_misc['Delete'] ?>"<?php echo $button_status ?> /> <input type="submit" name="merge_topics" value="<?php echo $lang_misc['Merge'] ?>"<?php echo $button_status ?> /> <input type="submit" name="open" value="<?php echo $lang_misc['Open'] ?>"<?php echo $button_status ?> /> <input type="submit" name="close" value="<?php echo $lang_misc['Close'] ?>"<?php echo $button_status ?> /></p>
+			<p class="conr modbuttons"><input type="submit" name="move_topics" value="<?php echo $lang_misc['Move'] ?>"<?php echo $button_status ?> /> <input type="submit" name="delete_topics" value="<?php echo $lang_misc['Delete'] ?>"<?php echo $button_status ?> /> <input type="submit" name="merge_topics" value="<?php echo $lang_misc['Merge'] ?>"<?php echo $button_status ?> /> <input type="submit" name="open" value="<?php echo $lang_misc['Open'] ?>"<?php echo $button_status ?> /> <input type="submit" name="close" value="<?php echo $lang_misc['Close'] ?>"<?php echo $button_status ?> /> <input type="submit" name="lock" value="<?php echo $lang_misc['Lock'] ?>"<?php echo $button_status ?> /></p>
 			<div class="clearer"></div>
 		</div>
 		<?php echo $crumbs ?>

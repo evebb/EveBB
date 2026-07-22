@@ -45,7 +45,7 @@ if ($tid && $pun_config['o_censoring'] == '1')
 // Do we have permission to post?
 if ((($tid && (($cur_posting['post_replies'] == '' && $pun_user['g_post_replies'] == '0') || $cur_posting['post_replies'] == '0')) ||
 	($fid && (($cur_posting['post_topics'] == '' && $pun_user['g_post_topics'] == '0') || $cur_posting['post_topics'] == '0')) ||
-	(isset($cur_posting['closed']) && $cur_posting['closed'] == '1')) &&
+	(isset($cur_posting['closed']) && $cur_posting['closed'] != '0')) &&
 	!$is_admmod)
 	message($lang_common['No permission'], false, '403 Forbidden');
 

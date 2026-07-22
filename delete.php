@@ -38,7 +38,7 @@ $is_topic_post = ($id == $cur_post['first_post_id']) ? true : false;
 if (($pun_user['g_delete_posts'] == '0' ||
 	($pun_user['g_delete_topics'] == '0' && $is_topic_post) ||
 	$cur_post['poster_id'] != $pun_user['id'] ||
-	$cur_post['closed'] == '1') &&
+	$cur_post['closed'] != '0') &&
 	!$is_admmod)
 	message($lang_common['No permission'], false, '403 Forbidden');
 

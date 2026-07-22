@@ -128,6 +128,7 @@ $lang_common = array(
 'Move topic'						=>	'Move topic',
 'Open topic'						=>	'Open topic',
 'Close topic'						=>	'Close topic',
+'Lock topic'						=>	'Lock topic',
 'Unstick topic'						=>	'Unstick topic',
 'Stick topic'						=>	'Stick topic',
 'Moderate forum'					=>	'Moderate forum',

@@ -40,7 +40,7 @@ if ($pun_config['o_censoring'] == '1')
 // Do we have permission to edit this post?
 if (($pun_user['g_edit_posts'] == '0' ||
 	$cur_post['poster_id'] != $pun_user['id'] ||
-	$cur_post['closed'] == '1') &&
+	$cur_post['closed'] != '0') &&
 	!$is_admmod)
 	message($lang_common['No permission'], false, '403 Forbidden');
 

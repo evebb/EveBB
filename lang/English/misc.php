@@ -47,6 +47,7 @@ $lang_misc = array(
 // Moderate forum
 'Open'							=>	'Open',
 'Close'							=>	'Close',
+'Lock'						=>	'Lock',
 'Move topic'					=>	'Move topic',
 'Move topics'					=>	'Move topics',
 'Move legend'					=>	'Select destination of move',
@@ -63,6 +64,8 @@ $lang_misc = array(
 'Open topics redirect'			=>	'Topics opened. Redirecting …',
 'Close topic redirect'			=>	'Topic closed. Redirecting …',
 'Close topics redirect'			=>	'Topics closed. Redirecting …',
+'Lock topic redirect'			=>	'Topic locked. Redirecting …',
+'Lock topics redirect'			=>	'Topics locked. Redirecting …',
 'No topics selected'			=>	'You must select at least one topic for move/delete/open/close.',
 'Not enough topics selected'	=>	'You must select at least two topics for merge.',
 'Stick topic redirect'			=>	'Topic sticked. Redirecting …',

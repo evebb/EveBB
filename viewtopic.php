@@ -106,7 +106,7 @@ if ($cur_topic['closed'] == '0')
 }
 else
 {
-	$post_link = $lang_topic['Topic closed'];
+	$post_link = ($cur_topic['closed'] == '2') ? $lang_topic['Topic locked'] : $lang_topic['Topic closed'];
 
 	if ($is_admmod)
 		$post_link .= ' / <a href="post.php?tid='.$id.'">'.$lang_topic['Post reply'].'</a>';

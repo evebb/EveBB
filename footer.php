@@ -48,10 +48,14 @@ if (($footer_style == 'viewforum' || $footer_style == 'viewtopic') && $is_admmod
 		echo "\t\t\t\t".'<dd><span><a href="moderate.php?fid='.$forum_id.'&amp;tid='.$id.'&amp;p='.$p.'">'.$lang_common['Moderate topic'].'</a>'.($num_pages > 1 ? ' (<a href="moderate.php?fid='.$forum_id.'&amp;tid='.$id.'&amp;action=all">'.$lang_common['All'].'</a>)' : '').'</span></dd>'."\n";
 		echo "\t\t\t\t".'<dd><span><a href="moderate.php?fid='.$forum_id.'&amp;move_topics='.$id.'">'.$lang_common['Move topic'].'</a></span></dd>'."\n";
 
-		if ($cur_topic['closed'] == '1')
+		// closed: 0 = open, 1 = closed (finished), 2 = locked (replies off,
+		// still current). Offer the two states the topic is not in.
+		if ($cur_topic['closed'] != '0')
 			echo "\t\t\t\t".'<dd><span><a href="moderate.php?fid='.$forum_id.'&amp;open='.$id.$token_url.'">'.$lang_common['Open topic'].'</a></span></dd>'."\n";
-		else
+		if ($cur_topic['closed'] != '1')
 			echo "\t\t\t\t".'<dd><span><a href="moderate.php?fid='.$forum_id.'&amp;close='.$id.$token_url.'">'.$lang_common['Close topic'].'</a></span></dd>'."\n";
+		if ($cur_topic['closed'] != '2')
+			echo "\t\t\t\t".'<dd><span><a href="moderate.php?fid='.$forum_id.'&amp;lock='.$id.$token_url.'">'.$lang_common['Lock topic'].'</a></span></dd>'."\n";
 
 		if ($cur_topic['sticky'] == '1')
 			echo "\t\t\t\t".'<dd><span><a href="moderate.php?fid='.$forum_id.'&amp;unstick='.$id.$token_url.'">'.$lang_common['Unstick topic'].'</a></span></dd>'."\n";

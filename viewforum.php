@@ -214,6 +214,12 @@ if ($db->has_rows($result))
 			$status_text[] = '<span class="movedtext">'.$lang_forum['Moved'].'</span>';
 			$item_status .= ' imoved';
 		}
+		else if ($cur_topic['closed'] == '2')
+		{
+			$subject = '<a href="viewtopic.php?id='.$cur_topic['id'].'">'.pun_htmlspecialchars($cur_topic['subject']).'</a> <span class="byuser">'.$lang_common['by'].' '.pun_htmlspecialchars($cur_topic['poster']).'</span>';
+			$status_text[] = '<span class="closedtext">'.$lang_forum['Locked'].'</span>';
+			$item_status .= ' iclosed';
+		}
 		else if ($cur_topic['closed'] == '0')
 			$subject = '<a href="viewtopic.php?id='.$cur_topic['id'].'">'.pun_htmlspecialchars($cur_topic['subject']).'</a> <span class="byuser">'.$lang_common['by'].' '.pun_htmlspecialchars($cur_topic['poster']).'</span>';
 		else

@@ -693,7 +693,7 @@ if (isset($_GET['action']) || isset($_GET['search_id']))
 
 				if ($cur_search['closed'] != '0')
 				{
-					$status_text[] = '<span class="closedtext">'.$lang_forum['Closed'].'</span>';
+					$status_text[] = '<span class="closedtext">'.(($cur_search['closed'] == '2') ? $lang_forum['Locked'] : $lang_forum['Closed']).'</span>';
 					$item_status .= ' iclosed';
 				}
 
