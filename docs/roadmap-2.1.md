@@ -134,6 +134,47 @@ existing page-view outbox pattern and migrate here later. This item is
 the "stop reinventing the timer" cleanup, valuable precisely because so
 many features want it.
 
+## 9. Social sign-in in core
+
+Logging in with an account people already have shouldn't require a
+plugin either. The official evebb-plugin-socialauth (shipped during the
+2.0 freeze) proves out the whole design — Google, Discord, Microsoft and
+GitHub through one shared OAuth2/OIDC flow — and serves boards until
+this lands; in 2.1 it moves into core as a standard feature:
+
+- A provider registry (label, endpoints, scope, identity normaliser)
+  over one flow: authorize → code → token → identity. Adding a provider
+  is a registry entry, not a new subsystem. Launch set: Google, Discord,
+  Microsoft, GitHub. (Deliberately excluded for now: Apple — paid dev
+  account + rotating JWT client secret raises the board-owner bar;
+  Facebook — app review burden; X — paid API; Steam — OpenID 2.0 with no
+  email, which breaks account matching.)
+- One callback URL for every provider (`login.php?action=oauth` or
+  similar once native), with the provider key carried inside the
+  HMAC-sealed state token — never as a query parameter on the registered
+  redirect URI, since some providers reject those. State is additionally
+  bound to a short-lived nonce cookie (login-CSRF).
+- `socialauth_users` becomes a core table in install.php — PK
+  (user_id, provider), UNIQUE (provider, ext_id), so a member can hold
+  one link per provider — with a db_update.php revision that ABSORBS an
+  existing plugin install's table and data in place (same name/shape by
+  design), so linked members never notice the migration.
+- Only provider-VERIFIED emails ever match or create accounts (Google's
+  email_verified, Discord's verified, GitHub's per-address list; a
+  Microsoft account's email is the credential itself). No verified email
+  → the visitor confirms one before the account is created. Accounts get
+  a random unusable password; "forgotten password" adds one later.
+- Native UI instead of injections: provider buttons rendered by
+  login.php/register.php themselves, an admin page for per-provider
+  client id/secret + the link-by-email toggle, a "linked accounts"
+  section in profile.php (link/unlink per provider), proper lang
+  strings.
+- The plugin detects core social sign-in (capability constant) and
+  retires gracefully, mirroring the tfa/video retirement plan.
+- Possible 2.1+ stretch: more providers via the registry (any OIDC
+  issuer as a generic entry), per-group "may use social sign-in", and
+  account-settings unlink audit.
+
 ## Also on the radar
 
 - Flip release.yml back to marking `-alpha/-beta/-rc` tags as GitHub
