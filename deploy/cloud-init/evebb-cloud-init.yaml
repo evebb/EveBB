@@ -1,0 +1,32 @@
+#cloud-config
+# eveBB — one-paste cloud server install.
+#
+# Paste this whole file into the "User data" / "cloud-init" box when
+# creating an Ubuntu 24.04 server on DigitalOcean, Linode, Vultr, Hetzner
+# or any provider with cloud-init support. On first boot it installs
+# nginx + PHP + MariaDB, downloads the latest eveBB release (SHA-256
+# verified), creates the forum database with random credentials, and
+# leaves you at http://<server-ip>/ ready to run the 2-minute installer.
+#
+# Provisioning takes 2-4 minutes after the server boots. Progress log:
+#   tail -f /var/log/cloud-init-output.log
+# Database credentials for the installer:
+#   cat /root/.evebb_credentials
+#
+# The scripts are fetched from the eveBB repository at run time, so this
+# file always installs the current release:
+#   https://github.com/evebb/EveBB/tree/main/deploy
+
+runcmd:
+  - |
+    set -e
+    BASE="https://raw.githubusercontent.com/evebb/EveBB/main/deploy"
+    mkdir -p /tmp/evebb-build
+    for f in files/nginx-evebb.conf files/99-evebb-motd scripts/02-evebb-firstboot.sh; do
+      curl -fsSL -o "/tmp/evebb-build/$(basename "$f")" "$BASE/$f"
+    done
+    curl -fsSL -o /tmp/evebb-setup.sh "$BASE/scripts/01-setup-evebb.sh"
+    bash /tmp/evebb-setup.sh
+    bash /var/lib/cloud/scripts/per-instance/01-evebb-firstboot.sh
+    rm -f /tmp/evebb-setup.sh
+    echo "eveBB cloud-init install complete — open http://$(hostname -I | awk '{print $1}')/"

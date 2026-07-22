@@ -11,6 +11,15 @@ first target is the DigitalOcean Marketplace (`digitalocean/`); Linode,
 Vultr and AWS Lightsail variants can reuse the same two scripts with a
 different wrapper.
 
+## Quickest path: cloud-init (no marketplace account needed)
+
+`cloud-init/evebb-cloud-init.yaml` is a self-serve version of the same
+provisioning: paste it into the "user data" box when creating an Ubuntu
+24.04 server on DigitalOcean, Linode, Vultr, Hetzner or any cloud-init
+provider, and the server provisions itself on first boot (it fetches the
+scripts below from this repository). The wiki page
+"Install on a Cloud Server" is the user-facing walkthrough.
+
 ## Layout
 
 - `scripts/01-setup-evebb.sh` — build-time provisioner. Installs the stack
