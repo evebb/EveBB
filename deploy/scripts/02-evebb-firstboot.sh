@@ -56,7 +56,7 @@ eveBB database credentials (enter these in the web installer)
 
 MariaDB root password: $ROOT_PASS
 
-Open http://<this droplet's IP>/ to finish setting up your forum —
+Open http://<this droplet's IP>/ to finish setting up your forum -
 the installer creates your admin account and board settings.
 After installing, this file can be deleted: rm $CREDS_FILE
 EOF

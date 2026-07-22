@@ -1,5 +1,5 @@
 #cloud-config
-# eveBB — one-paste cloud server install.
+# eveBB - one-paste cloud server install.
 #
 # Paste this whole file into the "User data" / "cloud-init" box when
 # creating an Ubuntu 24.04 server on DigitalOcean, Linode, Vultr, Hetzner
@@ -29,4 +29,4 @@ runcmd:
     bash /tmp/evebb-setup.sh
     bash /var/lib/cloud/scripts/per-instance/01-evebb-firstboot.sh
     rm -f /tmp/evebb-setup.sh
-    echo "eveBB cloud-init install complete — open http://$(hostname -I | awk '{print $1}')/"
+    echo "eveBB cloud-init install complete - open http://$(hostname -I | awk '{print $1}')/"

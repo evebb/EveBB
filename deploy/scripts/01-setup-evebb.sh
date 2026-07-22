@@ -65,7 +65,7 @@ ln -sf /etc/nginx/sites-available/evebb /etc/nginx/sites-enabled/evebb
 rm -f /etc/nginx/sites-enabled/default
 nginx -t
 # On a live server (cloud-init path) nginx is already running with the
-# default site — pick up the eveBB server block. No-op during image builds.
+# default site - pick up the eveBB server block. No-op during image builds.
 systemctl reload-or-restart nginx >/dev/null 2>&1 || true
 
 # ------------------------------------------------------------- first boot ---

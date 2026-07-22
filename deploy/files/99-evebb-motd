@@ -1,6 +1,6 @@
 #!/bin/sh
 #
-# eveBB one-click image MOTD — shown on SSH login.
+# eveBB one-click image MOTD - shown on SSH login.
 #
 IP="$(hostname -I 2>/dev/null | awk '{print $1}')"
 cat <<EOF
@@ -19,7 +19,7 @@ if [ -f /root/.evebb_credentials ]; then
 
    1. Open   http://${IP:-<droplet-ip>}/   in a browser
    2. Enter the database credentials from:  cat /root/.evebb_credentials
-   3. Choose your admin account and board name — done.
+   3. Choose your admin account and board name - done.
 
  The board keeps itself updated afterwards (Admin -> Maintenance).
 
