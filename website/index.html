@@ -71,7 +71,17 @@
     {
       "@type": "Question",
       "name": "Can I change how it looks, or add features?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Styles install from a zip, and a WordPress-style plugin manager installs plugins the same way. Ready-made styles and plugins are available from the eveBB community board." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Styles install from a zip, and a WordPress-style plugin manager installs plugins the same way. Over 20 ready-made plugins and styles are available from the eveBB community board." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does eveBB have polls, social login or two-factor authentication?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes — as plugins, each a single zip upload from the admin panel. Social Sign-in adds Google, Discord, Microsoft and GitHub login; Two-Factor Authentication adds authenticator-app codes with backup codes; and there are plugins for polls, topic tags, prefixes, badges and more. Two-factor authentication and social sign-in are planned as built-in core features in eveBB 2.1." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is eveBB GDPR-friendly?",
+      "acceptedAnswer": { "@type": "Answer", "text": "eveBB collects little personal data to begin with, and the official Cookie Consent plugin adds an accept/essential-only banner with a consent API that other plugins respect. The GDPR Data Export & Anonymise plugin lets members download their data as JSON and HTML, and lets administrators anonymise an account on request while keeping discussions intact — with an audit log of every action." }
     }
   ]
 }
@@ -485,6 +495,7 @@ footer a:hover { color: var(--orange); }
 		</a>
 		<nav>
 			<a href="#features">Features</a>
+			<a href="#plugins">Plugins</a>
 			<a href="#start">Get started</a>
 			<a href="https://github.com/evebb/EveBB/wiki">Docs</a>
 			<a href="index.php">Community &amp; support</a>
@@ -525,8 +536,22 @@ footer a:hover { color: var(--orange); }
 			<div class="feature"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e67300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></div><h3>Reads well everywhere</h3><p>A mobile-friendly layout and the clean Carbon style out of the box, with the classic style system for full control.</p></div>
 			<div class="feature"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e67300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div><h3>FluxBB boards move in</h3><p>The database schema is fully compatible with FluxBB 1.5 — switch an existing board to eveBB in place, no migration scripts.</p></div>
 			<div class="feature"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e67300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3h6M10 3v6.34L4.6 19a1.5 1.5 0 0 0 1.33 2.2h12.14a1.5 1.5 0 0 0 1.33-2.2L14 9.34V3"/><line x1="7.5" y1="15" x2="16.5" y2="15"/></svg></div><h3>Honestly tested</h3><p>Unit tests, a database contract suite and end-to-end tests covering install, posting, search and upgrades — run on every change.</p></div>
-			<div class="feature"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e67300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V2M15 7V2"/><path d="M6 7h12v4a6 6 0 0 1-6 6 6 6 0 0 1-6-6V7z" fill="#fff" stroke="#e67300"/><path d="M12 17v5"/></svg></div><h3>Plugins &amp; hooks</h3><p>Extend the forum through the flux_hook plugin system, and restyle it by dropping a CSS file into <em>style/</em>.</p></div>
+			<div class="feature"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e67300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 7V2M15 7V2"/><path d="M6 7h12v4a6 6 0 0 1-6 6 6 6 0 0 1-6-6V7z" fill="#fff" stroke="#e67300"/><path d="M12 17v5"/></svg></div><h3>Plugins, one upload each</h3><p>Over 20 official and community plugins install from the admin panel in a single zip upload — social sign-in, polls, tags, 2FA, backups and more. Restyle with a CSS file in <em>style/</em>.</p></div>
 		</div>
+	</div>
+</section>
+
+<section id="plugins">
+	<div class="wrap">
+		<h2>The core stays lean. You add what your community needs.</h2>
+		<p class="sectionlead">Every plugin installs from the admin panel in a single zip upload — no shell access, no composer, no configuration files. Boards only carry what they use.</p>
+		<div class="grid">
+			<div class="feature"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e67300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg></div><h3>Sign-in &amp; security</h3><p><strong>Social Sign-in</strong> (Google, Discord, Microsoft, GitHub), <strong>Two-Factor Authentication</strong> with backup codes, and <strong>EVE&nbsp;Online SSO</strong> for gaming communities. Members bring an account they already have.</p></div>
+			<div class="feature"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e67300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75"/></svg></div><h3>Community features</h3><p><strong>Polls</strong>, <strong>topic tags</strong> with autocomplete, coloured <strong>topic prefixes</strong>, <strong>badges &amp; milestones</strong>, <strong>best-answer marking</strong> and <strong>similar-topic suggestions</strong> — the engagement features, without baking them into every board.</p></div>
+			<div class="feature"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e67300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><h3>Moderation &amp; compliance</h3><p><strong>Moderator notes &amp; warnings</strong> with points and expiry, <strong>GDPR data export &amp; anonymise</strong>, a <strong>cookie consent</strong> banner, and <strong>auto-locking</strong> of stale topics. Compliance answers small forums rarely have.</p></div>
+			<div class="feature"><div class="ico"><svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="#e67300" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09a1.65 1.65 0 0 0-1-1.51 1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09a1.65 1.65 0 0 0 1.51-1 1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33h0a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51h0a1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82v0a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></div><h3>Running the site</h3><p><strong>Scheduled backups</strong>, signed <strong>outbound webhooks</strong> for Discord/Slack alerts, an <strong>XML sitemap</strong>, <strong>Google Analytics</strong> (consent-gated), <strong>board statistics</strong>, video embeds and more — all cron-free, driven by your board's own traffic.</p></div>
+		</div>
+		<p class="sectionlead" style="margin-top:36px; margin-bottom:0;">Browse and download every plugin on the <a href="index.php">eveBB community board</a>. Coming in eveBB 2.1: two-factor authentication and social sign-in move into the core.</p>
 	</div>
 </section>
 
@@ -583,7 +608,15 @@ footer a:hover { color: var(--orange); }
 			</details>
 			<details>
 				<summary>Can I change how it looks, or add features?</summary>
-				<p>Yes. Styles install from a zip, and a WordPress-style plugin manager installs plugins the same way. Ready-made styles and plugins are available from the <a href="index.php">eveBB community board</a>.</p>
+				<p>Yes. Styles install from a zip, and a WordPress-style plugin manager installs plugins the same way. Over 20 ready-made plugins and styles are available from the <a href="index.php">eveBB community board</a>.</p>
+			</details>
+			<details>
+				<summary>Does eveBB have polls, social login or two-factor authentication?</summary>
+				<p>Yes — as plugins, each a single zip upload from the admin panel. Social Sign-in adds Google, Discord, Microsoft and GitHub login; Two-Factor Authentication adds authenticator-app codes with backup codes; and there are plugins for polls, topic tags, prefixes, badges and more. Two-factor authentication and social sign-in are planned as built-in core features in eveBB 2.1.</p>
+			</details>
+			<details>
+				<summary>Is eveBB GDPR-friendly?</summary>
+				<p>eveBB collects little personal data to begin with, and the official Cookie Consent plugin adds an accept/essential-only banner with a consent API that other plugins (like Google Analytics) respect. The GDPR Data Export &amp; Anonymise plugin lets members download their data as JSON and HTML, and lets administrators anonymise an account on request while keeping discussions intact — with an audit log of every action.</p>
 			</details>
 		</div>
 	</div>
