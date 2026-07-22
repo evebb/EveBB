@@ -80,6 +80,23 @@ The in-app updater downloads the package, verifies the published SHA-256
 **before** extracting, and refuses a mismatch. Manual installs can do the
 same with `sha256sum -c`.
 
+### Verifying the GPG signature
+
+From 2.0.0 onward, the checksum file of every release is signed. The public
+key ships in the source tree as
+[`docs/release-signing-key.asc`](docs/release-signing-key.asc)
+(ed25519, fingerprint `CCD5 0C89 57DB 3A41 24B9  94AD B8CC B11B DFE7 8E1D`).
+To verify a download:
+
+```
+gpg --import docs/release-signing-key.asc
+gpg --verify evebb-X.Y.Z.zip.sha256.asc evebb-X.Y.Z.zip.sha256
+sha256sum -c evebb-X.Y.Z.zip.sha256
+```
+
+A good signature over the checksum file plus a matching checksum proves the
+package is exactly what the release workflow built.
+
 ## Development
 
 Day-to-day development happens on `main`, which is kept releasable: every

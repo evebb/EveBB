@@ -67,11 +67,11 @@ jobs:
             evebb-*.zip
             evebb-*.zip.sha256
             evebb-*.zip.sha256.asc
-          # Published as a full release (not prerelease): GitHub's
-          # /releases/latest and its /latest/download/* permanent URLs only
-          # resolve to non-prerelease releases, and the newest tag IS the
-          # project's official current release.
-          prerelease: false
+          # Prerelease tags (anything with a channel suffix, e.g. v2.1.0-beta.1)
+          # are marked as prereleases on GitHub, so /releases/latest and its
+          # /latest/download/* permanent URLs keep resolving to the newest
+          # STABLE release. Plain vX.Y.Z tags publish as the current release.
+          prerelease: ${{ contains(github.ref_name, '-') }}
           generate_release_notes: true
           fail_on_unmatched_files: false
           append_body: true
