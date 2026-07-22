@@ -80,6 +80,16 @@
     },
     {
       "@type": "Question",
+      "name": "Can I run a forum on a cloud server without server skills?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. eveBB ships a one-paste cloud install: when creating a small Ubuntu server on DigitalOcean, Linode, Vultr or Hetzner, paste a single file into the provider's user-data box and the server configures itself — web server, PHP, database and the latest eveBB release, verified against its published checksum. You open the server's address and finish in eveBB's two-minute installer." }
+    },
+    {
+      "@type": "Question",
+      "name": "How much does it cost to run an eveBB forum?",
+      "acceptedAnswer": { "@type": "Answer", "text": "The software is free (GPL). Your only cost is somewhere to run it: any inexpensive shared PHP host works, or a small cloud server from around £5/$6 a month runs a busy board comfortably — eveBB is light enough that the cheapest tier is genuinely enough." }
+    },
+    {
+      "@type": "Question",
       "name": "Is eveBB GDPR-friendly?",
       "acceptedAnswer": { "@type": "Answer", "text": "eveBB collects little personal data to begin with, and the official Cookie Consent plugin adds an accept/essential-only banner with a consent API that other plugins respect. The GDPR Data Export & Anonymise plugin lets members download their data as JSON and HTML, and lets administrators anonymise an account on request while keeping discussions intact — with an audit log of every action." }
     }
@@ -566,6 +576,7 @@ footer a:hover { color: var(--orange); }
 			<div class="step"><span class="n"></span><div><h3>Run the installer</h3><p>Open <code>install.php</code> in your browser, pick a database (or choose SQLite and skip the database server entirely) and follow the steps. The <a href="https://github.com/evebb/EveBB/wiki">wiki</a> covers every option in detail.</p></div></div>
 			<div class="step"><span class="n"></span><div><h3>That's it</h3><p>Delete <code>install.php</code>, pick a style, open registration. Future updates are one click in Admin &rarr; Maintenance.</p></div></div>
 		</div>
+		<p class="sectionlead" style="margin-top:28px"><strong>No web host yet?</strong> Rent a small cloud server instead: paste <a href="https://raw.githubusercontent.com/evebb/EveBB/main/deploy/cloud-init/evebb-cloud-init.yaml">one file</a> when creating a &pound;5-a-month server on DigitalOcean, Linode, Vultr or Hetzner, and it sets itself up &mdash; web server, PHP, database and the latest eveBB release, integrity-verified &mdash; landing you at the installer with the database already provisioned. <a href="https://github.com/evebb/EveBB/wiki/Install-on-a-Cloud-Server">Follow the ten-minute walkthrough</a>.</p>
 	</div>
 </section>
 
@@ -613,6 +624,14 @@ footer a:hover { color: var(--orange); }
 			<details>
 				<summary>Does eveBB have polls, social login or two-factor authentication?</summary>
 				<p>Yes — as plugins, each a single zip upload from the admin panel. Social Sign-in adds Google, Discord, Microsoft and GitHub login; Two-Factor Authentication adds authenticator-app codes with backup codes; and there are plugins for polls, topic tags, prefixes, badges and more. Two-factor authentication and social sign-in are planned as built-in core features in eveBB 2.1.</p>
+			</details>
+			<details>
+				<summary>Can I run a forum on a cloud server without server skills?</summary>
+				<p>Yes. eveBB ships a one-paste cloud install: when creating a small Ubuntu server on DigitalOcean, Linode, Vultr or Hetzner, paste a single file into the provider's &ldquo;user data&rdquo; box and the server configures itself &mdash; web server, PHP, database and the latest eveBB release, verified against its published checksum. You open the server's address and finish in eveBB's two-minute installer. See <a href="https://github.com/evebb/EveBB/wiki/Install-on-a-Cloud-Server">Install on a Cloud Server</a>.</p>
+			</details>
+			<details>
+				<summary>How much does it cost to run an eveBB forum?</summary>
+				<p>The software is free (GPL). Your only cost is somewhere to run it: any inexpensive shared PHP host works, or a small cloud server from around &pound;5/$6 a month runs a busy board comfortably &mdash; eveBB is light enough that the cheapest tier is genuinely enough.</p>
 			</details>
 			<details>
 				<summary>Is eveBB GDPR-friendly?</summary>

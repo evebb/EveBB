@@ -34,6 +34,8 @@ How versions are numbered, how releases are cut and verified, and what each rele
 
 For SQLite, enter a writable file path (for example `data/forum.sqlite`) as the database name — no database server or credentials are needed.
 
+**No web host?** A single [cloud-init file](deploy/cloud-init/evebb-cloud-init.yaml) turns a fresh £5/$6 Ubuntu cloud server (DigitalOcean, Linode, Vultr, Hetzner…) into a ready-to-install eveBB forum — see [Install on a Cloud Server](https://github.com/evebb/EveBB/wiki/Install-on-a-Cloud-Server) in the wiki.
+
 ## Upgrading from FluxBB
 
 The database schema is fully compatible with FluxBB 1.5.x, so an existing FluxBB board switches to eveBB in place — no migration scripts. Copy your `config.php` into a fresh eveBB tree (keeping your `img/avatars` and any custom styles), then open the forum. Boards older than 1.5 (1.4/1.2) are redirected to the bundled `db_update.php` automatically. Take a database backup first, as you would for any upgrade.
