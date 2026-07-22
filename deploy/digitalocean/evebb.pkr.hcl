@@ -69,12 +69,13 @@ build {
     script = "../scripts/01-setup-evebb.sh"
   }
 
-  # DigitalOcean's marketplace cleanup + validation (cleanup wipes /tmp,
-  # so the scripts live in /root while they run)
+  # DigitalOcean's marketplace cleanup + validation (their repo names them
+  # 90-cleanup.sh / 99-img-check.sh; cleanup wipes /tmp, so the scripts
+  # live in /root while they run)
   provisioner "shell" {
     inline = [
-      "curl -fsSL -o /root/cleanup.sh https://raw.githubusercontent.com/digitalocean/marketplace-partners/master/scripts/cleanup.sh",
-      "curl -fsSL -o /root/img_check.sh https://raw.githubusercontent.com/digitalocean/marketplace-partners/master/scripts/img_check.sh",
+      "curl -fsSL -o /root/cleanup.sh https://raw.githubusercontent.com/digitalocean/marketplace-partners/master/scripts/90-cleanup.sh",
+      "curl -fsSL -o /root/img_check.sh https://raw.githubusercontent.com/digitalocean/marketplace-partners/master/scripts/99-img-check.sh",
       "rm -rf /tmp/evebb-build",
       "bash /root/cleanup.sh",
       "bash /root/img_check.sh",
