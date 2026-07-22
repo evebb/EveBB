@@ -21,8 +21,13 @@ EVEBB_RELEASE_URL="${EVEBB_RELEASE_URL:-https://github.com/evebb/EveBB/releases/
 EVEBB_SHA_URL="${EVEBB_SHA_URL:-https://github.com/evebb/EveBB/releases/latest/download/evebb-latest.zip.sha256}"
 
 # ---------------------------------------------------------------- packages --
-apt-get update -q
-apt-get install -qy nginx mariadb-server \
+# A fresh cloud server runs its own apt work at boot (unattended-upgrades,
+# the provider agent). Wait for it rather than racing it: DPkg::Lock::Timeout
+# makes apt block for up to 10 minutes for the dpkg locks instead of failing
+# with exit 100.
+APT="apt-get -o DPkg::Lock::Timeout=600"
+$APT update -q
+$APT install -qy nginx mariadb-server \
     php-fpm php-mysql php-mbstring php-gd php-curl php-zip php-xml \
     postfix unzip curl ca-certificates
 

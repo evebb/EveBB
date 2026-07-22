@@ -42,9 +42,14 @@ source "digitalocean" "evebb" {
 build {
   sources = ["source.digitalocean.evebb"]
 
-  # Stage build assets where the provisioner expects them
+  # Let the droplet finish its boot-time work (cloud-init, the DO agent
+  # install, unattended-upgrades) before we touch the package system -
+  # otherwise apt races the boot chores for the dpkg lock and exits 100.
   provisioner "shell" {
-    inline = ["mkdir -p /tmp/evebb-build"]
+    inline = [
+      "cloud-init status --wait || true",
+      "mkdir -p /tmp/evebb-build"
+    ]
   }
   provisioner "file" {
     source      = "../files/nginx-evebb.conf"
