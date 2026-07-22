@@ -4,17 +4,17 @@
 
 A public test forum runs at [evebb.net](https://evebb.net).
 
-eveBB is a fast, light, user-friendly forum application for your website. It is a modernized continuation of [FluxBB](https://fluxbb.org/), which ceased development after 2021, and inherits FluxBB's philosophy: fewer features, faster pages, and code you can actually read.
+eveBB is fast, light, user-friendly forum software for your website: fewer features, faster pages, and code you can actually read. It runs on modern PHP, works with MySQL, SQLite or PostgreSQL, and keeps itself up to date with a built-in one-click updater.
 
 ## Version
 
-The current version is in the [`latest_version`](latest_version) file, with packaged builds on the [releases page](https://github.com/evebb/EveBB/releases). The database schema is fully compatible with FluxBB 1.5.x — existing FluxBB 1.5 boards can switch to eveBB in place, and older 1.4/1.2 boards upgrade through the bundled `db_update.php`. Boards update themselves through the built-in one-click updater (Admin → Maintenance).
+The current version is in the [`latest_version`](latest_version) file, with packaged builds on the [releases page](https://github.com/evebb/EveBB/releases). Boards update themselves through the built-in one-click updater (Admin → Maintenance).
 
 How versions are numbered, how releases are cut and verified, and what each release channel means is described in [RELEASES.md](RELEASES.md). Documentation lives in the [wiki](https://github.com/evebb/EveBB/wiki).
 
-## What eveBB adds over FluxBB 1.5
+## Highlights
 
-* Runs on modern PHP: fully compatible with PHP 8.1–8.4 (FluxBB required 5.6 and fatals on PHP 8).
+* Runs on modern PHP: fully compatible with PHP 8.1–8.4.
 * A PDO database layer alongside the classic drivers: MySQL (PDO), **SQLite3** (no database server needed — the forum runs on a single file), and PostgreSQL (PDO).
 * The classic mysqli and pgsql drivers are retained and fixed for PHP 8.
 * Modern security plumbing: `random_bytes()` entropy, bcrypt password hashing with transparent migration of legacy hashes, hardened CSRF checks.
@@ -36,7 +36,7 @@ For SQLite, enter a writable file path (for example `data/forum.sqlite`) as the 
 
 ## Upgrading from FluxBB
 
-Copy your `config.php` into a fresh eveBB tree (keeping your `img/avatars` and any custom styles), then open the forum. Boards older than 1.5 are redirected to `db_update.php` automatically. Take a database backup first, as you would for any upgrade.
+The database schema is fully compatible with FluxBB 1.5.x, so an existing FluxBB board switches to eveBB in place — no migration scripts. Copy your `config.php` into a fresh eveBB tree (keeping your `img/avatars` and any custom styles), then open the forum. Boards older than 1.5 (1.4/1.2) are redirected to the bundled `db_update.php` automatically. Take a database backup first, as you would for any upgrade.
 
 ## Running the tests
 
