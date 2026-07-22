@@ -91,7 +91,7 @@ generate_admin_menu('index');
 					</dd>
 					<dt><?php echo $lang_admin_index['Support label'] ?></dt>
 					<dd>
-						<a href="https://github.com/evebb/evebb/issues"><?php echo $lang_admin_index['Forum label'] ?></a> - <a href="https://github.com/evebb/evebb/discussions"><?php echo $lang_admin_index['IRC label'] ?></a>
+						<a href="https://github.com/evebb/evebb/issues"><?php echo $lang_admin_index['Forum label'] ?></a> - <a href="https://github.com/evebb/evebb/discussions"><?php echo $lang_admin_index['IRC label'] ?></a> - <a href="https://evebb.net/index.php"><?php echo $lang_admin_index['Community label'] ?></a>
 					</dd>
 				</dl>
 			</div>

@@ -36,6 +36,7 @@ $lang_admin_index = array(
 'Support label'						=>	'Support',
 'Forum label'						=>	'Issue tracker',
 'IRC label'							=>	'Discussions',
+'Community label'					=>	'Community forum',
 
 // Language definitions used in admin_statistics.php
 'PHPinfo disabled message'			=>	'The PHP function phpinfo() has been disabled on this server.',
