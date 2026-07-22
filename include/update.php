@@ -116,19 +116,29 @@ function evebb_check_latest_release($timeout = 30)
 	if (isset($releases['tag_name']))
 		$releases = array($releases);
 
+	// Pick the HIGHEST version, not the first entry: GitHub's list order is
+	// not reliably newest-first (observed 2026-07-22: a stable release was
+	// listed below an older beta). Stable releases are preferred; prereleases
+	// are only considered when no stable exists in the feed.
 	$stable = $fallback = null;
+	$stable_ver = $fallback_ver = '';
 	foreach ($releases as $release)
 	{
 		if (!is_array($release) || !isset($release['tag_name']) || !empty($release['draft']))
 			continue;
 
-		if ($fallback === null)
-			$fallback = $release;
+		$version = ltrim((string) $release['tag_name'], 'vV');
 
-		if (empty($release['prerelease']))
+		if ($fallback === null || version_compare($version, $fallback_ver, '>'))
+		{
+			$fallback = $release;
+			$fallback_ver = $version;
+		}
+
+		if (empty($release['prerelease']) && ($stable === null || version_compare($version, $stable_ver, '>')))
 		{
 			$stable = $release;
-			break;
+			$stable_ver = $version;
 		}
 	}
 
