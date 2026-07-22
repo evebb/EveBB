@@ -1,9 +1,7 @@
 # eveBB 2.1 roadmap
 
-`main` is frozen for 2.0.0 (bug fixes only — see RELEASES.md for the
-beta-exit checklist). This is the queue for the 2.1 cycle, roughly in
-priority order. Nothing here is a promise; it's where development picks
-up once 2.0.0 stable ships.
+2.0.0 stable shipped on 2026-07-22, so the freeze is over and this queue
+is live. Roughly in priority order; nothing here is a promise.
 
 ## 1. `[noparse]` BBCode
 
@@ -175,11 +173,21 @@ this lands; in 2.1 it moves into core as a standard feature:
   issuer as a generic entry), per-group "may use social sign-in", and
   account-settings unlink audit.
 
-## Also on the radar
+## 10. Zero-config install defaults (one-click images)
 
-- Flip release.yml back to marking `-alpha/-beta/-rc` tags as GitHub
-  prereleases once 2.0.0 stable exists (details in RELEASES.md), and add
-  GPG signing of release artifacts (needs a signing secret in the repo).
+The `deploy/` one-click server images (DigitalOcean first) pre-provision
+the database, but the visitor still has to copy credentials from
+`/root/.evebb_credentials` into install.php's form. Close that last gap:
+let install.php read defaults from a file the image drops next to it —
+e.g. `install_defaults.php` returning an array of db_type/host/name/
+user/password (and optionally base_url) — and prefill (or lock) those
+fields, so a one-click user only ever chooses a board title and admin
+account. The installer deletes the defaults file on success, as it
+already prompts for install.php itself. Benefits every distribution
+channel the same way: DO, Linode/Vultr/Lightsail templates, Softaculous
+(whose installer conventions expect exactly this shape), Cloudron.
+
+## Also on the radar
 - Re-shoot the landing-page screenshots once the community board has
   real activity to show.
 - Migration importers (phpBB / SMF -> eveBB): bigger than a plugin and
