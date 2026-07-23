@@ -1706,6 +1706,17 @@ function redirect($destination_url, $message)
 {
 	global $db, $pun_config, $lang_common, $pun_user;
 
+	// Discard any partially rendered page. Plugin settings pages handle
+	// their POST in the middle of the admin page (after header.php has
+	// buffered the admin menu), so without this the half-built page -
+	// unstyled, since its <head> only ships with footer.php - would be
+	// flushed in front of the redirect page on exit. Same guard as error().
+	while (@ob_end_clean());
+
+	// "Restart" output buffering if we are using ob_gzhandler (since the gzip header is already sent)
+	if (!empty($pun_config['o_gzip']) && extension_loaded('zlib'))
+		ob_start('ob_gzhandler');
+
 	// Prefix with base_url (unless there's already a valid URI)
 	if (strpos($destination_url, 'http://') !== 0 && strpos($destination_url, 'https://') !== 0 && strpos($destination_url, '/') !== 0)
 		$destination_url = get_base_url(true).'/'.$destination_url;
