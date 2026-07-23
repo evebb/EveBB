@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<soft xmlns="http://www.softaculous.com">
+
+	<overview>
+	<![CDATA[
+	<b>eveBB</b> is fast, light, user-friendly forum software: fewer
+	features, faster pages, and readable code. It is the modernized
+	continuation of FluxBB (abandoned upstream in 2021) - fully
+	schema-compatible with FluxBB 1.5, so existing FluxBB boards can
+	switch in place - rebuilt for modern PHP.
+	<br/><br/>
+	Highlights: PHP 8.1-8.4 support, MySQL/MariaDB, PostgreSQL or a
+	single SQLite file (no database server needed), bcrypt passwords
+	with transparent migration of legacy hashes, hardened CSRF
+	protection and login throttling, a visual (WYSIWYG) editor writing
+	standard BBCode, a responsive default style, and a built-in
+	one-click updater that verifies the SHA-256 checksum of every
+	release before installing it. A plugin system adds polls, topic
+	tags, badges, two-factor authentication, social sign-in, webhooks,
+	scheduled backups and more - each installed from the admin panel as
+	a single zip upload.
+	]]>
+	</overview>
+
+	<features>
+	<![CDATA[
+	<ul>
+	<li>Fast and light - runs comfortably on inexpensive shared hosting</li>
+	<li>Modern PHP (8.1-8.4)</li>
+	<li>MySQL/MariaDB, PostgreSQL or SQLite (single file, no DB server)</li>
+	<li>Built-in one-click updater with SHA-256 verification (GPG-signed releases)</li>
+	<li>Visual editor (SCEditor) writing standard BBCode</li>
+	<li>Responsive default style; installable styles and plugins (single zip upload)</li>
+	<li>Drop-in continuation of FluxBB 1.5 - existing boards switch in place</li>
+	<li>Free and open source, GNU GPL v2 or later</li>
+	</ul>
+	]]>
+	</features>
+
+	<demo>https://evebb.net/index.php</demo>
+
+	<ratings>https://evebb.net/index.php</ratings>
+
+	<space>5242880</space>
+
+	<support>https://evebb.net/index.php</support>
+
+	<version>2.0.1</version>
+
+	<softversion>4.0.6</softversion>
+
+	<languages>
+		<english>
+			<install_your_forum>Install your forum</install_your_forum>
+		</english>
+	</languages>
+
+</soft>

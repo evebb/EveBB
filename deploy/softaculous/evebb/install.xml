@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  eveBB Softaculous package: COPY MODE (softcopy).
+
+  Softaculous extracts the application files into the chosen directory
+  and hands the user to eveBB's own two-minute web installer, which
+  creates config.php, the database schema and the admin account.
+
+  Copy mode is the honest v1: eveBB's installer already does everything
+  (including SQLite installs with no database at all, which Softaculous's
+  own automation cannot express). eveBB's roadmap item 10 ("install
+  defaults") will let a future package version pre-fill the database
+  fields Softaculous provisions, and a later revision can move to full
+  <softinstall> automation.
+-->
+<softcopy xmlns="http://www.softaculous.com">
+
+	<setuplocation>install.php</setuplocation>
+
+	<files>
+	</files>
+
+</softcopy>
