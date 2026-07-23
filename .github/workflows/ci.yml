@@ -130,3 +130,6 @@ jobs:
 
       - name: Registration end-to-end test
         run: ./tests/e2e/register-test.sh
+
+      - name: Install defaults end-to-end test
+        run: ./tests/e2e/install-defaults-test.sh

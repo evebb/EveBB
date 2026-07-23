@@ -36,6 +36,7 @@ $lang_install = array(
 'Errors'						=>	'The following errors need to be corrected:',
 'Database setup'				=>	'Database setup',
 'Info 1'						=>	'All information we need to create a connection with your database.',
+'Defaults note'					=>	'Some settings below have been preconfigured by your installation environment and cannot be changed.',
 'Select database'				=>	'Select your database type',
 'Info 2'						=>	'Select a database. We support SQLite, MySQL and PostgreSQL.',
 'Database type'					=>	'Database type',

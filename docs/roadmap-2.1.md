@@ -173,7 +173,12 @@ this lands; in 2.1 it moves into core as a standard feature:
   issuer as a generic entry), per-group "may use social sign-in", and
   account-settings unlink audit.
 
-## 10. Zero-config install defaults (one-click images)
+## 10. Zero-config install defaults (one-click images) — SHIPPED on main
+
+Implemented 2026-07-23 (install.php reads install_defaults.php, prefills
+and locks the preconfigured fields, ignores tampered submissions for
+them, and deletes the file on success; e2e coverage in
+tests/e2e/install-defaults-test.sh). Ships with the next release.
 
 The `deploy/` one-click server images (DigitalOcean first) pre-provision
 the database, but the visitor still has to copy credentials from

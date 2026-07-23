@@ -83,6 +83,52 @@ if (!function_exists('version_compare') || version_compare(PHP_VERSION, MIN_PHP_
 
 
 //
+// Zero-config install defaults (roadmap 2.1 no. 10)
+//
+// One-click images and hosting provisioners may drop an install_defaults.php
+// next to this script, returning an array of preconfigured values (any of:
+// db_type, db_host, db_name, db_username, db_password, db_prefix, base_url).
+// Preconfigured fields are prefilled and locked in the form, and the submitted
+// form ignores tampered values for them, so the visitor only has to choose a
+// board title and an administrator account. The file is deleted as soon as the
+// installation succeeds (it contains database credentials).
+//
+$install_defaults = array();
+if (file_exists(PUN_ROOT.'install_defaults.php'))
+{
+	$install_defaults_values = @include PUN_ROOT.'install_defaults.php';
+	if (is_array($install_defaults_values))
+	{
+		foreach (array('db_type', 'db_host', 'db_name', 'db_username', 'db_password', 'db_prefix', 'base_url') as $install_defaults_key)
+		{
+			if (isset($install_defaults_values[$install_defaults_key]) && is_string($install_defaults_values[$install_defaults_key]))
+				$install_defaults[$install_defaults_key] = $install_defaults_values[$install_defaults_key];
+		}
+	}
+	unset($install_defaults_values, $install_defaults_key);
+}
+
+
+//
+// Is this field preconfigured by install_defaults.php?
+//
+function install_default_locked($field)
+{
+	global $install_defaults;
+	return isset($install_defaults[$field]);
+}
+
+
+//
+// Returns a readonly attribute for form fields that are preconfigured
+//
+function install_default_readonly($field)
+{
+	return install_default_locked($field) ? ' readonly="readonly"' : '';
+}
+
+
+//
 // Generate output to be used for config.php
 //
 function generate_config_file()
@@ -128,6 +174,10 @@ if (!isset($_POST['form_sent']))
 	$description = '<p><span>'.$lang_install['Description'].'</span></p>';
 	$default_lang = $install_lang;
 	$default_style = 'Carbon';
+
+	// Apply any preconfigured install defaults
+	foreach ($install_defaults as $install_default_field => $install_default_value)
+		$$install_default_field = $install_default_value;
 }
 else
 {
@@ -146,6 +196,11 @@ else
 	$base_url = pun_trim($_POST['req_base_url']);
 	$default_lang = pun_trim($_POST['req_default_lang']);
 	$default_style = pun_trim($_POST['req_default_style']);
+
+	// Preconfigured install defaults always win over submitted values
+	foreach ($install_defaults as $install_default_field => $install_default_value)
+		$$install_default_field = $install_default_value;
+
 	$alerts = array();
 
 	// Make sure base_url doesn't end with a slash
@@ -337,7 +392,8 @@ foreach ($alerts as $cur_alert)
 				<div class="forminfo">
 					<h3><?php echo $lang_install['Database setup'] ?></h3>
 					<p><?php echo $lang_install['Info 1'] ?></p>
-				</div>
+<?php if (!empty($install_defaults)): ?>					<p><?php echo $lang_install['Defaults note'] ?></p>
+<?php endif; ?>				</div>
 				<fieldset>
 				<legend><?php echo $lang_install['Select database'] ?></legend>
 					<div class="infldset">
@@ -348,6 +404,10 @@ foreach ($alerts as $cur_alert)
 
 	foreach ($db_extensions as $temp)
 	{
+		// A preconfigured database type collapses the list to that single choice
+		if (install_default_locked('db_type') && $temp[0] != $db_type)
+			continue;
+
 		if ($temp[0] == $db_type)
 			echo "\t\t\t\t\t\t\t".'<option value="'.$temp[0].'" selected="selected">'.$temp[1].'</option>'."\n";
 		else
@@ -365,7 +425,7 @@ foreach ($alerts as $cur_alert)
 					<legend><?php echo $lang_install['Database hostname'] ?></legend>
 					<div class="infldset">
 						<p><?php echo $lang_install['Info 3'] ?></p>
-						<label class="required"><strong><?php echo $lang_install['Database server hostname'] ?> <span><?php echo $lang_install['Required'] ?></span></strong><br /><input type="text" name="req_db_host" value="<?php echo pun_htmlspecialchars($db_host) ?>" size="50" /><br /></label>
+						<label class="required"><strong><?php echo $lang_install['Database server hostname'] ?> <span><?php echo $lang_install['Required'] ?></span></strong><br /><input type="text" name="req_db_host" value="<?php echo pun_htmlspecialchars($db_host) ?>" size="50"<?php echo install_default_readonly('db_host') ?> /><br /></label>
 					</div>
 				</fieldset>
 			</div>
@@ -374,7 +434,7 @@ foreach ($alerts as $cur_alert)
 					<legend><?php echo $lang_install['Database enter name'] ?></legend>
 					<div class="infldset">
 						<p><?php echo $lang_install['Info 4'] ?></p>
-						<label class="required"><strong><?php echo $lang_install['Database name'] ?> <span><?php echo $lang_install['Required'] ?></span></strong><br /><input id="req_db_name" type="text" name="req_db_name" value="<?php echo pun_htmlspecialchars($db_name) ?>" size="30" /><br /></label>
+						<label class="required"><strong><?php echo $lang_install['Database name'] ?> <span><?php echo $lang_install['Required'] ?></span></strong><br /><input id="req_db_name" type="text" name="req_db_name" value="<?php echo pun_htmlspecialchars($db_name) ?>" size="30"<?php echo install_default_readonly('db_name') ?> /><br /></label>
 					</div>
 				</fieldset>
 			</div>
@@ -383,8 +443,8 @@ foreach ($alerts as $cur_alert)
 					<legend><?php echo $lang_install['Database enter informations'] ?></legend>
 					<div class="infldset">
 						<p><?php echo $lang_install['Info 5'] ?></p>
-						<label class="conl"><?php echo $lang_install['Database username'] ?><br /><input type="text" name="db_username" value="<?php echo pun_htmlspecialchars($db_username) ?>" size="30" /><br /></label>
-						<label class="conl"><?php echo $lang_install['Database password'] ?><br /><input type="password" name="db_password" size="30" /><br /></label>
+						<label class="conl"><?php echo $lang_install['Database username'] ?><br /><input type="text" name="db_username" value="<?php echo pun_htmlspecialchars($db_username) ?>" size="30"<?php echo install_default_readonly('db_username') ?> /><br /></label>
+						<label class="conl"><?php echo $lang_install['Database password'] ?><br /><input type="password" name="db_password" size="30"<?php echo install_default_readonly('db_password') ?> /><br /></label>
 						<div class="clearer"></div>
 					</div>
 				</fieldset>
@@ -394,7 +454,7 @@ foreach ($alerts as $cur_alert)
 					<legend><?php echo $lang_install['Database enter prefix'] ?></legend>
 					<div class="infldset">
 						<p><?php echo $lang_install['Info 6'] ?></p>
-						<label><?php echo $lang_install['Table prefix'] ?><br /><input id="db_prefix" type="text" name="db_prefix" value="<?php echo pun_htmlspecialchars($db_prefix) ?>" size="20" maxlength="30" /><br /></label>
+						<label><?php echo $lang_install['Table prefix'] ?><br /><input id="db_prefix" type="text" name="db_prefix" value="<?php echo pun_htmlspecialchars($db_prefix) ?>" size="20" maxlength="30"<?php echo install_default_readonly('db_prefix') ?> /><br /></label>
 					</div>
 				</fieldset>
 			</div>
@@ -425,7 +485,7 @@ foreach ($alerts as $cur_alert)
 					<div class="infldset">
 						<label class="required"><strong><?php echo $lang_install['Board title'] ?> <span><?php echo $lang_install['Required'] ?></span></strong><br /><input id="req_title" type="text" name="req_title" value="<?php echo pun_htmlspecialchars($title) ?>" size="60" maxlength="255" /><br /></label>
 						<label><?php echo $lang_install['Board description'] ?><br /><input id="desc" type="text" name="desc" value="<?php echo pun_htmlspecialchars($description) ?>" size="60" maxlength="255" /><br /></label>
-						<label class="required"><strong><?php echo $lang_install['Base URL'] ?> <span><?php echo $lang_install['Required'] ?></span></strong><br /><input id="req_base_url" type="text" name="req_base_url" value="<?php echo pun_htmlspecialchars($base_url) ?>" size="60" maxlength="100" /><br /></label>
+						<label class="required"><strong><?php echo $lang_install['Base URL'] ?> <span><?php echo $lang_install['Required'] ?></span></strong><br /><input id="req_base_url" type="text" name="req_base_url" value="<?php echo pun_htmlspecialchars($base_url) ?>" size="60" maxlength="100"<?php echo install_default_readonly('base_url') ?> /><br /></label>
 					</div>
 				</fieldset>
 			</div>
@@ -1721,6 +1781,11 @@ else
 			$written = true;
 		}
 	}
+
+	// The installation has succeeded — remove any preconfigured defaults file
+	// (it contains database credentials and has served its purpose)
+	if (file_exists(PUN_ROOT.'install_defaults.php'))
+		@unlink(PUN_ROOT.'install_defaults.php');
 
 
 ?>
