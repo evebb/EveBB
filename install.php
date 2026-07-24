@@ -94,6 +94,7 @@ if (!function_exists('version_compare') || version_compare(PHP_VERSION, MIN_PHP_
 // installation succeeds (it contains database credentials).
 //
 $install_defaults = array();
+$install_setup_token = null;
 if (file_exists(PUN_ROOT.'install_defaults.php'))
 {
 	$install_defaults_values = @include PUN_ROOT.'install_defaults.php';
@@ -104,8 +105,26 @@ if (file_exists(PUN_ROOT.'install_defaults.php'))
 			if (isset($install_defaults_values[$install_defaults_key]) && is_string($install_defaults_values[$install_defaults_key]))
 				$install_defaults[$install_defaults_key] = $install_defaults_values[$install_defaults_key];
 		}
+
+		// Optional setup token: when present, every request to the installer
+		// (the form AND its submission — it travels as a hidden field) must
+		// carry the matching ?token= / POSTed token. Lets a provisioner hand
+		// the installer to one specific person on an otherwise public URL.
+		if (isset($install_defaults_values['setup_token']) && is_string($install_defaults_values['setup_token']) && $install_defaults_values['setup_token'] !== '')
+			$install_setup_token = $install_defaults_values['setup_token'];
 	}
 	unset($install_defaults_values, $install_defaults_key);
+}
+
+if ($install_setup_token !== null)
+{
+	$install_token_given = isset($_REQUEST['token']) ? (string) $_REQUEST['token'] : '';
+	if (!hash_equals($install_setup_token, $install_token_given))
+	{
+		http_response_code(403);
+		exit($lang_install['No setup token']);
+	}
+	unset($install_token_given);
 }
 
 
@@ -342,7 +361,8 @@ function process_form(the_form)
 	<h2><span><?php echo $lang_install['Choose install language'] ?></span></h2>
 	<div class="box">
 		<form id="install" method="post" action="install.php">
-			<div class="inform">
+<?php if ($install_setup_token !== null): ?>			<div><input type="hidden" name="token" value="<?php echo pun_htmlspecialchars($install_setup_token) ?>" /></div>
+<?php endif; ?>			<div class="inform">
 				<fieldset>
 					<legend><?php echo $lang_install['Install language'] ?></legend>
 					<div class="infldset">
@@ -375,7 +395,7 @@ function process_form(the_form)
 	<h2><span><?php echo sprintf($lang_install['Install'], FORUM_VERSION) ?></span></h2>
 	<div class="box">
 		<form id="install" method="post" action="install.php" onsubmit="this.start.disabled=true;if(process_form(this)){return true;}else{this.start.disabled=false;return false;}">
-		<div><input type="hidden" name="form_sent" value="1" /><input type="hidden" name="install_lang" value="<?php echo pun_htmlspecialchars($install_lang) ?>" /></div>
+		<div><input type="hidden" name="form_sent" value="1" /><input type="hidden" name="install_lang" value="<?php echo pun_htmlspecialchars($install_lang) ?>" /><?php if ($install_setup_token !== null) echo '<input type="hidden" name="token" value="'.pun_htmlspecialchars($install_setup_token).'" />' ?></div>
 			<div class="inform">
 <?php if (!empty($alerts)): ?>				<div class="forminfo error-info">
 					<h3><?php echo $lang_install['Errors'] ?></h3>

@@ -52,6 +52,7 @@ echo "== e2e: install defaults (sqlite) =="
 rm -f config.php cache/cache_*.php cache/.htaccess cache/db_update.lock
 
 # --- drop the defaults file ------------------------------------------------
+SETUP_TOKEN="e2esetuptoken1234567890abcdef"
 cat > install_defaults.php <<EOF
 <?php
 
@@ -63,6 +64,7 @@ return array(
 	'db_password' => '',
 	'db_prefix'   => 'bb_',
 	'base_url'    => '$BASE',
+	'setup_token' => '$SETUP_TOKEN',
 );
 EOF
 
@@ -72,9 +74,17 @@ php -d error_reporting=E_ALL -d display_errors=0 -d log_errors=1 \
 SERVER_PID=$!
 for i in $(seq 1 20); do curl -s -o /dev/null "$BASE/install.php" && break; sleep 0.3; done
 
+# --- setup token gate ------------------------------------------------------
+code=$(curl -s -o "$TMP/notoken.html" -w "%{http_code}" "$BASE/install.php")
+assert_code 403 "$code" "installer without token refused"
+assert_contains "$TMP/notoken.html" "reserved for the board" "no-token page explains itself"
+code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/install.php?token=wrongtoken")
+assert_code 403 "$code" "installer with wrong token refused"
+
 # --- form shows locked, prefilled fields -----------------------------------
-code=$(curl -s -o "$TMP/form.html" -w "%{http_code}" "$BASE/install.php")
-assert_code 200 "$code" "installer form responds"
+code=$(curl -s -o "$TMP/form.html" -w "%{http_code}" "$BASE/install.php?token=$SETUP_TOKEN")
+assert_code 200 "$code" "installer form responds with token"
+assert_contains "$TMP/form.html" "name=\"token\" value=\"$SETUP_TOKEN\"" "form carries the token as a hidden field"
 assert_contains "$TMP/form.html" "preconfigured by your installation environment" "defaults note shown"
 assert_contains "$TMP/form.html" "name=\"req_db_name\" value=\"$DB_FILE\" size=\"30\" readonly=\"readonly\"" "db name prefilled and locked"
 assert_contains "$TMP/form.html" "name=\"req_db_host\" value=\"localhost\" size=\"50\" readonly=\"readonly\"" "db host prefilled and locked"
@@ -84,8 +94,15 @@ assert_contains "$TMP/form.html" "name=\"db_password\" size=\"30\" readonly=\"re
 assert_contains "$TMP/form.html" "<option value=\"sqlite\" selected=\"selected\">" "preconfigured db type selected"
 assert_not_contains "$TMP/form.html" "<option value=\"mysqli\"" "other db types collapsed away"
 
+# --- a POST without the token is refused too -------------------------------
+code=$(curl -s -o /dev/null -w "%{http_code}" "$BASE/install.php" \
+  --data-urlencode "form_sent=1" --data-urlencode "req_db_type=sqlite")
+assert_code 403 "$code" "installer POST without token refused"
+[ ! -f config.php ] && ok "no config written by tokenless POST" || fail "no config written by tokenless POST"
+
 # --- install, TAMPERING with every locked field ----------------------------
 code=$(curl -s -o "$TMP/install.html" -w "%{http_code}" "$BASE/install.php" \
+  --data-urlencode "token=$SETUP_TOKEN" \
   --data-urlencode "form_sent=1" \
   --data-urlencode "install_lang=English" \
   --data-urlencode "req_db_type=mysqli" \

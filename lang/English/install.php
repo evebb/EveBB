@@ -37,6 +37,7 @@ $lang_install = array(
 'Database setup'				=>	'Database setup',
 'Info 1'						=>	'All information we need to create a connection with your database.',
 'Defaults note'					=>	'Some settings below have been preconfigured by your installation environment and cannot be changed.',
+'No setup token'				=>	'This installer is reserved for the board\'s owner. Use the setup link you were sent to continue.',
 'Select database'				=>	'Select your database type',
 'Info 2'						=>	'Select a database. We support SQLite, MySQL and PostgreSQL.',
 'Database type'					=>	'Database type',
