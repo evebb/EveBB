@@ -86,7 +86,12 @@
     {
       "@type": "Question",
       "name": "How much does it cost to run an eveBB forum?",
-      "acceptedAnswer": { "@type": "Answer", "text": "The software is free (GPL). Your only cost is somewhere to run it: any inexpensive shared PHP host works, or a small cloud server from around £5/$6 a month runs a busy board comfortably — eveBB is light enough that the cheapest tier is genuinely enough." }
+      "acceptedAnswer": { "@type": "Answer", "text": "The software is free (GPL). Your only cost is somewhere to run it: any inexpensive shared PHP host works, or a small cloud server from around £5/$6 a month runs a busy board comfortably — eveBB is light enough that the cheapest tier is genuinely enough. Or skip servers entirely with eveBB Hosted at £2.99 a month." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can you host my forum for me?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. eveBB Hosted runs your board for you at yourname.evebb.host for £2.99 a month, paid by PayPal subscription. Order and your board is provisioned automatically within minutes, with its own database, one-click updates and automatic nightly backups on UK servers. It is the same open-source eveBB as the download, so there is no lock-in — you can export your data and move to self-hosting whenever you like, and you can cancel any time." }
     },
     {
       "@type": "Question",
@@ -239,6 +244,14 @@ h2 {
 	margin-bottom: 8px;
 }
 p.sectionlead { text-align: center; color: var(--muted); max-width: 640px; margin: 0 auto 44px; }
+
+/* eveBB Hosted — blue accent matching the hosted portal's palette */
+:root { --hosted-blue: #2e6da4; --hosted-blue-bright: #3f8dd0; --hosted-wash: #eaf2fa; }
+#hosted { background: var(--hosted-wash); border-top: 1px solid #d3e2f2; border-bottom: 1px solid #d3e2f2; }
+#hosted .kicker { color: var(--hosted-blue); }
+#hosted .step .n { background: var(--hosted-blue); }
+#hosted .btn.primary { background: var(--hosted-blue); box-shadow: 0 4px 14px rgba(46, 109, 164, .35); }
+#hosted .btn.primary:hover { background: var(--hosted-blue-bright); }
 
 /* features */
 .grid {
@@ -507,6 +520,7 @@ footer a:hover { color: var(--orange); }
 			<a href="#features">Features</a>
 			<a href="#plugins">Plugins</a>
 			<a href="#start">Get started</a>
+			<a href="/hosted/">Hosting</a>
 			<a href="https://github.com/evebb/EveBB/wiki">Docs</a>
 			<a href="index.php">Community &amp; support</a>
 			<a href="https://github.com/evebb/EveBB">GitHub</a>
@@ -576,7 +590,23 @@ footer a:hover { color: var(--orange); }
 			<div class="step"><span class="n"></span><div><h3>Run the installer</h3><p>Open <code>install.php</code> in your browser, pick a database (or choose SQLite and skip the database server entirely) and follow the steps. The <a href="https://github.com/evebb/EveBB/wiki">wiki</a> covers every option in detail.</p></div></div>
 			<div class="step"><span class="n"></span><div><h3>That's it</h3><p>Delete <code>install.php</code>, pick a style, open registration. Future updates are one click in Admin &rarr; Maintenance.</p></div></div>
 		</div>
-		<p class="sectionlead" style="margin-top:28px"><strong>No web host yet?</strong> Rent a small cloud server instead: paste <a href="https://raw.githubusercontent.com/evebb/EveBB/main/deploy/cloud-init/evebb-cloud-init.yaml">one file</a> when creating a &pound;5-a-month server on DigitalOcean, Linode, Vultr or Hetzner, and it sets itself up &mdash; web server, PHP, database and the latest eveBB release, integrity-verified &mdash; landing you at the installer with the database already provisioned. <a href="https://github.com/evebb/EveBB/wiki/Install-on-a-Cloud-Server">Follow the ten-minute walkthrough</a>.</p>
+		<p class="sectionlead" style="margin-top:28px"><strong>Rather not run anything at all?</strong> <a href="/hosted/">eveBB Hosted</a> sets up a board for you at <em>yourname</em>.evebb.host in minutes, from &pound;2.99 a month &mdash; updates and backups included. Or rent a small cloud server: paste <a href="https://raw.githubusercontent.com/evebb/EveBB/main/deploy/cloud-init/evebb-cloud-init.yaml">one file</a> when creating a &pound;5-a-month server on DigitalOcean, Linode, Vultr or Hetzner, and it sets itself up &mdash; web server, PHP, database and the latest eveBB release, integrity-verified &mdash; landing you at the installer with the database already provisioned. <a href="https://github.com/evebb/EveBB/wiki/Install-on-a-Cloud-Server">Follow the ten-minute walkthrough</a>.</p>
+	</div>
+</section>
+
+<section id="hosted">
+	<div class="wrap">
+		<div class="kicker">eveBB Hosted</div>
+		<h2>Or let us run it for you</h2>
+		<p class="sectionlead">Want the forum without the server? <strong>eveBB Hosted</strong> gives you a ready-to-go board at <em>yourname</em>.evebb.host for <strong>&pound;2.99 a month</strong>. Order, pay with PayPal, and your board is built automatically within minutes &mdash; then a setup link lands in your inbox and you're choosing your forum's name, not configuring PHP.</p>
+		<div class="steps">
+			<div class="step"><span class="n"></span><div><h3>Provisioned in minutes</h3><p>Your own board with its own database on our UK servers, on the latest eveBB release &mdash; nothing to upload or configure.</p></div></div>
+			<div class="step"><span class="n"></span><div><h3>Updates &amp; backups handled</h3><p>One-click updates from the admin panel and automatic nightly backups, so the housekeeping never falls to you.</p></div></div>
+			<div class="step"><span class="n"></span><div><h3>No lock-in, ever</h3><p>It's the same open-source eveBB as the download &mdash; your data stays yours, and you can move to self-hosting whenever you like. Cancel any time.</p></div></div>
+		</div>
+		<div class="btnrow" style="margin-top:32px; text-align:center;">
+			<a class="btn primary" href="/hosted/">Start your forum &mdash; &pound;2.99/month</a>
+		</div>
 	</div>
 </section>
 
@@ -631,7 +661,11 @@ footer a:hover { color: var(--orange); }
 			</details>
 			<details>
 				<summary>How much does it cost to run an eveBB forum?</summary>
-				<p>The software is free (GPL). Your only cost is somewhere to run it: any inexpensive shared PHP host works, or a small cloud server from around &pound;5/$6 a month runs a busy board comfortably &mdash; eveBB is light enough that the cheapest tier is genuinely enough.</p>
+				<p>The software is free (GPL). Your only cost is somewhere to run it: any inexpensive shared PHP host works, or a small cloud server from around &pound;5/$6 a month runs a busy board comfortably &mdash; eveBB is light enough that the cheapest tier is genuinely enough. Or skip servers entirely with <a href="/hosted/">eveBB Hosted</a> at &pound;2.99 a month.</p>
+			</details>
+			<details>
+				<summary>Can you host my forum for me?</summary>
+				<p>Yes. <a href="/hosted/">eveBB Hosted</a> runs your board for you at <em>yourname</em>.evebb.host for &pound;2.99 a month, paid by PayPal subscription. Order and your board is provisioned automatically within minutes, with its own database, one-click updates and automatic nightly backups on UK servers. It's the same open-source eveBB as the download, so there's no lock-in &mdash; you can export your data and move to self-hosting whenever you like, and you can cancel any time.</p>
 			</details>
 			<details>
 				<summary>Is eveBB GDPR-friendly?</summary>
@@ -657,6 +691,7 @@ footer a:hover { color: var(--orange); }
 		<span>&copy; 2026 the eveBB project &middot; <a href="https://www.gnu.org/licenses/gpl.html">GPL v2 or later</a></span>
 		<span>
 			<a href="https://github.com/evebb/EveBB/wiki">Docs</a> &middot;
+			<a href="/hosted/">Hosting</a> &middot;
 			<a href="index.php">Community</a> &middot;
 			<a href="index.php">Support</a> &middot;
 			<a href="https://github.com/evebb/EveBB/releases">Releases</a> &middot;
