@@ -98,5 +98,6 @@ $lang_install = array(
 'Info 18'						=>	'Once you have uploaded config.php, eveBB will be fully installed! At that point, you may <a href="index.php">go to the forum index</a>.',
 'Download config.php file'		=>	'Download config.php file',
 'eveBB fully installed'		=>	'eveBB has been fully installed! You may now <a href="index.php">go to the forum index</a>.',
+'Install file removed'			=>	'The install script has removed itself — there is nothing to clean up.',
 
 );

@@ -1807,6 +1807,15 @@ else
 	if (file_exists(PUN_ROOT.'install_defaults.php'))
 		@unlink(PUN_ROOT.'install_defaults.php');
 
+	// If config.php was written for the user the installation is fully
+	// complete, so the installer removes itself — one less manual step, and
+	// the admin index never needs to warn about a leftover install.php.
+	// If the environment doesn't permit self-deletion nothing changes: the
+	// admin index keeps offering its one-click removal as before.
+	$installer_removed = false;
+	if ($written)
+		$installer_removed = @unlink(__FILE__);
+
 
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
@@ -1883,6 +1892,9 @@ else
 			<div class="inform">
 				<div class="forminfo">
 					<p><?php echo $lang_install['eveBB fully installed'] ?></p>
+<?php if ($installer_removed): ?>
+					<p><?php echo $lang_install['Install file removed'] ?></p>
+<?php endif; ?>
 				</div>
 			</div>
 		</div>
