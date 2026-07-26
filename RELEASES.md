@@ -66,6 +66,13 @@ clock restarts for that item only.
 
 ## How releases are built
 
+**Before tagging, bump the version in all three places.** They are not
+generated from one another and nothing fails if they disagree:
+
+- `include/common.php` — `FORUM_VERSION`
+- `install.php` — `FORUM_VERSION` (must match the above)
+- `latest_version` — the plain-text pointer the readme links to
+
 Every release is cut by tagging `main` (`git tag vX.Y.Z`); a GitHub
 workflow builds the package deterministically from the tag and publishes:
 
