@@ -200,6 +200,9 @@ every comparable platform. Decided 2026-07-29: this arrives the proven
 way — an OFFICIAL plugin first, absorbed into core in 2.1 on the §7/§9
 pattern, with the plugin's tables kept in place so nothing migrates.
 
+The official plugin is **evebb-plugin-conversations** (slug
+`conversations` — decided 2026-07-29; the name is the design).
+
 Deliberately not a copy of the 1998 inbox/outbox model that every
 legacy platform ships and every admin ends up hating. The design:
 
