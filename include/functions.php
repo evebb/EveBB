@@ -1302,6 +1302,9 @@ function confirm_referrer($scripts, $error_msg = false)
 //
 function validate_redirect($redirect_url, $fallback_url)
 {
+	if ($redirect_url === null || $redirect_url === '')
+		return $fallback_url;
+
 	$referrer = parse_url(strtolower($redirect_url));
 
 	// Make sure the host component exists

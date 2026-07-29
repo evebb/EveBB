@@ -104,7 +104,7 @@ if (isset($_POST['form_sent']) && $action == 'in')
 		set_tracked_topics(null);
 
 		// Try to determine if the data in redirect_url is valid (if not, we redirect to index.php after login)
-		$redirect_url = validate_redirect($_POST['redirect_url'], 'index.php');
+		$redirect_url = validate_redirect($_POST['redirect_url'] ?? null, 'index.php');
 
 		redirect(pun_htmlspecialchars($redirect_url), $lang_login['Login redirect']);
 	}
