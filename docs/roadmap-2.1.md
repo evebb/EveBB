@@ -192,6 +192,48 @@ already prompts for install.php itself. Benefits every distribution
 channel the same way: DO, Linode/Vultr/Lightsail templates, Softaculous
 (whose installer conventions expect exactly this shape), Cloudron.
 
+## 11. Private conversations (member-to-member messaging)
+
+FluxBB never shipped private messages, so eveBB boards have no
+member-to-member messaging at all — the most-requested feature class on
+every comparable platform. Decided 2026-07-29: this arrives the proven
+way — an OFFICIAL plugin first, absorbed into core in 2.1 on the §7/§9
+pattern, with the plugin's tables kept in place so nothing migrates.
+
+Deliberately not a copy of the 1998 inbox/outbox model that every
+legacy platform ships and every admin ends up hating. The design:
+
+- **Conversations, not mail.** One thread per set of participants,
+  messages chronological, messenger-style. No folders, no sent-items,
+  no per-message subjects. Three tables: conversations,
+  conversation_users (participants map with last_read_at/deleted_at),
+  messages (preparsed BBCode through the standard parser). Schema is
+  group-capable from day one even if the first UI is pairs-first —
+  staff-mode below already requires multi-participant plumbing.
+- **Spam-proof by design.** New members can REPLY to conversations
+  started with them but cannot INITIATE until a configurable age/post
+  threshold; rate limit on starting conversations; per-member Block as
+  a first-class control. PM spam is why admins disable messaging on
+  other platforms; here the defence is the default.
+- **Privacy people can verify.** True deletion — once every participant
+  has deleted a conversation, the rows are removed by a scheduled sweep
+  (the §8 scheduler's job once it lands). Messages are covered by the
+  data-export and anonymise tooling. No staff read-access by default;
+  if a board enables it, that fact is shown to members plainly.
+- **Staff conversations.** A conversation opened "with the team"
+  reaches all staff, any of whom can reply, with a private internal
+  notes rail — a lightweight support desk inside the board, which no
+  comparable PM system offers.
+- **Zero administration.** Works on activation; a sane storage cap with
+  oldest-conversation pruning instead of quota walls; unread badge in
+  the header from one cheap timestamp comparison.
+- Ecosystem: a message.received webhook event, badge triggers, and the
+  natural first consumer for browser push notifications if that lands.
+- Core absorption checklist mirrors §7: tables absorbed in place via a
+  db_update.php revision, native profile/header UI replacing
+  injections, lang strings, and the plugin retiring behind a capability
+  constant.
+
 ## Also on the radar
 - Re-shoot the landing-page screenshots once the community board has
   real activity to show.
