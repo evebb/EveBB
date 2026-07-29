@@ -26,10 +26,18 @@ assert_not_contains() {
 }
 
 cleanup() {
+  [ -f "${WORK:-}/install.php.e2e-orig" ] && cp "$WORK/install.php.e2e-orig" "$ROOT/install.php" 2>/dev/null
   [ -n "${SERVER_PID:-}" ] && kill "$SERVER_PID" 2>/dev/null
   rm -rf "$WORK" "$ROOT/style/Teststyle.css" "$ROOT/style/Teststyle" "$ROOT/style/Ftpstyle.css" "$ROOT/style/Ftpstyle"
 }
 trap cleanup EXIT
+
+# The 2.0.4 installer removes itself after a successful install, which
+# is right for production and fatal for a suite that serves the repo
+# root: the next install (this script re-run, or the next driver or
+# suite in CI) 404s. Snapshot it and restore after installing.
+cp "$ROOT/install.php" "$WORK/install.php.e2e-orig"
+restore_installer() { [ -f "$ROOT/install.php" ] || cp "$WORK/install.php.e2e-orig" "$ROOT/install.php"; }
 
 cd "$ROOT"
 
@@ -68,6 +76,7 @@ curl -s -o /dev/null "$BASE/install.php" \
   --data-urlencode "req_base_url=$BASE" \
   --data-urlencode "req_default_lang=English" --data-urlencode "req_default_style=Carbon" \
   --data-urlencode "start=Start install"
+restore_installer
 [ -f config.php ] && ok "forum installed" || fail "forum installed"
 
 TOKEN=$(curl -s -c "$JAR" "$BASE/login.php" | grep -oE 'name="csrf_token" value="[a-f0-9]+"' | grep -oE '[a-f0-9]{20,}')

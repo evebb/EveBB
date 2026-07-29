@@ -38,11 +38,19 @@ assert_code() { # expected actual label
 }
 
 cleanup() {
+  [ -f "${TMP:-}/install.php.e2e-orig" ] && cp "$TMP/install.php.e2e-orig" "$ROOT/install.php" 2>/dev/null
   [ -n "${SERVER_PID:-}" ] && kill "$SERVER_PID" 2>/dev/null
   rm -f "$ROOT/install_defaults.php"
   rm -rf "$TMP"
 }
 trap cleanup EXIT
+
+# The 2.0.4 installer removes itself after a successful install, which
+# is right for production and fatal for a suite that serves the repo
+# root: the next install (this script re-run, or the next driver or
+# suite in CI) 404s. Snapshot it and restore after installing.
+cp "$ROOT/install.php" "$TMP/install.php.e2e-orig"
+restore_installer() { [ -f "$ROOT/install.php" ] || cp "$TMP/install.php.e2e-orig" "$ROOT/install.php"; }
 
 cd "$ROOT"
 
@@ -121,6 +129,7 @@ code=$(curl -s -o "$TMP/install.html" -w "%{http_code}" "$BASE/install.php" \
   --data-urlencode "req_default_lang=English" \
   --data-urlencode "req_default_style=Carbon" \
   --data-urlencode "start=Start install")
+restore_installer
 assert_code 200 "$code" "installer responds"
 [ -f config.php ] && ok "config.php written" || fail "config.php written"
 if grep -qiE "fatal|uncaught" "$TMP/install.html"; then fail "installer page free of fatals"; else ok "installer page free of fatals"; fi
