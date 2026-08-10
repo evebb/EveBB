@@ -9,7 +9,7 @@
 // The eveBB version this script updates to
 define('UPDATE_TO', '1.23.1-alpha');
 
-define('UPDATE_TO_DB_REVISION', 28);
+define('UPDATE_TO_DB_REVISION', 29);
 define('UPDATE_TO_SI_REVISION', 2);
 define('UPDATE_TO_PARSER_REVISION', 2);
 
@@ -1240,6 +1240,62 @@ switch ($stage)
 			);
 
 			$db->create_table('forum_subscriptions', $schema) or error('Unable to create forum subscriptions table', __FILE__, __LINE__, $db->error());
+		}
+
+		// Two-factor authentication moved into core in 2.1. A board that ran
+		// the official tfa plugin already has these tables, with exactly
+		// these names and shapes by design - so this creates nothing, the
+		// rows stay put, and enrolled members never notice the migration.
+		if (!$db->table_exists('tfa_users'))
+		{
+			$schema = array(
+				'FIELDS'		=> array(
+					'user_id'		=> array(
+						'datatype'		=> 'INT(10) UNSIGNED',
+						'allow_null'	=> false,
+						'default'		=> '0'
+					),
+					'secret'		=> array(
+						'datatype'		=> 'VARCHAR(32)',
+						'allow_null'	=> false,
+						'default'		=> '\'\''
+					),
+					'last_slot'		=> array(
+						'datatype'		=> 'INT(10) UNSIGNED',
+						'allow_null'	=> false,
+						'default'		=> '0'
+					),
+					'enabled_at'	=> array(
+						'datatype'		=> 'INT(10) UNSIGNED',
+						'allow_null'	=> false,
+						'default'		=> '0'
+					)
+				),
+				'PRIMARY KEY'	=> array('user_id')
+			);
+
+			$db->create_table('tfa_users', $schema) or error('Unable to create tfa users table', __FILE__, __LINE__, $db->error());
+		}
+
+		if (!$db->table_exists('tfa_backup'))
+		{
+			$schema = array(
+				'FIELDS'		=> array(
+					'user_id'		=> array(
+						'datatype'		=> 'INT(10) UNSIGNED',
+						'allow_null'	=> false,
+						'default'		=> '0'
+					),
+					'code_hash'		=> array(
+						'datatype'		=> 'VARCHAR(64)',
+						'allow_null'	=> false,
+						'default'		=> '\'\''
+					)
+				),
+				'PRIMARY KEY'	=> array('user_id', 'code_hash')
+			);
+
+			$db->create_table('tfa_backup', $schema) or error('Unable to create tfa backup codes table', __FILE__, __LINE__, $db->error());
 		}
 
 		// Insert new config option o_forum_subscriptions

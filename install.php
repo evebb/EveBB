@@ -9,7 +9,7 @@
 // The eveBB version this script installs
 define('FORUM_VERSION', '2.0.5');
 
-define('FORUM_DB_REVISION', 28);
+define('FORUM_DB_REVISION', 29);
 define('FORUM_SI_REVISION', 2);
 define('FORUM_PARSER_REVISION', 2);
 
@@ -1318,6 +1318,55 @@ else
 	);
 
 	$db->create_table('forum_subscriptions', $schema) or error('Unable to create forum subscriptions table', __FILE__, __LINE__, $db->error());
+
+
+	$schema = array(
+		'FIELDS'		=> array(
+			'user_id'		=> array(
+				'datatype'		=> 'INT(10) UNSIGNED',
+				'allow_null'	=> false,
+				'default'		=> '0'
+			),
+			'secret'		=> array(
+				'datatype'		=> 'VARCHAR(32)',
+				'allow_null'	=> false,
+				'default'		=> '\'\''
+			),
+			'last_slot'		=> array(
+				'datatype'		=> 'INT(10) UNSIGNED',
+				'allow_null'	=> false,
+				'default'		=> '0'
+			),
+			'enabled_at'	=> array(
+				'datatype'		=> 'INT(10) UNSIGNED',
+				'allow_null'	=> false,
+				'default'		=> '0'
+			)
+		),
+		'PRIMARY KEY'	=> array('user_id')
+	);
+
+	$db->create_table('tfa_users', $schema) or error('Unable to create tfa users table', __FILE__, __LINE__, $db->error());
+
+
+	$schema = array(
+		'FIELDS'		=> array(
+			'user_id'		=> array(
+				'datatype'		=> 'INT(10) UNSIGNED',
+				'allow_null'	=> false,
+				'default'		=> '0'
+			),
+			'code_hash'		=> array(
+				'datatype'		=> 'VARCHAR(64)',
+				'allow_null'	=> false,
+				'default'		=> '\'\''
+			)
+		),
+		'PRIMARY KEY'	=> array('user_id', 'code_hash')
+	);
+
+	$db->create_table('tfa_backup', $schema) or error('Unable to create tfa backup codes table', __FILE__, __LINE__, $db->error());
+
 
 
 	$schema = array(
