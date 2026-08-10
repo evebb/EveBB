@@ -237,6 +237,68 @@ legacy platform ships and every admin ends up hating. The design:
   injections, lang strings, and the plugin retiring behind a capability
   constant.
 
+## 12. Board email: branded templates and the mail plumbing
+
+The Hosted portal's emails were rebuilt in July (branded multipart HTML,
+buttons instead of raw links, one message array producing both parts);
+the board's own 16 templates are still FluxBB-era plain text. This item
+brings them level and cleans up the mail layer around them. The
+transport half already shipped in **2.0.5** - encode_mail_body() encodes
+bodies quoted-printable so a long line in a post can no longer get a
+notification rejected in transport - which is also the groundwork that
+makes HTML mail safe to send at all.
+
+- **Generate the HTML from the existing `.tpl` files; do not add a
+  parallel set of `.html.tpl`.** The templates stay the single source of
+  truth, with the HTML wrapper built at send time, exactly as the
+  portal's evebb_email_html()/evebb_email_text() build both parts from
+  one message array. Boards customise their templates and translators
+  translate them: a parallel HTML set would double that work and drift,
+  so a board that edited welcome.tpl would end up with the HTML and the
+  text saying different things. The cost - less per-email design freedom
+  - is accepted deliberately.
+- **`pun_mail()` becomes multipart/alternative**, both parts
+  quoted-printable, with the plain-text part remaining exactly what it
+  is today. Text-only clients see no change; the per-language fallback
+  chain is untouched; a board that wants nothing to do with HTML gets an
+  admin option to send plain text only.
+- **Portal parity for the look**: text wordmark rather than an image
+  (nothing to block or fail to load), the board's own palette, a tinted
+  info panel for board/date details, a charcoal footer, a hidden
+  preheader. Open question when this is picked up: whether the wordmark
+  is the board title or the style/stylelogo logo - the portal
+  deliberately ships no images, and the same argument applies here.
+- **Admin "send test email" button** (Administration -> Options, beside
+  the SMTP settings). evebb.net's mail was silently broken for weeks in
+  July because the host's mail() accepted messages and discarded them;
+  three accounts sat unverified before anyone noticed. A one-click test
+  that reports the actual SMTP conversation turns that into a
+  ten-second check. It also removes today's only way to test - emailing
+  a real member through misc.php?email=, which needs a member account to
+  aim at.
+- **STARTTLS in `smtp_mail()`.** Today it speaks implicit SSL (ssl://,
+  port 465) and AUTH LOGIN only, so a host that offers 587 and nothing
+  else cannot send mail from eveBB at all. Port 587 with STARTTLS is the
+  common default on managed hosting, and this is a small addition to an
+  already-working client.
+- **Verification keeps the password the member chose.** With
+  o_regs_verify=1, register.php discards the typed password and emails a
+  random 12-character one, so the member's first experience is logging
+  in with a string they didn't pick and never wanted. Store the chosen
+  password, send a verification link, and activate on click. This
+  rewrites welcome.tpl's reason for existing, which is why it belongs in
+  this pass rather than on its own.
+
+Out of scope here: email digests ride on §5's notification plumbing, not
+this. Also unrelated despite appearances - evebb.net's DKIM failures
+come from the host's outbound gateway rewriting signed mail, an
+infrastructure matter with no core fix.
+
+Testing: tests/e2e/mail-test.sh already measures what goes over the
+socket. Extend it to the multipart case - both parts present, both
+decodable, the text part still readable on its own - rather than
+trusting a test that inspects the message before it is sent.
+
 ## Also on the radar
 - Re-shoot the landing-page screenshots once the community board has
   real activity to show.
