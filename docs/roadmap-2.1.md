@@ -299,6 +299,93 @@ socket. Extend it to the multipart case - both parts present, both
 decodable, the text part still readable on its own - rather than
 trusting a test that inspects the message before it is sent.
 
+## 13. Site pages and articles (a CMS in core)
+
+Decided 2026-08-10. eveBB boards have no way to publish an About,
+Privacy or Contact page: the only workarounds are editing templates
+(lost on update) or a pinned topic (wrong shape, wrong URL, a reply box
+at the bottom). This item closes that, and goes further - a board should
+be able to be a SITE that has a forum, not only a forum.
+
+The model is **Wren CMS** (wrencms.com - Alan's own single-file
+PHP/SQLite CMS, MIT): articles, pages, menus, images, comments, feeds and
+SEO. The brief is "seamlessly, so no distinction" - which means taking
+Wren's FEATURE SURFACE and building it on eveBB's existing plumbing, not
+porting Wren's implementations. Goes **straight into core** rather than
+plugin-first (Alan's call), so the shape has to be right before code:
+core has no easy retreat.
+
+Decisions (Alan, 2026-08-10):
+
+- **Content is BBCode through the board's own parser.** One syntax across
+  the whole site, the editor members already know, and the parser's
+  existing safety. Deliberately NOT Markdown, despite Wren using it: two
+  syntaxes on one site is a trap, and a second parser is a permanent cost
+  in a project that sells itself on being small.
+- **Comments are board topics.** An article optionally gets a linked
+  topic in a chosen forum; its replies ARE the comments. That inherits
+  moderation, permissions, subscriptions, the report system and the
+  antispam plugin at no cost. A parallel comment table inside forum
+  software would be strange twice over.
+- **A media library ships with it**, because pages without images are not
+  useful. Built so that section 3 (attachments) REUSES it rather than
+  growing a second uploader: one validated store, one delivery path.
+- **A page may replace the forum index as the homepage** (optional). This
+  is what makes it a site rather than a forum with extra tabs.
+
+Deliberately NOT ported from Wren, because eveBB already has it:
+
+- Wren's nine-tag single-file themes - pages render in the BOARD's style
+  (Carbon, Midnight, whatever is active) with no theme layer of their
+  own. The kb plugin already proves this works by reusing the board's own
+  block markup and hard-coding no colours.
+- Wren's RSS - eveBB serves feeds from extern.php; articles ride those.
+- Wren's sitemap - the sitemap plugin already feeds Google and Bing;
+  extend it to include published pages and articles.
+- Wren's installer and SQLite bootstrap - eveBB has a DB layer and an
+  installer.
+
+Worth porting outright: **IndexNow**. Publishing pings Bing, DuckDuckGo
+and Yandex; it is small, zero-configuration, and eveBB has nothing like
+it. Applies to new topics as much as to pages.
+
+Shape:
+
+- One table for content (slug UNIQUE, title, BBCode source, status
+  draft/published, visibility by group, SEO description, timestamps,
+  author) with a type flag separating a flat PAGE from a dated ARTICLE;
+  one table for media (stored name, mime, size, uploader, timestamp).
+- Slug URLs with the board's own generate_crumbs() breadcrumbs, canonical
+  URLs and Open Graph tags; get_base_url(true) for anything
+  browser-facing (cross-plugin lesson 1).
+- Permission-aware like the rest of the board: per-group read, authoring
+  gated to administrators (moderators optional).
+- Menu placement that COOPERATES with the navorder plugin rather than
+  fighting it - core needs to expose menu items in a way navorder can
+  still reorder.
+- Uploads: extension AND mime allowlist, size cap, randomised stored
+  names, never trusting the client's filename - the same rules section 3
+  will need.
+
+Open questions for build time:
+
+- Is there a raw-HTML escape hatch for administrators (Wren has one), or
+  is BBCode the only input? Raw HTML from an admin is a smaller risk than
+  from a member, but it is still an XSS surface and it breaks the "one
+  syntax" promise.
+- When a page takes over the homepage, where does the forum index live,
+  and what happens to every existing link and bookmark pointing at
+  index.php? This is the single biggest compatibility question in the
+  item.
+- Pretty URLs (/about) or query slugs (page.php?slug=about) first?
+- Does an article's linked topic get created eagerly on publish, or
+  lazily on the first comment?
+
+Testing: page CRUD and slug uniqueness, draft invisibility to guests,
+per-group visibility, the homepage swap and what it does to canonical
+URLs, upload validation (bad mime, bad extension, oversize, double
+extension), and an article's linked topic inheriting forum permissions.
+
 ## Also on the radar
 - Re-shoot the landing-page screenshots once the community board has
   real activity to show.
