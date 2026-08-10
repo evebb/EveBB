@@ -1,0 +1,82 @@
+name: Package a branch
+
+# Builds a deployment package from ANY branch, by hand, without tagging or
+# publishing anything. Made for staging: it produces exactly the archive a
+# real release produces - same zip, same exclusions, same checksum file - so
+# what gets tested on staging is what boards would receive, rather than
+# GitHub's source download, whose layout differs.
+#
+# Run it from Actions -> Package a branch -> Run workflow, pick the branch,
+# then download the artifact from the run's summary page.
+#
+# Deliberately NOT a release: nothing is tagged, nothing is published, the
+# in-app updater never sees it, and the package is unsigned (release signing
+# stays with real tags).
+
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Branch, tag or SHA to package'
+        required: true
+        default: '2.1-dev'
+      label:
+        description: 'Label for the filename, e.g. 2.1-staging'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Build package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+
+      - name: Work out the package name
+        id: name
+        run: |
+          # Prefer the label; otherwise derive one from the ref and the short
+          # SHA, so two packages from the same branch never share a filename.
+          if [ -n "${{ inputs.label }}" ]; then
+            LABEL="${{ inputs.label }}"
+          else
+            LABEL="$(echo '${{ inputs.ref }}' | tr '/' '-')-$(git rev-parse --short HEAD)"
+          fi
+          echo "pkg=evebb-$LABEL.zip" >> "$GITHUB_OUTPUT"
+          echo "Packaging ${{ inputs.ref }} at $(git rev-parse --short HEAD) as evebb-$LABEL.zip"
+
+      - name: Report the version the package will install as
+        run: |
+          # A mismatch here is the usual cause of a board looping through
+          # db_update after an upgrade, so it is worth seeing before you deploy.
+          echo "FORUM_VERSION (include/common.php): $(grep -oE "define\('FORUM_VERSION', '[^']+'\)" include/common.php)"
+          echo "FORUM_VERSION (install.php):        $(grep -oE "define\('FORUM_VERSION', '[^']+'\)" install.php)"
+          echo "FORUM_DB_REVISION (include/common.php): $(grep -oE "define\('FORUM_DB_REVISION', [0-9]+\)" include/common.php)"
+          echo "FORUM_DB_REVISION (install.php):        $(grep -oE "define\('FORUM_DB_REVISION', [0-9]+\)" install.php)"
+          echo "latest_version file: $(cat latest_version 2>/dev/null || echo '(missing)')"
+
+      - name: Build deployment package
+        run: |
+          PKG="${{ steps.name.outputs.pkg }}"
+          # Same exclusions as release.yml, so this is the real shape of a
+          # release package and not a source snapshot
+          zip -rq "$PKG" . \
+            -x '.git/*' -x 'tests/*' -x '.github/*' -x 'website/*' -x 'evebb-*.zip'
+          sha256sum "$PKG" > "$PKG.sha256"
+          echo "Built $PKG ($(du -h "$PKG" | cut -f1))"
+          echo "SHA-256: $(cut -d' ' -f1 "$PKG.sha256")"
+
+      - name: Upload the package
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.name.outputs.pkg }}
+          path: |
+            ${{ steps.name.outputs.pkg }}
+            ${{ steps.name.outputs.pkg }}.sha256
+          retention-days: 14
+          if-no-files-found: error
