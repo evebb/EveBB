@@ -20,6 +20,5 @@ Disallow: /extern.php
 Disallow: /db_update.php
 Disallow: /admin_
 
-# Served by the XML Sitemap plugin (the old /sitemap.php remains reachable
-# during the transition for crawlers still holding the previous URL)
+# Served by the XML Sitemap plugin
 Sitemap: https://evebb.net/plugins/sitemap/xml.php
