@@ -1992,7 +1992,6 @@ else
 
 		$tfa_staff_row = tfa_row($id);
 
-
 		$page_title = array(pun_htmlspecialchars($pun_config['o_board_title']), $lang_common['Profile'], $lang_profile['Section admin']);
 
 		flux_hook('profile_admin_before_header');
