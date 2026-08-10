@@ -122,8 +122,12 @@ $p->exec("DROP TABLE tfa_users");
 $p->exec("DROP TABLE tfa_backup");
 $p->exec("CREATE TABLE tfa_users (user_id INTEGER NOT NULL DEFAULT 0, secret VARCHAR(32) NOT NULL DEFAULT \"\", last_slot INTEGER NOT NULL DEFAULT 0, enabled_at INTEGER NOT NULL DEFAULT 0, PRIMARY KEY (user_id))");
 $p->exec("CREATE TABLE tfa_backup (user_id INTEGER NOT NULL DEFAULT 0, code_hash VARCHAR(64) NOT NULL DEFAULT \"\", PRIMARY KEY (user_id, code_hash))");
-$p->exec("INSERT INTO tfa_users (user_id, secret, last_slot, enabled_at) VALUES (2, \"GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ\", 987654, 1750000000)");
-$p->exec("INSERT INTO tfa_backup (user_id, code_hash) VALUES (2, \"aaaa1111\"), (2, \"bbbb2222\")");
+// Enrol a MEMBER (id 42), never the admin: user 2 is the administrator this
+// suite logs in as, and enrolling them would - correctly - stop a
+// password-only login and fail every later assertion.
+$p->exec("INSERT INTO users (id, username, group_id, password, email, registered, registration_ip, last_visit, language, style, num_posts) VALUES (42, \"enrolled\", 4, \"x\", \"enrolled@example.com\", 1750000000, \"127.0.0.1\", 1750000000, \"English\", \"Carbon\", 0)");
+$p->exec("INSERT INTO tfa_users (user_id, secret, last_slot, enabled_at) VALUES (42, \"GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ\", 987654, 1750000000)");
+$p->exec("INSERT INTO tfa_backup (user_id, code_hash) VALUES (42, \"aaaa1111\"), (42, \"bbbb2222\")");
 $p->exec("INSERT INTO config (conf_name, conf_value) VALUES (\"o_tfa_db_rev\", \"1\")");
 ' && ok "plugin-era 2FA tables seeded with an enrolled member" || fail "plugin-era 2FA tables seeded"
 
@@ -280,17 +284,17 @@ TB2=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (int)$p->query("S
 # The point of keeping the plugin's table names and shapes: the update must
 # leave an enrolled member enrolled. If this ever fails, everyone who used
 # the plugin is locked out of their own board after upgrading.
-TFA_SECRET=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");$v=$p->query("SELECT secret FROM tfa_users WHERE user_id=2")->fetchColumn();echo $v===false?"MISSING":$v;')
+TFA_SECRET=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");$v=$p->query("SELECT secret FROM tfa_users WHERE user_id=42")->fetchColumn();echo $v===false?"MISSING":$v;')
 [ "$TFA_SECRET" = "GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ" ] \
   && ok "the enrolled member's secret survived the upgrade" \
   || fail "the enrolled member's secret survived the upgrade (got $TFA_SECRET)"
 
-TFA_SLOT=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (int)$p->query("SELECT last_slot FROM tfa_users WHERE user_id=2")->fetchColumn();')
+TFA_SLOT=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (int)$p->query("SELECT last_slot FROM tfa_users WHERE user_id=42")->fetchColumn();')
 [ "$TFA_SLOT" = "987654" ] \
   && ok "the replay counter survived (a used code stays used)" \
   || fail "the replay counter survived (got $TFA_SLOT)"
 
-TFA_CODES=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (int)$p->query("SELECT COUNT(*) FROM tfa_backup WHERE user_id=2")->fetchColumn();')
+TFA_CODES=$(php -r '$p=new PDO("sqlite:'"$WORK"'/forum.sqlite");echo (int)$p->query("SELECT COUNT(*) FROM tfa_backup WHERE user_id=42")->fetchColumn();')
 [ "$TFA_CODES" = "2" ] \
   && ok "the member's backup codes survived" \
   || fail "the member's backup codes survived (found $TFA_CODES)"

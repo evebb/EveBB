@@ -136,3 +136,6 @@ jobs:
 
       - name: Mail transport end-to-end test
         run: ./tests/e2e/mail-test.sh
+
+      - name: Two-factor authentication end-to-end test
+        run: ./tests/e2e/tfa-test.sh

@@ -71,6 +71,30 @@ if (isset($_POST['form_sent']) && $action == 'in')
 			if ($throttle_on)
 				login_throttle_record($login_ip);
 		}
+		else
+		{
+			// The password was right; if this member runs two-factor, the
+			// code has to be right too. Checked only AFTER the password, so
+			// the form never reveals which accounts have 2FA to someone who
+			// does not already know the password. A wrong code counts
+			// towards the same brute-force throttle as a wrong password.
+			require_once PUN_ROOT.'include/tfa.php';
+
+			$tfa_row = tfa_row($cur_user['id']);
+			if ($tfa_row !== null)
+			{
+				$form_code = isset($_POST['req_tfa_code']) ? pun_trim($_POST['req_tfa_code']) : '';
+
+				if ($form_code == '')
+					$errors[] = $lang_login['Tfa required'];
+				else if (!tfa_check_code($tfa_row, $form_code))
+				{
+					$errors[] = $lang_login['Tfa wrong'];
+					if ($throttle_on)
+						login_throttle_record($login_ip);
+				}
+			}
+		}
 	}
 
 	flux_hook('login_after_validation');
@@ -321,18 +345,19 @@ if (!empty($errors))
 						<input type="hidden" name="redirect_url" value="<?php echo pun_htmlspecialchars($redirect_url) ?>" />
 						<label class="conl required"><strong><?php echo $lang_common['Username'] ?> <span><?php echo $lang_common['Required'] ?></span></strong><br /><input type="text" name="req_username" value="<?php if (isset($_POST['req_username'])) echo pun_htmlspecialchars($_POST['req_username']); ?>" size="25" maxlength="25" tabindex="1" /><br /></label>
 						<label class="conl required"><strong><?php echo $lang_common['Password'] ?> <span><?php echo $lang_common['Required'] ?></span></strong><br /><input type="password" name="req_password" size="25" tabindex="2" /><br /></label>
+						<label class="conl"><strong><?php echo $lang_login['Tfa code'] ?></strong><br /><input type="text" name="req_tfa_code" value="" size="25" maxlength="12" tabindex="3" autocomplete="one-time-code" inputmode="numeric" /><br /><span><?php echo $lang_login['Tfa code help'] ?></span></label>
 
 						<div class="rbox clearb">
-							<label><input type="checkbox" name="save_pass" value="1"<?php if (isset($_POST['save_pass'])) echo ' checked="checked"'; ?> tabindex="3" /><?php echo $lang_login['Remember me'] ?><br /></label>
+							<label><input type="checkbox" name="save_pass" value="1"<?php if (isset($_POST['save_pass'])) echo ' checked="checked"'; ?> tabindex="4" /><?php echo $lang_login['Remember me'] ?><br /></label>
 						</div>
 
 						<p class="clearb"><?php echo $lang_login['Login info'] ?></p>
-						<p class="actions"><span><a href="register.php" tabindex="5"><?php echo $lang_login['Not registered'] ?></a></span> <span><a href="login.php?action=forget" tabindex="6"><?php echo $lang_login['Forgotten pass'] ?></a></span></p>
+						<p class="actions"><span><a href="register.php" tabindex="6"><?php echo $lang_login['Not registered'] ?></a></span> <span><a href="login.php?action=forget" tabindex="7"><?php echo $lang_login['Forgotten pass'] ?></a></span></p>
 					</div>
 				</fieldset>
 			</div>
 <?php flux_hook('login_before_submit') ?>
-			<p class="buttons"><input type="submit" name="login" value="<?php echo $lang_common['Login'] ?>" tabindex="4" /></p>
+			<p class="buttons"><input type="submit" name="login" value="<?php echo $lang_common['Login'] ?>" tabindex="5" /></p>
 		</form>
 	</div>
 </div>

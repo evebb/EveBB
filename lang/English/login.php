@@ -24,6 +24,12 @@ $lang_login = array(
 // Forget password mail stuff
 'Forget mail'				=>	'An email has been sent to the specified address with instructions on how to change your password. If it does not arrive you can contact the forum administrator at',
 'Email flood'				=>	'This account has already requested a password reset in the past hour. Please wait %s minutes before requesting a new password again.',
-'Login flood'				=>	'Too many failed login attempts from your location. Please wait about %s minute(s) and try again.'
+'Login flood'				=>	'Too many failed login attempts from your location. Please wait about %s minute(s) and try again.',
+
+// Two-factor authentication
+'Tfa code'					=>	'One-time code',
+'Tfa code help'				=>	'Only needed if you have two-factor authentication switched on.',
+'Tfa required'				=>	'This account uses two-factor authentication. Enter the current code from your authenticator app, or one of your backup codes.',
+'Tfa wrong'					=>	'That code was not accepted. Codes change every 30 seconds - check your app and try the current one, or use a backup code.'
 
 );
