@@ -181,6 +181,100 @@ grep -qF 'Enter the current code from your authenticator app' "$WORK/out.html" \
 login admin adminpass123 ""
 logged_in && ok "an account without 2FA still logs in with no code" || fail "an account without 2FA still logs in with no code"
 
+# ==========================================================================
+# The member-facing flow: enrol, confirm, regenerate, disable - driven
+# through the real profile pages rather than the database.
+# ==========================================================================
+php -r '$p=new PDO("sqlite:'"$DB"'");$p->exec("DELETE FROM tfa_users");$p->exec("DELETE FROM tfa_backup");'
+
+field() { grep -oE 'name="'"$1"'" value="[^"]*"' "$2" | head -1 | sed 's/.*value="//;s/"$//'; }
+
+login member memberpass123 ""
+logged_in && ok "member logged in for the profile flow" || fail "member logged in for the profile flow"
+
+curl -s -b "$JAR" "$BASE/profile.php?section=security&id=$MEMBER_ID" -o "$WORK/sec.html"
+grep -qF 'Set up two-factor authentication' "$WORK/sec.html" \
+  && ok "the Security page offers to set 2FA up" || fail "the Security page offers to set 2FA up"
+grep -qF 'section=security' "$WORK/sec.html" \
+  && ok "the Security tab is in the profile menu" || fail "the Security tab is in the profile menu"
+
+# --- start: a secret and a QR, nothing stored yet ---------------------------
+TOKEN=$(field csrf_token "$WORK/sec.html")
+curl -s -b "$JAR" -e "$BASE/profile.php?section=security&id=$MEMBER_ID" \
+  "$BASE/profile.php?section=security&id=$MEMBER_ID" -o "$WORK/qr.html" \
+  --data-urlencode "tfa_action=start" --data-urlencode "csrf_token=$TOKEN"
+
+UI_SECRET=$(grep -oE '<code>[A-Z2-7]{32}</code>' "$WORK/qr.html" | head -1 | tr -d '<code>/')
+SEAL=$(field tfa_seal "$WORK/qr.html")
+[ ${#UI_SECRET} = 32 ] && ok "setup shows a 32-character secret" || fail "setup shows a 32-character secret (got '$UI_SECRET')"
+[ -n "$SEAL" ] && ok "the secret is carried in a sealed token" || fail "the secret is carried in a sealed token"
+grep -qF 'js/qr.js' "$WORK/qr.html" && ok "the QR is rendered locally, with no external request" || fail "the QR is rendered locally"
+
+STORED=$(php -r '$p=new PDO("sqlite:'"$DB"'");echo (int)$p->query("SELECT COUNT(*) FROM tfa_users")->fetchColumn();')
+[ "$STORED" = "0" ] && ok "nothing is stored until a code proves the pairing" || fail "nothing is stored until a code proves the pairing"
+
+ui_code() { php -r '
+define("PUN", 1); define("PUN_ROOT", "'"$FORUM"'/");
+require PUN_ROOT."include/tfa.php";
+echo tfa_code("'"$UI_SECRET"'", (int) floor(time() / 30));
+'; }
+
+# --- a wrong code must not enable anything ---------------------------------
+TOKEN=$(field csrf_token "$WORK/qr.html")
+curl -s -b "$JAR" -e "$BASE/profile.php?section=security&id=$MEMBER_ID" \
+  "$BASE/profile.php?section=security&id=$MEMBER_ID" -o "$WORK/bad.html" \
+  --data-urlencode "tfa_action=confirm" --data-urlencode "tfa_seal=$SEAL" \
+  --data-urlencode "tfa_code=000000" --data-urlencode "csrf_token=$TOKEN"
+STORED=$(php -r '$p=new PDO("sqlite:'"$DB"'");echo (int)$p->query("SELECT COUNT(*) FROM tfa_users")->fetchColumn();')
+[ "$STORED" = "0" ] && ok "a wrong confirmation code enables nothing" || fail "a wrong confirmation code enables nothing"
+grep -qF 'That code was not accepted' "$WORK/bad.html" && ok "the wrong code is reported" || fail "the wrong code is reported"
+
+# --- the real code enables it, and shows the backup codes once -------------
+SEAL=$(field tfa_seal "$WORK/bad.html")
+TOKEN=$(field csrf_token "$WORK/bad.html")
+curl -s -b "$JAR" -e "$BASE/profile.php?section=security&id=$MEMBER_ID" \
+  "$BASE/profile.php?section=security&id=$MEMBER_ID" -o "$WORK/on.html" \
+  --data-urlencode "tfa_action=confirm" --data-urlencode "tfa_seal=$SEAL" \
+  --data-urlencode "tfa_code=$(ui_code)" --data-urlencode "csrf_token=$TOKEN"
+
+STORED=$(php -r '$p=new PDO("sqlite:'"$DB"'");echo (int)$p->query("SELECT COUNT(*) FROM tfa_users WHERE user_id='"$MEMBER_ID"'")->fetchColumn();')
+[ "$STORED" = "1" ] && ok "the right code switches 2FA on" || fail "the right code switches 2FA on"
+CODES=$(php -r '$p=new PDO("sqlite:'"$DB"'");echo (int)$p->query("SELECT COUNT(*) FROM tfa_backup WHERE user_id='"$MEMBER_ID"'")->fetchColumn();')
+[ "$CODES" = "8" ] && ok "eight backup codes are issued" || fail "eight backup codes are issued (found $CODES)"
+grep -qE '<code>[0-9A-Z]{4}-[0-9A-Z]{4}</code>' "$WORK/on.html" \
+  && ok "the backup codes are shown to the member" || fail "the backup codes are shown to the member"
+
+# they are shown exactly once - a plain reload must not repeat them
+curl -s -b "$JAR" "$BASE/profile.php?section=security&id=$MEMBER_ID" -o "$WORK/again.html"
+grep -qE '<code>[0-9A-Z]{4}-[0-9A-Z]{4}</code>' "$WORK/again.html" \
+  && fail "backup codes must not be shown again on reload" \
+  || ok "the backup codes are not shown again"
+
+# --- another member cannot open someone else's Security page ---------------
+login admin adminpass123 ""
+curl -s -b "$JAR" "$BASE/profile.php?section=security&id=$MEMBER_ID" -o "$WORK/other.html"
+grep -qF 'Set up two-factor' "$WORK/other.html" \
+  && fail "staff must not reach another member's 2FA setup" \
+  || ok "another member's Security page is refused"
+
+# --- staff reset ------------------------------------------------------------
+curl -s -b "$JAR" "$BASE/profile.php?section=admin&id=$MEMBER_ID" -o "$WORK/adm.html"
+grep -qF 'This member has two-factor authentication switched on' "$WORK/adm.html" \
+  && ok "staff can see that the member uses 2FA" || fail "staff can see that the member uses 2FA"
+
+TOKEN=$(field csrf_token "$WORK/adm.html")
+curl -s -b "$JAR" -e "$BASE/profile.php?section=admin&id=$MEMBER_ID" \
+  "$BASE/profile.php?section=admin&id=$MEMBER_ID" -o /dev/null \
+  --data-urlencode "tfa_reset=Switch two-factor authentication off for this member" \
+  --data-urlencode "csrf_token=$TOKEN"
+LEFT=$(php -r '$p=new PDO("sqlite:'"$DB"'");echo (int)$p->query("SELECT COUNT(*) FROM tfa_users WHERE user_id='"$MEMBER_ID"'")->fetchColumn();')
+[ "$LEFT" = "0" ] && ok "a staff reset switches the member's 2FA off" || fail "a staff reset switches the member's 2FA off"
+LEFT=$(php -r '$p=new PDO("sqlite:'"$DB"'");echo (int)$p->query("SELECT COUNT(*) FROM tfa_backup WHERE user_id='"$MEMBER_ID"'")->fetchColumn();')
+[ "$LEFT" = "0" ] && ok "the reset clears their backup codes too" || fail "the reset clears their backup codes too"
+
+login member memberpass123 ""
+logged_in && ok "the member can log in with their password again" || fail "the member can log in with their password again"
+
 if [ -s "$ERRLOG" ]; then
   fail "php error log empty"; sed 's/^/    | /' "$ERRLOG" | head -10
 else

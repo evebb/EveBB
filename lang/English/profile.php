@@ -11,6 +11,7 @@ $lang_profile = array(
 'Section personality'			=>	'Personality',
 'Section display'				=>	'Display',
 'Section privacy'				=>	'Privacy',
+'Section security'				=>	'Security',
 'Section admin'					=>	'Administration',
 
 // Miscellaneous
@@ -145,4 +146,32 @@ $lang_profile = array(
 'Ban redirect'					=>	'Redirecting …',
 'No delete admin message'		=>	'Administrators cannot be deleted. In order to delete this user, you must first move him/her to a different user group.',
 
+// Two-factor authentication
+'Tfa legend'					=>	'Two-factor authentication',
+'Tfa off info'					=>	'Two-factor authentication is off. With it on, logging in needs your password AND a six-digit code from an authenticator app on your phone, so a stolen password is not enough on its own.',
+'Tfa start'						=>	'Set up two-factor authentication',
+'Tfa scan legend'				=>	'Scan this with your authenticator app',
+'Tfa scan info'					=>	'Open your authenticator app, scan the code, then type the six-digit code it shows to confirm. If you cannot scan, enter this key by hand:',
+'Tfa confirm'					=>	'Confirm',
+'Tfa cancel'					=>	'Cancel',
+'Tfa on info'					=>	'Two-factor authentication is ON for your account. Logging in needs a code from your authenticator app.',
+'Tfa enabled since'				=>	'Switched on %s.',
+'Tfa backup left'				=>	'You have %s backup codes left.',
+'Tfa backup legend'				=>	'Your backup codes',
+'Tfa backup info'				=>	'Save these somewhere safe, away from your phone. Each one works once, and they are the way back in if you lose the phone. They are shown now and never again.',
+'Tfa regen'						=>	'Generate new backup codes',
+'Tfa regen info'				=>	'Generating new codes replaces the old ones - any you have not used stop working.',
+'Tfa disable'					=>	'Turn two-factor authentication off',
+'Tfa code'						=>	'One-time code',
+'Tfa code required'				=>	'Enter the six-digit code from your authenticator app (or a backup code) to confirm this.',
+'Tfa wrong code'				=>	'That code was not accepted. Codes change every 30 seconds - try the current one, or use a backup code.',
+'Tfa setup expired'				=>	'That setup has expired or was not valid. Start again.',
+'Tfa enabled redirect'			=>	'Two-factor authentication is now on. Redirecting &hellip;',
+'Tfa disabled redirect'			=>	'Two-factor authentication is now off. Redirecting &hellip;',
+'Tfa staff legend'				=>	'Two-factor authentication',
+'Tfa staff on'					=>	'This member has two-factor authentication switched on.',
+'Tfa staff off'					=>	'This member does not use two-factor authentication.',
+'Tfa staff reset'				=>	'Switch two-factor authentication off for this member',
+'Tfa staff reset info'			=>	'Use this only when a member has lost their phone and their backup codes, and you are satisfied they are who they say they are. It removes their codes and lets them log in with their password alone.',
+'Tfa staff reset redirect'		=>	'Two-factor authentication switched off for that member. Redirecting &hellip;'
 );

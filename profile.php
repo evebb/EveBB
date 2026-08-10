@@ -1773,10 +1773,225 @@ else
 <?php
 
 	}
+	else if ($section == 'security')
+	{
+		// Two-factor is personal: only the member themselves, never staff on
+		// their behalf. Staff get a reset button in the Administration
+		// section instead, which turns 2FA OFF and never turns it on.
+		if ($pun_user['id'] != $id)
+			message($lang_common['Bad request'], false, '403 Forbidden');
+
+		require PUN_ROOT.'include/tfa.php';
+
+		$tfa_row = tfa_row($id);
+		$tfa_errors = array();
+		$tfa_codes = array();		// shown exactly once, just after they are made
+		$tfa_secret = '';
+		$tfa_sealed = '';
+		$tfa_action = isset($_POST['tfa_action']) ? (string) $_POST['tfa_action'] : '';
+		$tfa_code = isset($_POST['tfa_code']) ? pun_trim($_POST['tfa_code']) : '';
+
+		if ($tfa_action != '')
+		{
+			confirm_referrer('profile.php');
+			check_csrf($_POST['csrf_token'] ?? null);
+		}
+
+		// Start: a fresh secret, sealed for the round trip to the confirm POST.
+		// Nothing is stored until a code proves the app has the same secret.
+		if ($tfa_action == 'start' && $tfa_row === null)
+		{
+			$tfa_secret = tfa_new_secret();
+			$tfa_sealed = tfa_seal($id, $tfa_secret);
+		}
+		else if ($tfa_action == 'confirm' && $tfa_row === null)
+		{
+			$tfa_secret = tfa_unseal(isset($_POST['tfa_seal']) ? $_POST['tfa_seal'] : '', $id);
+
+			if ($tfa_secret === false)
+				$tfa_errors[] = $lang_profile['Tfa setup expired'];
+			else
+			{
+				$used_slot = null;
+				if (tfa_verify($tfa_secret, $tfa_code, 0, $used_slot))
+				{
+					tfa_enable($id, $tfa_secret, $used_slot);
+					$tfa_row = tfa_row($id);
+					$tfa_codes = tfa_gen_backup($id);
+				}
+				else
+				{
+					// Hand the same sealed secret back so they can simply try
+					// the next code rather than start the pairing again
+					$tfa_errors[] = $lang_profile['Tfa wrong code'];
+					$tfa_sealed = tfa_seal($id, $tfa_secret);
+				}
+			}
+		}
+		else if ($tfa_action == 'disable' && $tfa_row !== null)
+		{
+			if (tfa_check_code($tfa_row, $tfa_code))
+			{
+				tfa_disable($id);
+				redirect('profile.php?section=security&id='.$id, $lang_profile['Tfa disabled redirect']);
+			}
+			else
+				$tfa_errors[] = $lang_profile['Tfa wrong code'];
+		}
+		else if ($tfa_action == 'regen' && $tfa_row !== null)
+		{
+			if (tfa_check_code($tfa_row, $tfa_code))
+			{
+				$tfa_codes = tfa_gen_backup($id);
+				$tfa_row = tfa_row($id);
+			}
+			else
+				$tfa_errors[] = $lang_profile['Tfa wrong code'];
+		}
+
+		$page_title = array(pun_htmlspecialchars($pun_config['o_board_title']), $lang_common['Profile'], $lang_profile['Section security']);
+		define('PUN_ACTIVE_PAGE', 'profile');
+		require PUN_ROOT.'header.php';
+
+		generate_profile_menu('security');
+
+		if (!empty($tfa_errors))
+		{
+?>
+	<div id="posterror" class="block">
+		<h2><span><?php echo $lang_profile['Tfa legend'] ?></span></h2>
+		<div class="box">
+			<div class="inbox error-info">
+				<ul>
+<?php foreach ($tfa_errors as $tfa_error): ?>					<li><strong><?php echo $tfa_error ?></strong></li>
+<?php endforeach; ?>				</ul>
+			</div>
+		</div>
+	</div>
+<?php
+		}
+
+?>
+	<div class="blockform">
+		<h2><span><?php echo pun_htmlspecialchars($user['username']).' - '.$lang_profile['Section security'] ?></span></h2>
+		<div class="box">
+<?php if (!empty($tfa_codes)): ?>			<div class="inform">
+				<fieldset>
+					<legend><?php echo $lang_profile['Tfa backup legend'] ?></legend>
+					<div class="infldset">
+						<p><?php echo $lang_profile['Tfa backup info'] ?></p>
+						<p><?php foreach ($tfa_codes as $tfa_one_code): ?><code><?php echo pun_htmlspecialchars($tfa_one_code) ?></code>&nbsp; <?php endforeach; ?></p>
+					</div>
+				</fieldset>
+			</div>
+<?php endif; ?>
+<?php if ($tfa_row === null && $tfa_sealed == ''): ?>			<form method="post" action="profile.php?section=security&amp;id=<?php echo $id ?>">
+				<input type="hidden" name="tfa_action" value="start" />
+				<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
+				<div class="inform">
+					<fieldset>
+						<legend><?php echo $lang_profile['Tfa legend'] ?></legend>
+						<div class="infldset">
+							<p><?php echo $lang_profile['Tfa off info'] ?></p>
+						</div>
+					</fieldset>
+				</div>
+				<p class="buttons"><input type="submit" value="<?php echo $lang_profile['Tfa start'] ?>" /></p>
+			</form>
+<?php elseif ($tfa_row === null): ?>			<form method="post" action="profile.php?section=security&amp;id=<?php echo $id ?>">
+				<input type="hidden" name="tfa_action" value="confirm" />
+				<input type="hidden" name="tfa_seal" value="<?php echo pun_htmlspecialchars($tfa_sealed) ?>" />
+				<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
+				<div class="inform">
+					<fieldset>
+						<legend><?php echo $lang_profile['Tfa scan legend'] ?></legend>
+						<div class="infldset">
+							<p><?php echo $lang_profile['Tfa scan info'] ?> <code><?php echo pun_htmlspecialchars($tfa_secret) ?></code></p>
+							<div id="tfa-qr"></div>
+							<label class="required"><strong><?php echo $lang_profile['Tfa code'] ?> <span><?php echo $lang_common['Required'] ?></span></strong><br /><input type="text" name="tfa_code" size="12" maxlength="12" autocomplete="one-time-code" inputmode="numeric" /><br /></label>
+						</div>
+					</fieldset>
+				</div>
+				<p class="buttons"><input type="submit" value="<?php echo $lang_profile['Tfa confirm'] ?>" /> <a href="profile.php?section=security&amp;id=<?php echo $id ?>"><?php echo $lang_profile['Tfa cancel'] ?></a></p>
+			</form>
+			<script src="js/qr.js"></script>
+			<script>
+				(function () {
+					var target = document.getElementById('tfa-qr');
+					if (!target || typeof qrcode !== 'function')
+						return;
+					var qr = qrcode(0, 'M');
+					qr.addData(<?php echo json_encode(tfa_otpauth_uri($user['username'], $tfa_secret), JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_UNESCAPED_SLASHES) ?>);
+					qr.make();
+					target.innerHTML = qr.createImgTag(4, 8);
+				})();
+			</script>
+<?php else: ?>			<div class="inform">
+				<fieldset>
+					<legend><?php echo $lang_profile['Tfa legend'] ?></legend>
+					<div class="infldset">
+						<p><?php echo $lang_profile['Tfa on info'] ?></p>
+						<p><?php echo sprintf($lang_profile['Tfa enabled since'], format_time($tfa_row['enabled_at'])) ?> <?php echo sprintf($lang_profile['Tfa backup left'], tfa_backup_count($id)) ?></p>
+					</div>
+				</fieldset>
+			</div>
+			<form method="post" action="profile.php?section=security&amp;id=<?php echo $id ?>">
+				<input type="hidden" name="tfa_action" value="regen" />
+				<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
+				<div class="inform">
+					<fieldset>
+						<legend><?php echo $lang_profile['Tfa regen'] ?></legend>
+						<div class="infldset">
+							<p><?php echo $lang_profile['Tfa regen info'] ?></p>
+							<label class="required"><strong><?php echo $lang_profile['Tfa code'] ?> <span><?php echo $lang_common['Required'] ?></span></strong><br /><input type="text" name="tfa_code" size="12" maxlength="12" autocomplete="one-time-code" inputmode="numeric" /><br /><span><?php echo $lang_profile['Tfa code required'] ?></span></label>
+						</div>
+					</fieldset>
+				</div>
+				<p class="buttons"><input type="submit" value="<?php echo $lang_profile['Tfa regen'] ?>" /></p>
+			</form>
+			<form method="post" action="profile.php?section=security&amp;id=<?php echo $id ?>">
+				<input type="hidden" name="tfa_action" value="disable" />
+				<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
+				<div class="inform">
+					<fieldset>
+						<legend><?php echo $lang_profile['Tfa disable'] ?></legend>
+						<div class="infldset">
+							<label class="required"><strong><?php echo $lang_profile['Tfa code'] ?> <span><?php echo $lang_common['Required'] ?></span></strong><br /><input type="text" name="tfa_code" size="12" maxlength="12" autocomplete="one-time-code" inputmode="numeric" /><br /><span><?php echo $lang_profile['Tfa code required'] ?></span></label>
+						</div>
+					</fieldset>
+				</div>
+				<p class="buttons"><input type="submit" value="<?php echo $lang_profile['Tfa disable'] ?>" /></p>
+			</form>
+<?php endif; ?>		</div>
+	</div>
+<?php
+
+		require PUN_ROOT.'footer.php';
+	}
+
+
 	else if ($section == 'admin')
 	{
 		if (!$pun_user['is_admmod'] || ($pun_user['g_moderator'] == '1' && $pun_user['g_mod_ban_users'] == '0'))
 			message($lang_common['Bad request'], false, '403 Forbidden');
+
+		// Staff can switch a member's two-factor OFF - for the member who has
+		// lost both their phone and their backup codes - but never on. Turning
+		// it on requires proving the authenticator app holds the secret, which
+		// only the member can do.
+		require PUN_ROOT.'include/tfa.php';
+
+		if (isset($_POST['tfa_reset']))
+		{
+			confirm_referrer('profile.php');
+			check_csrf(isset($_POST['csrf_token']) ? $_POST['csrf_token'] : null);
+
+			tfa_disable($id);
+			redirect('profile.php?section=admin&id='.$id, $lang_profile['Tfa staff reset redirect']);
+		}
+
+		$tfa_staff_row = tfa_row($id);
+
 
 		$page_title = array(pun_htmlspecialchars($pun_config['o_board_title']), $lang_common['Profile'], $lang_profile['Section admin']);
 
@@ -1898,6 +2113,19 @@ else
 		}
 
 ?>
+			</form>
+			<form method="post" action="profile.php?section=admin&amp;id=<?php echo $id ?>">
+				<input type="hidden" name="csrf_token" value="<?php echo pun_csrf_token() ?>" />
+				<div class="inform">
+					<fieldset>
+						<legend><?php echo $lang_profile['Tfa staff legend'] ?></legend>
+						<div class="infldset">
+							<p><?php echo ($tfa_staff_row !== null) ? $lang_profile['Tfa staff on'] : $lang_profile['Tfa staff off'] ?></p>
+<?php if ($tfa_staff_row !== null): ?>							<p><?php echo $lang_profile['Tfa staff reset info'] ?></p>
+							<p><input type="submit" name="tfa_reset" value="<?php echo $lang_profile['Tfa staff reset'] ?>" /></p>
+<?php endif; ?>						</div>
+					</fieldset>
+				</div>
 			</form>
 <?php flux_hook('profile_admin_after_form') ?>
 		</div>
