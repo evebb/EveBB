@@ -3,6 +3,11 @@
 2.0.0 stable shipped on 2026-07-22, so the freeze is over and this queue
 is live. Roughly in priority order; nothing here is a promise.
 
+**How 2.1 is built (Alan, 2026-08-10):** everything lands together, not a
+piece at a time. Work happens on the **2.1-dev** branch and main stays
+untouched until 2.1 is tested, at which point the branch squashes into a
+single commit. Do not commit 2.1 feature work to main.
+
 ## 1. `[noparse]` BBCode
 
 Escape hatch for posting BBCode literally (documentation, support
