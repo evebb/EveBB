@@ -331,7 +331,20 @@ Decisions (Alan, 2026-08-10):
   useful. Built so that section 3 (attachments) REUSES it rather than
   growing a second uploader: one validated store, one delivery path.
 - **A page may replace the forum index as the homepage** (optional). This
-  is what makes it a site rather than a forum with extra tabs.
+  is what makes it a site rather than a forum with extra tabs. The
+  mechanics are settled: **the forum stays at index.php and the site
+  takes "/"** - no redirects, no rewritten URLs, and every existing
+  bookmark to index.php keeps working. evebb.net already runs exactly
+  this shape with a hand-written landing page (Apache DirectoryIndex
+  prefers index.html; the forum is index.php).
+  ⚠️ But DirectoryIndex is Apache-only, and eveBB Hosted's droplets and
+  the DigitalOcean one-click images run **nginx**, so core cannot depend
+  on it. Core must reach the same outcome in PHP - index.php itself
+  renders the chosen page, with the forum listing moved to a known URL -
+  and document the DirectoryIndex arrangement as the neater alternative
+  where Apache is available. A board on shared Apache hosting and a
+  board on nginx both get a static homepage, and neither needs server
+  config access.
 
 Deliberately NOT ported from Wren, because eveBB already has it:
 
@@ -373,13 +386,13 @@ Open questions for build time:
   is BBCode the only input? Raw HTML from an admin is a smaller risk than
   from a member, but it is still an XSS surface and it breaks the "one
   syntax" promise.
-- When a page takes over the homepage, where does the forum index live,
-  and what happens to every existing link and bookmark pointing at
-  index.php? This is the single biggest compatibility question in the
-  item.
 - Pretty URLs (/about) or query slugs (page.php?slug=about) first?
 - Does an article's linked topic get created eagerly on publish, or
   lazily on the first comment?
+
+Once this ships, evebb.net's own landing page is the obvious first
+customer: today it is a hand-maintained 235KB index.html that Alan
+deploys by FTP, entirely outside the board that sits behind it.
 
 Testing: page CRUD and slug uniqueness, draft invisibility to guests,
 per-group visibility, the homepage swap and what it does to canonical
