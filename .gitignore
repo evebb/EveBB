@@ -11,3 +11,8 @@
 /img/avatars/*.jpg
 /img/avatars/*.gif
 /config.php
+
+# Test databases left behind by the e2e suites
+/evebb_e2e
+/evebb_test
+*.sqlite

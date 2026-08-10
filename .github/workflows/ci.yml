@@ -133,3 +133,6 @@ jobs:
 
       - name: Install defaults end-to-end test
         run: ./tests/e2e/install-defaults-test.sh
+
+      - name: Mail transport end-to-end test
+        run: ./tests/e2e/mail-test.sh

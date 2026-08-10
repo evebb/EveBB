@@ -112,6 +112,36 @@ class TestCase
 			$this->failWith($message, 'Failed asserting that '.self::toStr($actual).' is greater than '.self::toStr($expected));
 	}
 
+	public function assertLessThan($expected, $actual, string $message = ''): void
+	{
+		if (!($actual < $expected))
+			$this->failWith($message, 'Failed asserting that '.self::toStr($actual).' is less than '.self::toStr($expected));
+	}
+
+	public function assertLessThanOrEqual($expected, $actual, string $message = ''): void
+	{
+		if (!($actual <= $expected))
+			$this->failWith($message, 'Failed asserting that '.self::toStr($actual).' is equal to or less than '.self::toStr($expected));
+	}
+
+	public function assertGreaterThanOrEqual($expected, $actual, string $message = ''): void
+	{
+		if (!($actual >= $expected))
+			$this->failWith($message, 'Failed asserting that '.self::toStr($actual).' is equal to or greater than '.self::toStr($expected));
+	}
+
+	public function assertNotEmpty($actual, string $message = ''): void
+	{
+		if (empty($actual))
+			$this->failWith($message, 'Failed asserting that '.self::toStr($actual).' is not empty');
+	}
+
+	public function assertEmpty($actual, string $message = ''): void
+	{
+		if (!empty($actual))
+			$this->failWith($message, 'Failed asserting that '.self::toStr($actual).' is empty');
+	}
+
 	public function assertCount(int $expected, $haystack, string $message = ''): void
 	{
 		$count = is_array($haystack) || $haystack instanceof \Countable ? count($haystack) : -1;

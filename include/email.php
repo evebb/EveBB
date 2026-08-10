@@ -60,6 +60,38 @@ function encode_mail_text($str)
 
 
 //
+// Encode a message body as quoted-printable
+//
+// SMTP limits how long a single line may be: RFC 5321 puts the hard cap at
+// 998 octets and real receivers enforce their own (Exim commonly rejects at
+// 2048). The board's own templates are short, but new_reply_full.tpl and
+// new_topic_full.tpl embed the post itself, and the wordwrap() in
+// bbcode2email() will not break a single long "word" - so one pasted URL or
+// base64 blob in a post is enough to push a line past the limit and have the
+// whole notification rejected in transport, silently, long after pun_mail()
+// has returned.
+//
+// Quoted-printable soft-wraps at 76 octets and round-trips byte for byte, so
+// the recipient still sees exactly what was posted.
+//
+function encode_mail_body($message, $EOL = "\r\n")
+{
+	// Strip NULL bytes and normalise every line ending to CRLF, which is what
+	// the encoder (and the RFC) expects for a hard line break
+	$message = str_replace("\0", '', $message);
+	$message = preg_replace('%\r\n|\r|\n%', "\r\n", $message);
+
+	$message = quoted_printable_encode($message);
+
+	// The local mailer takes the system line ending, as its headers do
+	if ($EOL !== "\r\n")
+		$message = str_replace("\r\n", $EOL, $message);
+
+	return $message;
+}
+
+
+//
 // Make a post email safe
 //
 function bbcode2email($text, $wrap_length = 72)
@@ -237,7 +269,7 @@ function pun_mail($to, $subject, $message, $reply_to_email = '', $reply_to_name 
 	$from = '"'.encode_mail_text($from_name).'" <'.$from_email.'>';
 	$subject = encode_mail_text($subject);
 
-	$headers = 'From: '.$from.$EOL.'Date: '.gmdate('r').$EOL.'MIME-Version: 1.0'.$EOL.'Content-transfer-encoding: 8bit'.$EOL.'Content-type: text/plain; charset=utf-8'.$EOL.'X-Mailer: eveBB Mailer';
+	$headers = 'From: '.$from.$EOL.'Date: '.gmdate('r').$EOL.'MIME-Version: 1.0'.$EOL.'Content-transfer-encoding: quoted-printable'.$EOL.'Content-type: text/plain; charset=utf-8'.$EOL.'X-Mailer: eveBB Mailer';
 
 	// If we specified a reply-to email, we deal with it here
 	if (!empty($reply_to_email))
@@ -247,9 +279,9 @@ function pun_mail($to, $subject, $message, $reply_to_email = '', $reply_to_name 
 		$headers .= $EOL.'Reply-To: '.$reply_to;
 	}
 
-	// Make sure all linebreaks are LF in message (and strip out any NULL bytes)
-	$message = str_replace("\0", '', pun_linebreaks($message));
-	$message = str_replace("\n", $EOL, $message);
+	// Encode the body so that no line can breach the transport's line limit
+	// (see encode_mail_body - a single long URL in a post is enough)
+	$message = encode_mail_body(pun_linebreaks($message), $EOL);
 	
 	$mailer = $smtp ? 'smtp_mail' : 'mail';
 	$mailer($to, $subject, $message, $headers);
