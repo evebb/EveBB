@@ -55,6 +55,8 @@ The bundled `tests/lite` runner is PHPUnit-API-compatible; the same test files r
 
 eveBB is free software released under the [GNU GPL, version 2 or later](https://www.gnu.org/licenses/gpl.html).
 
+eveBB is developed and maintained by Alan Paynter at 49 Systems (https://49systems.co.uk). eveBB's own additions and changes are copyright (C) 2026 Forty Nine Systems Ltd.
+
 It is based on FluxBB, copyright (C) 2008–2012 the FluxBB team, which was in turn based on PunBB, copyright (C) 2002–2008 Rickard Andersson. All original copyright notices are retained in the source files. Thanks to both projects for two decades of lean forum software.
 
 ### Third-party components and credits
