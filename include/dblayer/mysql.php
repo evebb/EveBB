@@ -3,6 +3,7 @@
 /**
  * Copyright (C) 2008-2012 FluxBB
  * based on code by Rickard Andersson copyright (C) 2002-2008 PunBB
+ * Modified for eveBB; modifications copyright (C) 2026 Forty Nine Systems Ltd
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  *
  * MySQL driver on top of PDO. Schema SQL matches the legacy mysqli

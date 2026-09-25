@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2026 eveBB
+ * Copyright (C) 2026 Forty Nine Systems Ltd
  * based on FluxBB, copyright (C) 2008-2012 FluxBB
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  *

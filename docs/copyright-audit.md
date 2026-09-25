@@ -30,7 +30,7 @@ declares `GPL-2.0-or-later` and credits the FluxBB and PunBB authors.
 
 **eveBB-original code.** Files written new for this project (e.g.
 `include/captcha.php`, `include/update.php`, `include/countries.php`, the PDO
-database drivers, the test suites) are marked `Copyright (C) 2026 eveBB` and
+database drivers, the test suites) are marked `Copyright (C) 2026 Forty Nine Systems Ltd` and
 licensed GPL v2+, the same as the project. The country list in
 `include/countries.php` is a list of factual names, not a copyrightable work.
 

@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2026 eveBB
+ * Copyright (C) 2026 Forty Nine Systems Ltd
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  *
  * Style management library for the style manager (admin_styles.php).

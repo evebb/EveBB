@@ -6,7 +6,7 @@
  * Decodes the sealed token supplied in ?t= and renders the matching PNG.
  * Stateless: nothing is read from or written to the session or database.
  *
- * Copyright (C) 2026 eveBB
+ * Copyright (C) 2026 Forty Nine Systems Ltd
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  */
 

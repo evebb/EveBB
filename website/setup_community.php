@@ -15,7 +15,7 @@
  * It is safe to run more than once: existing categories, forums and groups
  * are matched by name and reused, never duplicated.
  *
- * Copyright (C) 2026 eveBB
+ * Copyright (C) 2026 Forty Nine Systems Ltd
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  */
 

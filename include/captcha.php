@@ -11,7 +11,7 @@
  * from the site's secret $cookie_seed, a client can neither read nor forge a
  * challenge, and a captured token stops working after it expires.
  *
- * Copyright (C) 2026 eveBB
+ * Copyright (C) 2026 Forty Nine Systems Ltd
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  */
 

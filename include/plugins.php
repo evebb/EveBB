@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2026 eveBB
+ * Copyright (C) 2026 Forty Nine Systems Ltd
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  *
  * Plugin management library for the WordPress-style plugin manager
